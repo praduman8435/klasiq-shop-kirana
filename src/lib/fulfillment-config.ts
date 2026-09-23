@@ -60,10 +60,10 @@ export const FULFILLMENT_CONFIG = {
    * docs/PHASE_3_3_REPORT.md Part 2 "Architecture debt". Not implementing
    * multi-store now.
    *
-   * Source: Milan Readymade & General Store,
-   * https://maps.app.goo.gl/ZdogcBAuFPhCApXN9 */
-  shopLatitude: envFloat("SHOP_LATITUDE", 25.9579568),
-  shopLongitude: envFloat("SHOP_LONGITUDE", 83.2697821),
+   * Source: Muskan General Store (Google Maps pin),
+   * https://maps.app.goo.gl/rXQgWhNoQceUy3ch6 */
+  shopLatitude: envFloat("SHOP_LATITUDE", 26.0329454),
+  shopLongitude: envFloat("SHOP_LONGITUDE", 83.1494211),
   serviceableAreaNote:
     process.env.DELIVERY_SERVICEABLE_AREA_NOTE ??
     "We currently deliver within a few kilometres of the store. If you're unsure we cover your area, choose Store Pickup or call us.",

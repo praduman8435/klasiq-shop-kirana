@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { MapPin } from "lucide-react";
 import { getHeaderCategories } from "@/server/queries/categories";
 import { getSearchSuggestions } from "@/server/queries/products";
 import { MobileNav } from "@/components/site/mobile-nav";
@@ -10,18 +9,9 @@ import { BRAND, STORE_CONTACT } from "@/lib/constants";
 import { basketItemCount, getBasket } from "@/lib/basket";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
 
-/** The one-line "how you get it" under the wordmark — only what config
- * says the store actually offers, never an invented delivery time. */
-function getFulfilmentLine(): string {
-  const { pickupEnabled, deliveryEnabled } = FULFILLMENT_CONFIG;
-  if (pickupEnabled && deliveryEnabled) return "Home delivery & store pickup";
-  if (deliveryEnabled) return "Local home delivery";
-  return "Order online, pick up at the store";
-}
-
 /**
- * The app header: a solid Klasiq-red band with the wordmark, the store's
- * fulfilment line, Track and the cart — and the rounded search bar, which
+ * The app header: a solid Klasiq-red band with the wordmark, Track and
+ * the cart — and the rounded search bar, which
  * is sticky with the header on every page because search is how this
  * store's customers shop. On desktop the search sits inline in the top
  * row; on phones it takes its own full-width row.
@@ -41,7 +31,6 @@ export async function SiteHeader({ storeName }: { storeName: string }) {
           bagCount={basketItemCount(basket)}
           wordmark={BRAND.wordmark}
           store={{
-            fulfilmentLine: getFulfilmentLine(),
             serviceableAreaNote: FULFILLMENT_CONFIG.serviceableAreaNote,
             phone: STORE_CONTACT.phone,
             phoneHref: STORE_CONTACT.phoneHref,
@@ -57,10 +46,6 @@ export async function SiteHeader({ storeName }: { storeName: string }) {
           <span className="block text-2xl font-black leading-none tracking-[-0.01em]">
             {BRAND.wordmark}
             <span className="text-foreground">.</span>
-          </span>
-          <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-primary-foreground/85">
-            <MapPin className="size-3 shrink-0" strokeWidth={2.5} aria-hidden />
-            <span className="truncate">{getFulfilmentLine()}</span>
           </span>
         </Link>
 

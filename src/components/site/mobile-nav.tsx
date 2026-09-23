@@ -10,8 +10,6 @@ import { getCategoryIcon } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
 
 export type MobileNavStore = {
-  /** e.g. "Home delivery & store pickup" — derived from config server-side. */
-  fulfilmentLine: string;
   /** The store's own "where do we deliver" note, from config. */
   serviceableAreaNote: string;
   phone: string;
@@ -82,16 +80,10 @@ export function MobileNav({
         className="store-theme gap-0 data-[side=left]:w-[88vw] data-[side=left]:max-w-xs overflow-y-auto overscroll-contain border-r-0 bg-card p-0"
       >
         <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-card px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
-          <div className="min-w-0">
-            <SheetTitle className="text-xl font-black leading-none tracking-[-0.01em] text-foreground">
-              {wordmark}
-              <span className="text-primary">.</span>
-            </SheetTitle>
-            <p className="mt-1 flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
-              <MapPin className="size-3 shrink-0" aria-hidden />
-              <span className="truncate">{store.fulfilmentLine}</span>
-            </p>
-          </div>
+          <SheetTitle className="text-xl font-black leading-none tracking-[-0.01em] text-foreground">
+            {wordmark}
+            <span className="text-primary">.</span>
+          </SheetTitle>
           <SheetClose
             render={
               <button

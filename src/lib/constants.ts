@@ -20,10 +20,10 @@ export const BRAND = {
    * "Heritage claims". Update only when a specific founding year is
    * explicitly confirmed for production copy. */
   heritageLine: "Serving local families for around 30 years.",
-  /** The physical retail businesses Klasiq's catalog and fulfillment are
-   * backed by. Referenced sparingly (About/footer/trust areas), never as
-   * the primary brand on every screen. */
-  legacyStoreNames: ["Milan Readymade & General Store", "Shubham Vashtralaya"] as const,
+  /** The physical store Klasiq's catalogue and fulfilment are backed by —
+   * where pickup orders are collected. Referenced sparingly (footer,
+   * pickup instructions, invoices), never as the primary brand. */
+  legacyStoreNames: ["Muskan General Store"] as const,
 } as const;
 
 export const ADMIN_BRAND_NAME = `${BRAND.name} Admin`;
@@ -38,12 +38,13 @@ export const ADMIN_BRAND_NAME = `${BRAND.name} Admin`;
 export const STORE_CONTACT = {
   phone: "8542843482",
   phoneHref: "tel:8542843482",
-  mapsUrl: "https://maps.app.goo.gl/gz4n7NiTXV6Yw3G4A",
+  mapsUrl: "https://maps.app.goo.gl/rXQgWhNoQceUy3ch6",
 } as const;
 
-/** "Backed by X and Y" — built from legacyStoreNames so the wording only
- * needs to change in one place if the backing stores ever change. */
+/** "Backed by X" (or "X and Y") — built from legacyStoreNames so the
+ * wording only needs to change in one place if the backing store changes. */
 export function getBackedByLine(): string {
-  const [first, second] = BRAND.legacyStoreNames;
-  return `Backed by ${first} and ${second}`;
+  const names: readonly string[] = BRAND.legacyStoreNames;
+  const joined = names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
+  return `Backed by ${joined}`;
 }

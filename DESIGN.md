@@ -138,7 +138,7 @@ Mobile first: the reference device is a ~390px Android phone in daylight. Light 
 
 ### Key characteristics
 
-- A solid Klasiq-red app header with the KLASIQ wordmark, a fulfilment line and a sticky rounded search bar on every page.
+- A solid Klasiq-red app header with the KLASIQ wordmark and a sticky rounded search bar on every page.
 - White rounded product tiles on a near-white ground; an ADD button that becomes an in-place − n + stepper.
 - Swipeable rows (banners, shelves, aisle chips) with native scroll-snap and the next item peeking in.
 - A floating red cart bar in the thumb zone once the bag has items.
@@ -169,7 +169,7 @@ In Stock green, Low Stock amber and Error red are text colours only (stock label
 
 **The One Action Colour Rule.** Klasiq Red means "tap here" or "this is the brand". Secondary actions are white with a hairline border; there is no second action colour.
 
-**The Truth Rule.** Banner copy comes from `FULFILLMENT_CONFIG` only (free-delivery radius and threshold, pickup, pay on delivery). Discount badges and struck-through MRPs appear only when a pack's price is genuinely below its MRP. No delivery ETAs, ratings or invented offers.
+**The Truth Rule.** Banners are the store's own words, written and scheduled by the owner in /admin/banners (the three starting banners describe real fulfilment facts). Discount badges and struck-through MRPs appear only when a pack's price is genuinely below its MRP. No invented delivery ETAs, ratings or offers.
 
 ## Typography
 
@@ -207,7 +207,7 @@ Rounded, friendly corners: 8px controls (ADD/stepper), 12px fields and buttons, 
 
 ### Header (`src/components/site/header.tsx`)
 
-Solid red band, sticky. Row 1: menu (phones), wordmark with the fulfilment line under it ("Home delivery & store pickup", from config), Track Orders, and a white Bag tab with an ink count badge that pops when the count changes. Row 2 on phones (inline on desktop): the search bar.
+Solid red band, sticky. Row 1: menu (phones), the KLASIQ wordmark alone, Track Orders, and a white Bag tab with an ink count badge that pops when the count changes. Row 2 on phones (inline on desktop): the search bar.
 
 ### Search bar (`search-bar.tsx`)
 
@@ -221,9 +221,9 @@ White 16px tile: square image slot (photo or category-icon placeholder), discoun
 
 Outlined red ADD; once in the bag, a filled red − n + stepper in the same spot. Optimistic (`useOptimistic`); the `setVariantQuantity` server action revalidates the layout, which re-supplies true quantities via `BasketQuantitiesProvider`. Stock and the 20-per-line cap are enforced server-side; + disables at the limit.
 
-### Banner carousel (`src/components/home/promo-carousel.tsx`)
+### Banners (`promo-carousel.tsx`, `promo-banner-card.tsx`, `/admin/banners`)
 
-Three tones — red, ink, soft red — each with a large corner icon disc, a title, one line of body, and an optional CTA.
+Managed from the admin panel: title, optional text, colour (red, black, light), a corner picture (delivery, store, payment, offer, festival, fresh), an optional button that links to a page on this store, show/hide, order, and an optional India-time schedule. The homepage shows every live banner in admin order and hides the row when there are none. `PromoBannerCard` is shared by the storefront and the admin preview, so the preview is exact. Text keeps clear of the corner picture at every width.
 
 ### Cart bar (`mobile-bag-bar.tsx`, and the bag page's checkout bar)
 
@@ -240,7 +240,7 @@ Small and functional: the bag count "pops" (280ms) when it changes, search sugge
 ## Do's and Don'ts
 
 - **Do** keep red for actions and brand moments only.
-- **Do** build banner copy from config, never marketing invention.
+- **Do** keep banner copy to things the store actually offers — banners are written by the owner in /admin/banners.
 - **Do** keep 44px+ tap targets for primary actions and 16px input text.
 - **Don't** add a second search box to a page — the header search is always there.
 - **Don't** lowercase or restyle the KLASIQ wordmark.

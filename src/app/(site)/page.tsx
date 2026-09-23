@@ -1,11 +1,10 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PromoCarousel, type PromoSlide } from "@/components/home/promo-carousel";
+import { PromoCarousel } from "@/components/home/promo-carousel";
 import { ProductShelf } from "@/components/home/product-shelf";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { BRAND } from "@/lib/constants";
-import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
-import { formatPaise } from "@/lib/money";
+import { getActivePromoBanners } from "@/server/queries/banners";
 import { getCategoryProducts, getHeaderCategories } from "@/server/queries/categories";
 
 export const metadata: Metadata = {
@@ -14,54 +13,14 @@ export const metadata: Metadata = {
 
 const SHELF_SIZE = 12;
 
-/** Banner slides from live config only — every line is a fact the store
- * stands behind (delivery radius/threshold, pickup, payment), never an
- * invented offer or delivery time. */
-function getPromoSlides(firstAisleHref: string): PromoSlide[] {
-  const { deliveryEnabled, pickupEnabled, freeDeliveryRadiusMeters, freeDeliveryThresholdInPaise } =
-    FULFILLMENT_CONFIG;
-  const km = freeDeliveryRadiusMeters / 1000;
-  const radius = Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
-  const slides: PromoSlide[] = [];
-
-  if (deliveryEnabled) {
-    slides.push({
-      id: "free-delivery",
-      title: `Free delivery within ${radius}`,
-      body: `Further away? Still free on orders above ${formatPaise(freeDeliveryThresholdInPaise)}.`,
-      cta: { label: "Start shopping", href: firstAisleHref },
-      icon: "delivery",
-      tone: "red",
-    });
-  }
-  if (pickupEnabled) {
-    slides.push({
-      id: "pickup",
-      title: "Order now, pick up at the store",
-      body: "Your order is packed and waiting at the counter when you arrive.",
-      cta: { label: "Browse aisles", href: "#categories-heading" },
-      icon: "pickup",
-      tone: "ink",
-    });
-  }
-  slides.push({
-    id: "payment",
-    title: "Pay when it reaches you",
-    body: "Cash on delivery, or pay at the store. No card or online payment needed.",
-    icon: "payment",
-    tone: "soft",
-  });
-  return slides;
-}
-
 /**
  * Homepage, built to the quick-commerce standard (Blinkit/Zepto craft bar)
- * in Klasiq red and black: swipeable fact banners, a
+ * in Klasiq red and black: swipeable banners (managed in /admin/banners), a
  * shop-by-category tile grid, then one swipeable shelf per aisle. Search
  * lives in the sticky header, so the page opens straight onto products.
  */
 export default async function HomePage() {
-  const categories = await getHeaderCategories();
+  const [categories, banners] = await Promise.all([getHeaderCategories(), getActivePromoBanners()]);
   const shelves = (
     await Promise.all(
       categories.map(async (category) => ({
@@ -70,14 +29,13 @@ export default async function HomePage() {
       })),
     )
   ).filter((shelf) => shelf.products.length > 0);
-  const firstAisleHref = categories[0] ? `/${categories[0].slug}` : "/search";
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-7 px-4 pb-10 pt-4 sm:gap-10 sm:px-6 sm:pt-6">
       {/* The page's one heading, for screen readers and search engines —
           visually the red header's wordmark already names the store. */}
       <h1 className="sr-only">{BRAND.name} — groceries and daily essentials</h1>
-      <PromoCarousel slides={getPromoSlides(firstAisleHref)} />
+      {banners.length > 0 && <PromoCarousel slides={banners} />}
 
       {categories.length > 0 && (
         <section aria-labelledby="categories-heading" className="scroll-mt-32">
