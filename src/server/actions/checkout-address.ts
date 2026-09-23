@@ -1,7 +1,12 @@
 "use server";
 
 import { basketTotalInPaise, getBasket } from "@/lib/basket";
-import { calculateDeliveryFee, FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
+import {
+  calculateDeliveryFee,
+  deliveryOutOfRangeMessage,
+  FULFILLMENT_CONFIG,
+  isBeyondDeliveryRange,
+} from "@/lib/fulfillment-config";
 import {
   deliveryAddressSearchSchema,
   deliveryFeePreviewSchema,
@@ -49,7 +54,7 @@ export type PreviewDeliveryFeeResult =
     }
   | {
       success: false;
-      error: { type: "VALIDATION" | "EMPTY_BASKET" | GeoapifyErrorType; message: string };
+      error: { type: "VALIDATION" | "EMPTY_BASKET" | "OUT_OF_RANGE" | GeoapifyErrorType; message: string };
     };
 
 /**
@@ -86,6 +91,16 @@ export async function previewDeliveryFeeAction(
         type: routeResult.error.type,
         message:
           "We couldn't verify delivery distance right now. Please try again or choose Store Pickup.",
+      },
+    };
+  }
+
+  if (isBeyondDeliveryRange(routeResult.distanceMeters, FULFILLMENT_CONFIG.maxDeliveryDistanceMeters)) {
+    return {
+      success: false,
+      error: {
+        type: "OUT_OF_RANGE",
+        message: deliveryOutOfRangeMessage(routeResult.distanceMeters, FULFILLMENT_CONFIG.maxDeliveryDistanceMeters),
       },
     };
   }

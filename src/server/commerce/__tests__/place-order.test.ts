@@ -617,6 +617,42 @@ describe("placeOrderForBasket — Local Delivery, Geoapify integration", () => {
   });
 });
 
+describe("placeOrderForBasket — maximum delivery distance", () => {
+  it("refuses a delivery past the limit, creating no order and leaving stock untouched", async () => {
+    const { variant } = await createTestVariant({ priceInPaise: 30000, stockQuantity: 5 });
+    const basket = await createTestBasket();
+    await addBasketItem(basket.id, variant.id, 1, 30000);
+    mockedCalculateRouteDistanceMeters.mockResolvedValueOnce({ success: true, distanceMeters: 12400 });
+
+    const input = deliveryInput({ destinationLat: 26.2, destinationLon: 83.6, expectedDeliveryFeeInPaise: 5000 });
+    const result = await placeOrderForBasket(basket.id, input);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.type).toBe("OUT_OF_RANGE");
+      expect(result.error.message).toMatch(/12\.4 km away.*beyond 10 km/);
+    }
+    expect(await db.order.count({ where: { idempotencyKey: input.idempotencyKey } })).toBe(0);
+    expect((await db.productVariant.findUniqueOrThrow({ where: { id: variant.id } })).stockQuantity).toBe(5);
+  });
+
+  it("still delivers at exactly the limit", async () => {
+    const { variant } = await createTestVariant({ priceInPaise: 30000, stockQuantity: 5 });
+    const basket = await createTestBasket();
+    await addBasketItem(basket.id, variant.id, 1, 30000);
+    mockedCalculateRouteDistanceMeters.mockResolvedValueOnce({ success: true, distanceMeters: 10000 });
+
+    const result = await placeOrderForBasket(
+      basket.id,
+      deliveryInput({ destinationLat: 26.1, destinationLon: 83.4, expectedDeliveryFeeInPaise: 5000 }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      createdOrderIds.push((await db.order.findUniqueOrThrow({ where: { orderNumber: result.orderNumber } })).id);
+    }
+  });
+});
+
 describe("placeOrderForBasket — idempotency and basket conversion", () => {
   it("returns the same order on a repeated submission with the same idempotency key", async () => {
     const { variant } = await createTestVariant({ priceInPaise: 35000, stockQuantity: 10 });

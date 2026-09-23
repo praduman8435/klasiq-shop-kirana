@@ -1,5 +1,10 @@
 import { db } from "@/lib/db";
-import { calculateDeliveryFee, FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
+import {
+  calculateDeliveryFee,
+  deliveryOutOfRangeMessage,
+  FULFILLMENT_CONFIG,
+  isBeyondDeliveryRange,
+} from "@/lib/fulfillment-config";
 import { isUniqueConstraintErrorOn } from "@/lib/prisma-errors";
 import type { CheckoutInput } from "@/lib/validation/checkout";
 import {
@@ -24,6 +29,10 @@ export type PlaceOrderError =
    * "External API failure handling". Never guesses a distance; the
    * customer is asked to retry or choose Store Pickup instead. */
   | { type: "DELIVERY_UNAVAILABLE"; message: string }
+  /** The destination is past the store's maximum delivery distance
+   * (`MAX_DELIVERY_DISTANCE_METERS`). Enforced here as well as in the
+   * checkout preview, so a crafted request can't place such an order. */
+  | { type: "OUT_OF_RANGE"; message: string }
   /** The delivery fee last shown to the customer (their preview) no longer
    * matches the server's fresh, authoritative recalculation — e.g. the
    * basket's subtotal crossed the free-delivery threshold between preview
@@ -179,6 +188,15 @@ export async function placeOrderForBasket(
           type: "DELIVERY_UNAVAILABLE",
           message:
             "We couldn't verify delivery distance right now. Please try again or choose Store Pickup.",
+        },
+      };
+    }
+    if (isBeyondDeliveryRange(routeResult.distanceMeters, FULFILLMENT_CONFIG.maxDeliveryDistanceMeters)) {
+      return {
+        success: false,
+        error: {
+          type: "OUT_OF_RANGE",
+          message: deliveryOutOfRangeMessage(routeResult.distanceMeters, FULFILLMENT_CONFIG.maxDeliveryDistanceMeters),
         },
       };
     }

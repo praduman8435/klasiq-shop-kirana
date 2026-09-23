@@ -13,6 +13,7 @@ import { DeliveryAddressSearch } from "@/components/checkout/delivery-address-se
 import { checkoutFulfillmentReducer, type FulfillmentType } from "@/lib/checkout-fulfillment-state";
 import { BRAND, STORE_CONTACT } from "@/lib/constants";
 import { formatPaise } from "@/lib/money";
+import { formatKm } from "@/lib/fulfillment-config";
 import { cn } from "@/lib/utils";
 import { placeOrder } from "@/server/actions/checkout";
 import { previewDeliveryFeeAction } from "@/server/actions/checkout-address";
@@ -100,6 +101,7 @@ export function CheckoutForm({
   const setDeliveryPreview = (next: typeof deliveryPreview) =>
     dispatchFulfillment({ type: "SET_DELIVERY_PREVIEW", deliveryPreview: next });
   const [isRefreshingQuote, setIsRefreshingQuote] = useState(false);
+  const [addressOutOfRange, setAddressOutOfRange] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
@@ -377,10 +379,9 @@ export function CheckoutForm({
           <div className="flex flex-col gap-2.5 rounded-xl border bg-secondary/30 p-3.5">
             <p className="text-xs text-muted-foreground">{fulfillment.serviceableAreaNote}</p>
             <p className="text-xs text-muted-foreground">
-              Free within {(fulfillment.freeDeliveryRadiusMeters / 1000).toFixed(1)}km of the
-              store. Beyond that, delivery is free on orders of{" "}
-              {formatPaise(fulfillment.freeDeliveryThresholdInPaise)} or more — otherwise a flat{" "}
-              {formatPaise(fulfillment.deliveryFeeInPaise)} delivery fee applies.
+              Free within {formatKm(fulfillment.freeDeliveryRadiusMeters)} km of the store; beyond
+              that, free on orders of {formatPaise(fulfillment.freeDeliveryThresholdInPaise)} or more —
+              otherwise a flat {formatPaise(fulfillment.deliveryFeeInPaise)} delivery fee applies.
             </p>
             {!geoapifyConfigured && (
               <p className="rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
@@ -410,6 +411,7 @@ export function CheckoutForm({
             <DeliveryAddressSearch
               onSelectionChange={setDestination}
               onPreviewChange={setDeliveryPreview}
+              onOutOfRangeChange={setAddressOutOfRange}
               disabled={!geoapifyConfigured}
             />
             {fieldErrors.destinationFormattedAddress && (
@@ -538,9 +540,11 @@ export function CheckoutForm({
       >
         {isPending
           ? "Placing your order..."
-          : fulfillmentType === "LOCAL_DELIVERY" && !canSubmit
-            ? "Select a delivery location to continue"
-            : `Place Order — ${formatPaise(totalInPaise)}`}
+          : fulfillmentType === "LOCAL_DELIVERY" && addressOutOfRange
+            ? "We don't deliver to this address"
+            : fulfillmentType === "LOCAL_DELIVERY" && !canSubmit
+              ? "Select a delivery location to continue"
+              : `Place Order — ${formatPaise(totalInPaise)}`}
       </Button>
       </div>
       </div>
@@ -567,9 +571,11 @@ export function CheckoutForm({
           >
             {isPending
               ? "Placing your order..."
-              : fulfillmentType === "LOCAL_DELIVERY" && !canSubmit
-                ? "Select a delivery location to continue"
-                : "Place Order"}
+              : fulfillmentType === "LOCAL_DELIVERY" && addressOutOfRange
+                ? "We don't deliver to this address"
+                : fulfillmentType === "LOCAL_DELIVERY" && !canSubmit
+                  ? "Select a delivery location to continue"
+                  : "Place Order"}
           </Button>
         </div>
       </div>

@@ -38,10 +38,14 @@ export type { DeliveryPreview, DeliverySelection };
 export function DeliveryAddressSearch({
   onSelectionChange,
   onPreviewChange,
+  onOutOfRangeChange,
   disabled,
 }: {
   onSelectionChange: (selection: DeliverySelection | null) => void;
   onPreviewChange: (preview: DeliveryPreview | null) => void;
+  /** Told whether the chosen address is past the store's delivery limit,
+   * so the form can say so on its submit button. */
+  onOutOfRangeChange?: (outOfRange: boolean) => void;
   disabled?: boolean;
 }) {
   const [query, setQuery] = useState("");
@@ -89,6 +93,7 @@ export function DeliveryAddressSearch({
       setPreviewError(null);
       onSelectionChange(null);
       onPreviewChange(null);
+      onOutOfRangeChange?.(false);
     }
 
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -143,6 +148,7 @@ export function DeliveryAddressSearch({
     setPreviewError(null);
     setPreview(null);
     onPreviewChange(null);
+    onOutOfRangeChange?.(false);
 
     previewDeliveryFeeAction({ lat: suggestion.lat, lon: suggestion.lon })
       .then((result) => {
@@ -150,6 +156,7 @@ export function DeliveryAddressSearch({
         setIsPreviewing(false);
         if (!result.success) {
           setPreviewError(result.error.message);
+          onOutOfRangeChange?.(result.error.type === "OUT_OF_RANGE");
           return;
         }
         const nextPreview: DeliveryPreview = {
@@ -192,6 +199,7 @@ export function DeliveryAddressSearch({
     setPreviewError(null);
     onSelectionChange(null);
     onPreviewChange(null);
+    onOutOfRangeChange?.(false);
   }
 
   return (

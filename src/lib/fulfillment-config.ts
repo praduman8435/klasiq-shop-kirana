@@ -52,6 +52,10 @@ export const FULFILLMENT_CONFIG = {
    * Geoapify's Routing API returns distance in meters — see
    * src/server/geoapify.ts. */
   freeDeliveryRadiusMeters: envInt("FREE_DELIVERY_RADIUS_METERS", 3000),
+  /** Road distance (shop -> destination), in meters, beyond which the
+   * store does not deliver at all. Online checkout refuses such an
+   * address (preview and order placement both enforce it server-side). */
+  maxDeliveryDistanceMeters: envInt("MAX_DELIVERY_DISTANCE_METERS", 10000),
   /** The single physical shop location — the authoritative origin for every
    * route-distance calculation in this single-store deployment. Kept here,
    * not scattered as inline literals, specifically so a future multi-store
@@ -66,7 +70,7 @@ export const FULFILLMENT_CONFIG = {
   shopLongitude: envFloat("SHOP_LONGITUDE", 83.1494211),
   serviceableAreaNote:
     process.env.DELIVERY_SERVICEABLE_AREA_NOTE ??
-    "We currently deliver within a few kilometres of the store. If you're unsure we cover your area, choose Store Pickup or call us.",
+    "We deliver within 10 km of the store. Further away? Choose Store Pickup or call us.",
 } as const;
 
 /**
@@ -103,4 +107,27 @@ export function calculateDeliveryFee(params: DeliveryFeeParams): number {
   if (routeDistanceMeters <= freeDeliveryRadiusMeters) return 0;
   if (subtotalInPaise >= freeDeliveryThresholdInPaise) return 0;
   return deliveryFeeInPaise;
+}
+
+/** Kilometres for customer-facing copy: "10" for whole numbers, "12.4" otherwise. */
+export function formatKm(meters: number): string {
+  const km = meters / 1000;
+  return Number.isInteger(km) ? String(km) : km.toFixed(1);
+}
+
+/** Whether a road distance is past the store's delivery limit. Exactly at
+ * the limit still counts as deliverable. */
+export function isBeyondDeliveryRange(routeDistanceMeters: number, maxDeliveryDistanceMeters: number): boolean {
+  return routeDistanceMeters > maxDeliveryDistanceMeters;
+}
+
+/** The one message a customer sees for an address past the limit — shown
+ * under the chosen location at checkout and returned if an order for it
+ * is attempted anyway. */
+export function deliveryOutOfRangeMessage(routeDistanceMeters: number, maxDeliveryDistanceMeters: number): string {
+  return (
+    `This address is ${formatKm(routeDistanceMeters)} km away by road. ` +
+    `Sorry, we don't deliver beyond ${formatKm(maxDeliveryDistanceMeters)} km from the store — ` +
+    "please choose Store Pickup instead."
+  );
 }

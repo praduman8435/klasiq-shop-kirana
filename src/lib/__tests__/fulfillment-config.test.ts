@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { calculateDeliveryFee } from "@/lib/fulfillment-config";
+import {
+  calculateDeliveryFee,
+  deliveryOutOfRangeMessage,
+  formatKm,
+  isBeyondDeliveryRange,
+} from "@/lib/fulfillment-config";
 
 describe("calculateDeliveryFee", () => {
   // Matches the real defaults (see fulfillment-config.ts) so these tests
@@ -90,5 +95,25 @@ describe("calculateDeliveryFee", () => {
         subtotalInPaise: 500000,
       }),
     ).toBe(0);
+  });
+});
+
+describe("maximum delivery distance", () => {
+  it("delivers up to and including the limit, refuses past it", () => {
+    expect(isBeyondDeliveryRange(9999, 10000)).toBe(false);
+    expect(isBeyondDeliveryRange(10000, 10000)).toBe(false);
+    expect(isBeyondDeliveryRange(10001, 10000)).toBe(true);
+  });
+
+  it("formats kilometres without a pointless .0", () => {
+    expect(formatKm(10000)).toBe("10");
+    expect(formatKm(3000)).toBe("3");
+    expect(formatKm(45321)).toBe("45.3");
+  });
+
+  it("tells the customer the distance, the limit and what to do instead", () => {
+    expect(deliveryOutOfRangeMessage(12400, 10000)).toBe(
+      "This address is 12.4 km away by road. Sorry, we don't deliver beyond 10 km from the store — please choose Store Pickup instead.",
+    );
   });
 });
