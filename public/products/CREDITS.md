@@ -80,11 +80,3 @@ square-cropped, resized to 800×800 and re-encoded as WebP.
 | `sunflower-oil.webp` | Refined Sunflower Oil | Vladimir Gladkov | https://www.pexels.com/photo/olive-oil-in-a-glass-bottle-6213754/ |
 | `camphor-tablets.webp` | Camphor Tablets | Shootcase Chronicles | https://www.pexels.com/photo/flame-in-a-goblet-7750217/ |
 | `sugar.webp` | Sugar | Towfiqu barbhuiya | https://www.pexels.com/photo/a-spoonful-of-sugar-11477544/ |
-| `mens-cotton-vest.webp` | Men's Cotton Vest | Maria Kovalets | https://unsplash.com/photos/a-gray-tank-top-on-a-white-background-LNaDxLn61z4 |
-| `mens-boxer-shorts.webp` | Men's Boxer Shorts | Niklas Hamann | https://unsplash.com/photos/hanging-black-and-white-polka-dot-shorts-gTVJPfZKQJE |
-| `womens-cotton-panties.webp` | Women's Cotton Panties | Penki ir | https://www.pexels.com/photo/a-red-and-white-floral-panties-11010393/ |
-| `womens-cotton-bra.webp` | Women's Everyday Bra | Malta Gordos | https://unsplash.com/photos/a-close-up-of-a-bra-on-a-table-VwyUF2xdBh0 |
-| `camisole.webp` | Cotton Camisole | Cloris Ying | https://unsplash.com/photos/white-tank-top-on-white-clothes-hanger-oY_HbfyQnYQ |
-| `baby-bodysuit.webp` | Baby Cotton Bodysuit | Elina Volkova | https://www.pexels.com/photo/baby-clothes-hanging-on-clothesline-17713240/ |
-| `cotton-socks.webp` | Cotton Socks | Ron Lach | https://www.pexels.com/photo/white-and-blue-socks-on-white-table-9594142/ |
-| `cotton-handkerchiefs.webp` | Cotton Handkerchiefs | Kenneth Surillo | https://www.pexels.com/photo/elegant-neckties-and-accessories-21928749/ |
