@@ -49,12 +49,7 @@ const ADD_ONLY = process.env.SEED_MODE === "add-only";
 /** A product's photo is public/products/{slug}.webp when that file exists. */
 function photoFor(params: ProductSeed): string | null {
   if (params.imageUrl) return params.imageUrl;
-  const file = path.join(
-    process.cwd(),
-    "public",
-    "products",
-    `${params.slug}.webp`,
-  );
+  const file = path.join(process.cwd(), "public", "products", `${params.slug}.webp`);
   return existsSync(file) ? `/products/${params.slug}.webp` : null;
 }
 
@@ -77,24 +72,9 @@ const CATALOG: CategorySeed[] = [
         brand: "Aashirvaad",
         description: "Chakki-ground whole wheat flour for soft rotis.",
         variants: [
-          {
-            size: "1 kg",
-            priceInPaise: rupees(62),
-            mrpInPaise: rupees(68),
-            stockQuantity: 30,
-          },
-          {
-            size: "5 kg",
-            priceInPaise: rupees(285),
-            mrpInPaise: rupees(310),
-            stockQuantity: 12,
-          },
-          {
-            size: "10 kg",
-            priceInPaise: rupees(540),
-            mrpInPaise: rupees(590),
-            stockQuantity: 4,
-          },
+          { size: "1 kg", priceInPaise: rupees(62), mrpInPaise: rupees(68), stockQuantity: 30 },
+          { size: "5 kg", priceInPaise: rupees(285), mrpInPaise: rupees(310), stockQuantity: 12 },
+          { size: "10 kg", priceInPaise: rupees(540), mrpInPaise: rupees(590), stockQuantity: 4 },
         ],
       },
       {
@@ -103,18 +83,8 @@ const CATALOG: CategorySeed[] = [
         brand: "India Gate",
         description: "Long-grain aged basmati for pulao and biryani.",
         variants: [
-          {
-            size: "1 kg",
-            priceInPaise: rupees(135),
-            mrpInPaise: rupees(150),
-            stockQuantity: 20,
-          },
-          {
-            size: "5 kg",
-            priceInPaise: rupees(620),
-            mrpInPaise: rupees(690),
-            stockQuantity: 6,
-          },
+          { size: "1 kg", priceInPaise: rupees(135), mrpInPaise: rupees(150), stockQuantity: 20 },
+          { size: "5 kg", priceInPaise: rupees(620), mrpInPaise: rupees(690), stockQuantity: 6 },
         ],
       },
       {
@@ -183,18 +153,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Fortune",
         description: "Cold-pressed mustard oil.",
         variants: [
-          {
-            size: "1 L",
-            priceInPaise: rupees(165),
-            mrpInPaise: rupees(185),
-            stockQuantity: 24,
-          },
-          {
-            size: "5 L",
-            priceInPaise: rupees(790),
-            mrpInPaise: rupees(880),
-            stockQuantity: 5,
-          },
+          { size: "1 L", priceInPaise: rupees(165), mrpInPaise: rupees(185), stockQuantity: 24 },
+          { size: "5 L", priceInPaise: rupees(790), mrpInPaise: rupees(880), stockQuantity: 5 },
         ],
       },
       {
@@ -203,18 +163,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Amul",
         description: "Cow ghee made from fresh cream.",
         variants: [
-          {
-            size: "500 ml",
-            priceInPaise: rupees(305),
-            mrpInPaise: rupees(320),
-            stockQuantity: 10,
-          },
-          {
-            size: "1 L",
-            priceInPaise: rupees(600),
-            mrpInPaise: rupees(630),
-            stockQuantity: 6,
-          },
+          { size: "500 ml", priceInPaise: rupees(305), mrpInPaise: rupees(320), stockQuantity: 10 },
+          { size: "1 L", priceInPaise: rupees(600), mrpInPaise: rupees(630), stockQuantity: 6 },
         ],
       },
       {
@@ -222,14 +172,7 @@ const CATALOG: CategorySeed[] = [
         name: "Iodised Salt",
         brand: "Tata",
         description: "Vacuum-evaporated iodised salt.",
-        variants: [
-          {
-            size: "1 kg",
-            priceInPaise: rupees(28),
-            mrpInPaise: rupees(28),
-            stockQuantity: 40,
-          },
-        ],
+        variants: [{ size: "1 kg", priceInPaise: rupees(28), mrpInPaise: rupees(28), stockQuantity: 40 }],
       },
       {
         slug: "turmeric-powder",
@@ -237,18 +180,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Everest",
         description: "Ground haldi with natural colour.",
         variants: [
-          {
-            size: "100 g",
-            priceInPaise: rupees(34),
-            mrpInPaise: rupees(38),
-            stockQuantity: 30,
-          },
-          {
-            size: "200 g",
-            priceInPaise: rupees(65),
-            mrpInPaise: rupees(72),
-            stockQuantity: 15,
-          },
+          { size: "100 g", priceInPaise: rupees(34), mrpInPaise: rupees(38), stockQuantity: 30 },
+          { size: "200 g", priceInPaise: rupees(65), mrpInPaise: rupees(72), stockQuantity: 15 },
         ],
       },
       {
@@ -263,8 +196,7 @@ const CATALOG: CategorySeed[] = [
       {
         slug: "coriander-seeds",
         name: "Dhania (Coriander Seeds)",
-        description:
-          "Whole coriander seeds — roast and grind fresh for curries.",
+        description: "Whole coriander seeds — roast and grind fresh for curries.",
         variants: [
           { size: "100 g", priceInPaise: rupees(30), stockQuantity: 25 },
           { size: "200 g", priceInPaise: rupees(55), stockQuantity: 12 },
@@ -299,28 +231,13 @@ const CATALOG: CategorySeed[] = [
         name: "Toned Milk",
         brand: "Amul",
         description: "Pasteurised toned milk pouch.",
-        variants: [
-          {
-            size: "500 ml",
-            priceInPaise: rupees(28),
-            mrpInPaise: rupees(28),
-            stockQuantity: 40,
-            lowStockThreshold: 10,
-          },
-        ],
+        variants: [{ size: "500 ml", priceInPaise: rupees(28), mrpInPaise: rupees(28), stockQuantity: 40, lowStockThreshold: 10 }],
       },
       {
         slug: "brown-bread",
         name: "Brown Bread",
         description: "Soft whole-wheat sandwich loaf.",
-        variants: [
-          {
-            size: "400 g",
-            priceInPaise: rupees(45),
-            mrpInPaise: rupees(50),
-            stockQuantity: 8,
-          },
-        ],
+        variants: [{ size: "400 g", priceInPaise: rupees(45), mrpInPaise: rupees(50), stockQuantity: 8 }],
       },
       {
         slug: "farm-eggs",
@@ -335,9 +252,7 @@ const CATALOG: CategorySeed[] = [
         slug: "paneer",
         name: "Fresh Paneer",
         description: "Soft malai paneer block.",
-        variants: [
-          { size: "200 g", priceInPaise: rupees(90), stockQuantity: 10 },
-        ],
+        variants: [{ size: "200 g", priceInPaise: rupees(90), stockQuantity: 10 }],
       },
       {
         slug: "curd",
@@ -361,17 +276,13 @@ const CATALOG: CategorySeed[] = [
         slug: "cheese-block",
         name: "Processed Cheese Block",
         description: "Processed cheese block for sandwiches, pizza and toast.",
-        variants: [
-          { size: "200 g", priceInPaise: rupees(130), stockQuantity: 8 },
-        ],
+        variants: [{ size: "200 g", priceInPaise: rupees(130), stockQuantity: 8 }],
       },
       {
         slug: "pav",
         name: "Pav",
         description: "Soft ladi pav for pav bhaji and vada pav.",
-        variants: [
-          { size: "Pack of 6", priceInPaise: rupees(30), stockQuantity: 12 },
-        ],
+        variants: [{ size: "Pack of 6", priceInPaise: rupees(30), stockQuantity: 12 }],
       },
     ],
   },
@@ -385,18 +296,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Parle-G",
         description: "The everyday tea-time biscuit.",
         variants: [
-          {
-            size: "250 g",
-            priceInPaise: rupees(25),
-            mrpInPaise: rupees(25),
-            stockQuantity: 50,
-          },
-          {
-            size: "800 g",
-            priceInPaise: rupees(80),
-            mrpInPaise: rupees(85),
-            stockQuantity: 12,
-          },
+          { size: "250 g", priceInPaise: rupees(25), mrpInPaise: rupees(25), stockQuantity: 50 },
+          { size: "800 g", priceInPaise: rupees(80), mrpInPaise: rupees(85), stockQuantity: 12 },
         ],
       },
       {
@@ -405,18 +306,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Haldiram's",
         description: "Crispy spiced potato namkeen.",
         variants: [
-          {
-            size: "200 g",
-            priceInPaise: rupees(55),
-            mrpInPaise: rupees(60),
-            stockQuantity: 25,
-          },
-          {
-            size: "400 g",
-            priceInPaise: rupees(105),
-            mrpInPaise: rupees(115),
-            stockQuantity: 10,
-          },
+          { size: "200 g", priceInPaise: rupees(55), mrpInPaise: rupees(60), stockQuantity: 25 },
+          { size: "400 g", priceInPaise: rupees(105), mrpInPaise: rupees(115), stockQuantity: 10 },
         ],
       },
       {
@@ -425,19 +316,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Maggi",
         description: "Two-minute masala noodles.",
         variants: [
-          {
-            size: "70 g",
-            priceInPaise: rupees(14),
-            mrpInPaise: rupees(14),
-            stockQuantity: 60,
-            lowStockThreshold: 12,
-          },
-          {
-            size: "Pack of 4",
-            priceInPaise: rupees(54),
-            mrpInPaise: rupees(56),
-            stockQuantity: 15,
-          },
+          { size: "70 g", priceInPaise: rupees(14), mrpInPaise: rupees(14), stockQuantity: 60, lowStockThreshold: 12 },
+          { size: "Pack of 4", priceInPaise: rupees(54), mrpInPaise: rupees(56), stockQuantity: 15 },
         ],
       },
       {
@@ -462,17 +342,13 @@ const CATALOG: CategorySeed[] = [
         slug: "cornflakes",
         name: "Cornflakes",
         description: "Crisp breakfast flakes.",
-        variants: [
-          { size: "475 g", priceInPaise: rupees(185), stockQuantity: 8 },
-        ],
+        variants: [{ size: "475 g", priceInPaise: rupees(185), stockQuantity: 8 }],
       },
       {
         slug: "rusk",
         name: "Toast Rusk",
         description: "Crisp elaichi rusk for chai time.",
-        variants: [
-          { size: "300 g", priceInPaise: rupees(45), stockQuantity: 20 },
-        ],
+        variants: [{ size: "300 g", priceInPaise: rupees(45), stockQuantity: 20 }],
       },
       {
         slug: "tomato-ketchup",
@@ -495,18 +371,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Tata Tea",
         description: "Strong CTC leaf tea for kadak chai.",
         variants: [
-          {
-            size: "250 g",
-            priceInPaise: rupees(135),
-            mrpInPaise: rupees(150),
-            stockQuantity: 18,
-          },
-          {
-            size: "500 g",
-            priceInPaise: rupees(265),
-            mrpInPaise: rupees(290),
-            stockQuantity: 9,
-          },
+          { size: "250 g", priceInPaise: rupees(135), mrpInPaise: rupees(150), stockQuantity: 18 },
+          { size: "500 g", priceInPaise: rupees(265), mrpInPaise: rupees(290), stockQuantity: 9 },
         ],
       },
       {
@@ -514,30 +380,19 @@ const CATALOG: CategorySeed[] = [
         name: "Instant Coffee",
         brand: "Nescafé",
         description: "Classic instant coffee jar.",
-        variants: [
-          {
-            size: "50 g",
-            priceInPaise: rupees(180),
-            mrpInPaise: rupees(195),
-            stockQuantity: 7,
-          },
-        ],
+        variants: [{ size: "50 g", priceInPaise: rupees(180), mrpInPaise: rupees(195), stockQuantity: 7 }],
       },
       {
         slug: "green-tea",
         name: "Green Tea Bags",
         description: "Light green tea, 25 bags.",
-        variants: [
-          { size: "25 bags", priceInPaise: rupees(150), stockQuantity: 10 },
-        ],
+        variants: [{ size: "25 bags", priceInPaise: rupees(150), stockQuantity: 10 }],
       },
       {
         slug: "orange-juice",
         name: "Orange Juice",
         description: "Chilled orange fruit drink.",
-        variants: [
-          { size: "1 L", priceInPaise: rupees(110), stockQuantity: 10 },
-        ],
+        variants: [{ size: "1 L", priceInPaise: rupees(110), stockQuantity: 10 }],
       },
       {
         slug: "mango-drink",
@@ -561,17 +416,13 @@ const CATALOG: CategorySeed[] = [
         slug: "coconut-water",
         name: "Coconut Water",
         description: "Natural tender coconut water.",
-        variants: [
-          { size: "200 ml", priceInPaise: rupees(40), stockQuantity: 15 },
-        ],
+        variants: [{ size: "200 ml", priceInPaise: rupees(40), stockQuantity: 15 }],
       },
       {
         slug: "chocolate-malt-drink",
         name: "Chocolate Malt Drink",
         description: "Chocolate health drink powder to mix with milk.",
-        variants: [
-          { size: "500 g", priceInPaise: rupees(245), stockQuantity: 8 },
-        ],
+        variants: [{ size: "500 g", priceInPaise: rupees(245), stockQuantity: 8 }],
       },
     ],
   },
@@ -585,18 +436,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Lifebuoy",
         description: "Germ-protection bathing bar.",
         variants: [
-          {
-            size: "100 g",
-            priceInPaise: rupees(38),
-            mrpInPaise: rupees(40),
-            stockQuantity: 30,
-          },
-          {
-            size: "Pack of 4",
-            priceInPaise: rupees(140),
-            mrpInPaise: rupees(160),
-            stockQuantity: 10,
-          },
+          { size: "100 g", priceInPaise: rupees(38), mrpInPaise: rupees(40), stockQuantity: 30 },
+          { size: "Pack of 4", priceInPaise: rupees(140), mrpInPaise: rupees(160), stockQuantity: 10 },
         ],
       },
       {
@@ -604,28 +445,14 @@ const CATALOG: CategorySeed[] = [
         name: "Toothpaste",
         brand: "Colgate",
         description: "Cavity-protection toothpaste.",
-        variants: [
-          {
-            size: "200 g",
-            priceInPaise: rupees(110),
-            mrpInPaise: rupees(122),
-            stockQuantity: 14,
-          },
-        ],
+        variants: [{ size: "200 g", priceInPaise: rupees(110), mrpInPaise: rupees(122), stockQuantity: 14 }],
       },
       {
         slug: "coconut-hair-oil",
         name: "Coconut Hair Oil",
         brand: "Parachute",
         description: "Pure coconut oil.",
-        variants: [
-          {
-            size: "200 ml",
-            priceInPaise: rupees(98),
-            mrpInPaise: rupees(105),
-            stockQuantity: 2,
-          },
-        ],
+        variants: [{ size: "200 ml", priceInPaise: rupees(98), mrpInPaise: rupees(105), stockQuantity: 2 }],
       },
       {
         slug: "shampoo",
@@ -640,9 +467,7 @@ const CATALOG: CategorySeed[] = [
         slug: "hand-wash",
         name: "Hand Wash",
         description: "Liquid hand wash, pump bottle.",
-        variants: [
-          { size: "200 ml", priceInPaise: rupees(99), stockQuantity: 12 },
-        ],
+        variants: [{ size: "200 ml", priceInPaise: rupees(99), stockQuantity: 12 }],
       },
       {
         slug: "toothbrush",
@@ -666,9 +491,7 @@ const CATALOG: CategorySeed[] = [
         slug: "body-lotion",
         name: "Body Lotion",
         description: "Moisturising lotion for dry skin.",
-        variants: [
-          { size: "200 ml", priceInPaise: rupees(180), stockQuantity: 8 },
-        ],
+        variants: [{ size: "200 ml", priceInPaise: rupees(180), stockQuantity: 8 }],
       },
     ],
   },
@@ -682,18 +505,8 @@ const CATALOG: CategorySeed[] = [
         brand: "Surf Excel",
         description: "Washing powder for machine and hand wash.",
         variants: [
-          {
-            size: "1 kg",
-            priceInPaise: rupees(135),
-            mrpInPaise: rupees(150),
-            stockQuantity: 16,
-          },
-          {
-            size: "3 kg",
-            priceInPaise: rupees(390),
-            mrpInPaise: rupees(430),
-            stockQuantity: 0,
-          },
+          { size: "1 kg", priceInPaise: rupees(135), mrpInPaise: rupees(150), stockQuantity: 16 },
+          { size: "3 kg", priceInPaise: rupees(390), mrpInPaise: rupees(430), stockQuantity: 0 },
         ],
       },
       {
@@ -701,14 +514,7 @@ const CATALOG: CategorySeed[] = [
         name: "Dishwash Bar",
         brand: "Vim",
         description: "Lemon dishwash bar.",
-        variants: [
-          {
-            size: "300 g",
-            priceInPaise: rupees(30),
-            mrpInPaise: rupees(32),
-            stockQuantity: 25,
-          },
-        ],
+        variants: [{ size: "300 g", priceInPaise: rupees(30), mrpInPaise: rupees(32), stockQuantity: 25 }],
       },
       {
         slug: "floor-cleaner",
@@ -732,25 +538,19 @@ const CATALOG: CategorySeed[] = [
         slug: "dishwash-liquid",
         name: "Dishwash Liquid",
         description: "Lemon dishwash gel.",
-        variants: [
-          { size: "500 ml", priceInPaise: rupees(110), stockQuantity: 12 },
-        ],
+        variants: [{ size: "500 ml", priceInPaise: rupees(110), stockQuantity: 12 }],
       },
       {
         slug: "scrub-pads",
         name: "Scrub Pads",
         description: "Sponge-backed scrub pads for utensils.",
-        variants: [
-          { size: "Pack of 3", priceInPaise: rupees(45), stockQuantity: 20 },
-        ],
+        variants: [{ size: "Pack of 3", priceInPaise: rupees(45), stockQuantity: 20 }],
       },
       {
         slug: "garbage-bags",
         name: "Garbage Bags",
         description: "Medium bin bags, 30 bags per roll.",
-        variants: [
-          { size: "1 roll", priceInPaise: rupees(90), stockQuantity: 15 },
-        ],
+        variants: [{ size: "1 roll", priceInPaise: rupees(90), stockQuantity: 15 }],
       },
       {
         slug: "aa-batteries",
@@ -772,70 +572,49 @@ const CATALOG: CategorySeed[] = [
         name: "Agarbatti",
         brand: "Cycle",
         description: "Fragrant incense sticks.",
-        variants: [
-          {
-            size: "Pack of 100",
-            priceInPaise: rupees(60),
-            mrpInPaise: rupees(65),
-            stockQuantity: 20,
-          },
-        ],
+        variants: [{ size: "Pack of 100", priceInPaise: rupees(60), mrpInPaise: rupees(65), stockQuantity: 20 }],
       },
       {
         slug: "camphor-tablets",
         name: "Camphor Tablets",
         description: "Pure kapoor tablets for aarti.",
-        variants: [
-          { size: "50 g", priceInPaise: rupees(45), stockQuantity: 15 },
-        ],
+        variants: [{ size: "50 g", priceInPaise: rupees(45), stockQuantity: 15 }],
       },
       {
         slug: "clay-diya",
         name: "Clay Diya",
         description: "Handmade earthen diyas.",
-        variants: [
-          { size: "Pack of 12", priceInPaise: rupees(60), stockQuantity: 20 },
-        ],
+        variants: [{ size: "Pack of 12", priceInPaise: rupees(60), stockQuantity: 20 }],
       },
       {
         slug: "cotton-wicks",
         name: "Cotton Wicks",
         description: "Round cotton batti for diyas.",
-        variants: [
-          { size: "Pack of 100", priceInPaise: rupees(30), stockQuantity: 25 },
-        ],
+        variants: [{ size: "Pack of 100", priceInPaise: rupees(30), stockQuantity: 25 }],
       },
       {
         slug: "dhoop-cones",
         name: "Dhoop Cones",
         description: "Fragrant dhoop cones with stand.",
-        variants: [
-          { size: "Pack of 20", priceInPaise: rupees(50), stockQuantity: 15 },
-        ],
+        variants: [{ size: "Pack of 20", priceInPaise: rupees(50), stockQuantity: 15 }],
       },
       {
         slug: "kalava",
         name: "Kalava (Mauli)",
         description: "Red-and-yellow sacred thread.",
-        variants: [
-          { size: "1 roll", priceInPaise: rupees(20), stockQuantity: 30 },
-        ],
+        variants: [{ size: "1 roll", priceInPaise: rupees(20), stockQuantity: 30 }],
       },
       {
         slug: "kumkum",
         name: "Kumkum",
         description: "Red kumkum for tilak and pooja.",
-        variants: [
-          { size: "50 g", priceInPaise: rupees(25), stockQuantity: 25 },
-        ],
+        variants: [{ size: "50 g", priceInPaise: rupees(25), stockQuantity: 25 }],
       },
       {
         slug: "pooja-coconut",
         name: "Pooja Coconut",
         description: "Whole coconut for pooja and offerings.",
-        variants: [
-          { size: "1 pc", priceInPaise: rupees(40), stockQuantity: 15 },
-        ],
+        variants: [{ size: "1 pc", priceInPaise: rupees(40), stockQuantity: 15 }],
       },
     ],
   },
@@ -847,9 +626,7 @@ const CATALOG: CategorySeed[] = [
         slug: "school-backpack",
         name: "School Backpack",
         description: "Roomy school bag with padded straps.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(499), stockQuantity: 6 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(499), stockQuantity: 6 }],
       },
       {
         slug: "jute-shopping-bag",
@@ -864,49 +641,37 @@ const CATALOG: CategorySeed[] = [
         slug: "cotton-tote-bag",
         name: "Cotton Tote Bag",
         description: "Plain canvas tote for everyday use.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(129), stockQuantity: 12 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(129), stockQuantity: 12 }],
       },
       {
         slug: "ladies-handbag",
         name: "Ladies Handbag",
         description: "Faux-leather handbag with zip pockets.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(699), stockQuantity: 4 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(699), stockQuantity: 4 }],
       },
       {
         slug: "travel-duffel-bag",
         name: "Travel Duffel Bag",
         description: "Spacious duffel for short trips.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(899), stockQuantity: 3 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(899), stockQuantity: 3 }],
       },
       {
         slug: "laptop-backpack",
         name: "Laptop Backpack",
         description: "Padded backpack for laptops up to 15.6 inch.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(999), stockQuantity: 4 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(999), stockQuantity: 4 }],
       },
       {
         slug: "sling-bag",
         name: "Sling Bag",
         description: "Compact crossbody bag for phone and wallet.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(349), stockQuantity: 6 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(349), stockQuantity: 6 }],
       },
       {
         slug: "lunch-bag",
         name: "Insulated Lunch Bag",
         description: "Keeps tiffin warm, fits two boxes.",
-        variants: [
-          { size: "Standard", priceInPaise: rupees(249), stockQuantity: 8 },
-        ],
+        variants: [{ size: "Standard", priceInPaise: rupees(249), stockQuantity: 8 }],
       },
     ],
   },
@@ -914,10 +679,7 @@ const CATALOG: CategorySeed[] = [
 
 /** add-only: fills in a missing photo on an existing product, else
  * creates the product. Returns false when the product already existed. */
-async function addProductIfMissing(
-  categoryId: string,
-  params: ProductSeed,
-): Promise<boolean> {
+async function addProductIfMissing(categoryId: string, params: ProductSeed): Promise<boolean> {
   const existing = await db.product.findUnique({
     where: { slug: params.slug },
     select: { id: true, imageUrl: true },
@@ -958,13 +720,8 @@ async function upsertProduct(categoryId: string, params: ProductSeed) {
   });
 
   for (const [index, variant] of params.variants.entries()) {
-    if (
-      variant.mrpInPaise !== undefined &&
-      variant.priceInPaise > variant.mrpInPaise
-    ) {
-      throw new Error(
-        `Seed error: ${params.slug} ${variant.size} is priced above its MRP.`,
-      );
+    if (variant.mrpInPaise !== undefined && variant.priceInPaise > variant.mrpInPaise) {
+      throw new Error(`Seed error: ${params.slug} ${variant.size} is priced above its MRP.`);
     }
     const lowStockThreshold = variant.lowStockThreshold ?? 5;
     const data = {
@@ -1013,8 +770,7 @@ async function main() {
 
     for (const productSeed of categorySeed.products) {
       if (ADD_ONLY) {
-        if (await addProductIfMissing(category.id, productSeed))
-          productCount += 1;
+        if (await addProductIfMissing(category.id, productSeed)) productCount += 1;
       } else {
         await upsertProduct(category.id, productSeed);
         productCount += 1;
@@ -1023,9 +779,7 @@ async function main() {
   }
 
   console.log(ADD_ONLY ? "Add-only seed complete." : "Seed complete.");
-  console.log(
-    `  Categories: ${CATALOG.length}, demo products ${ADD_ONLY ? "added" : "seeded"}: ${productCount}`,
-  );
+  console.log(`  Categories: ${CATALOG.length}, demo products ${ADD_ONLY ? "added" : "seeded"}: ${productCount}`);
 }
 
 main()

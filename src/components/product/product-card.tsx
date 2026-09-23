@@ -23,43 +23,26 @@ import type { ProductWithVariants } from "@/types/catalog";
  * shelves, every category page and /search — in a grid it fills its cell;
  * on a shelf the shelf sets its width.
  */
-export function ProductCard({
-  product,
-  className,
-}: {
-  product: ProductWithVariants;
-  className?: string;
-}) {
+export function ProductCard({ product, className }: { product: ProductWithVariants; className?: string }) {
   const sortedVariants = useMemo(
     () => [...product.variants].sort((a, b) => a.sortOrder - b.sortOrder),
     [product.variants],
   );
-  const defaultVariant =
-    sortedVariants.find((v) => isOrderable(v.stockStatus)) ?? sortedVariants[0];
-  const [selectedVariantId, setSelectedVariantId] = useState(
-    defaultVariant?.id,
-  );
-  const selectedVariant = sortedVariants.find(
-    (v) => v.id === selectedVariantId,
-  );
+  const defaultVariant = sortedVariants.find((v) => isOrderable(v.stockStatus)) ?? sortedVariants[0];
+  const [selectedVariantId, setSelectedVariantId] = useState(defaultVariant?.id);
+  const selectedVariant = sortedVariants.find((v) => v.id === selectedVariantId);
 
   if (!selectedVariant) return null;
 
   const canOrder = isOrderable(selectedVariant.stockStatus);
   const hasSizeChoice = sortedVariants.length > 1;
   const savingInPaise =
-    selectedVariant.mrpInPaise !== null &&
-    selectedVariant.mrpInPaise > selectedVariant.priceInPaise
+    selectedVariant.mrpInPaise !== null && selectedVariant.mrpInPaise > selectedVariant.priceInPaise
       ? selectedVariant.mrpInPaise - selectedVariant.priceInPaise
       : 0;
 
   return (
-    <div
-      className={cn(
-        "flex flex-col rounded-2xl border border-border bg-card p-2.5 sm:p-3",
-        className,
-      )}
-    >
+    <div className={cn("flex flex-col rounded-2xl border border-border bg-card p-2.5 sm:p-3", className)}>
       <div className="relative">
         {/* Duplicates the name link below (which carries the accessible
             name), so it's hidden from assistive tech. */}
@@ -73,10 +56,7 @@ export function ProductCard({
             imageUrl={product.imageUrl}
             alt={product.name}
             categorySlug={product.category.slug}
-            className={cn(
-              "aspect-square w-full rounded-xl",
-              !canOrder && "opacity-50 grayscale",
-            )}
+            className={cn("aspect-square w-full rounded-xl", !canOrder && "opacity-50 grayscale")}
           />
         </Link>
         {savingInPaise > 0 && (
@@ -97,10 +77,7 @@ export function ProductCard({
       <div className="relative mt-5 flex min-h-7 items-center">
         {hasSizeChoice ? (
           <>
-            <Select
-              value={selectedVariantId}
-              onValueChange={(id) => setSelectedVariantId(id as string)}
-            >
+            <Select value={selectedVariantId} onValueChange={(id) => setSelectedVariantId(id as string)}>
               <SelectTrigger
                 size="sm"
                 aria-label={`Pack size for ${product.name}`}
@@ -112,11 +89,7 @@ export function ProductCard({
                 {sortedVariants.map((variant) => {
                   const orderable = isOrderable(variant.stockStatus);
                   return (
-                    <SelectItem
-                      key={variant.id}
-                      value={variant.id}
-                      disabled={!orderable}
-                    >
+                    <SelectItem key={variant.id} value={variant.id} disabled={!orderable}>
                       {variant.size} · {formatPaise(variant.priceInPaise)}
                       {!orderable && " — Out of stock"}
                     </SelectItem>
@@ -124,17 +97,12 @@ export function ProductCard({
                 })}
               </SelectContent>
             </Select>
-            <span
-              className="ml-1.5 truncate text-[0.6875rem] font-medium text-muted-foreground"
-              aria-hidden
-            >
+            <span className="ml-1.5 truncate text-[0.6875rem] font-medium text-muted-foreground" aria-hidden>
               {sortedVariants.length} sizes
             </span>
           </>
         ) : (
-          <span className="text-xs font-semibold text-muted-foreground">
-            {selectedVariant.size}
-          </span>
+          <span className="text-xs font-semibold text-muted-foreground">{selectedVariant.size}</span>
         )}
       </div>
 
@@ -143,11 +111,7 @@ export function ProductCard({
           {product.name}
         </Link>
       </h3>
-      {product.brand && (
-        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          {product.brand}
-        </p>
-      )}
+      {product.brand && <p className="mt-0.5 truncate text-xs text-muted-foreground">{product.brand}</p>}
 
       <div className="mt-auto flex items-baseline gap-1.5 pt-2">
         <span className="text-base font-extrabold tabular-nums">
@@ -159,11 +123,7 @@ export function ProductCard({
             {formatPaise(selectedVariant.mrpInPaise!)}
           </span>
         )}
-        {!canOrder && (
-          <span className="ml-auto text-xs font-semibold text-destructive">
-            Out of stock
-          </span>
-        )}
+        {!canOrder && <span className="ml-auto text-xs font-semibold text-destructive">Out of stock</span>}
       </div>
     </div>
   );
