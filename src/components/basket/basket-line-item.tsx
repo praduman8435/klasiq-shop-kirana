@@ -132,7 +132,7 @@ export function BasketLineItem({ item }: { item: BasketLineItemData }) {
         <div className="flex items-start justify-between gap-2">
           <div>
             {productVariant.product.brand && (
-              <p className="decl-label text-muted-foreground">{productVariant.product.brand}</p>
+              <p className="text-xs font-semibold text-muted-foreground">{productVariant.product.brand}</p>
             )}
             <p className="mt-1 font-semibold leading-tight">{productVariant.product.name}</p>
             <p className="mt-0.5 text-sm text-muted-foreground">{productVariant.size}</p>
@@ -178,17 +178,17 @@ export function BasketLineItem({ item }: { item: BasketLineItemData }) {
             just doesn't need to be 44px to stay genuinely tappable at
             this size. */}
         <div className="mt-1.5 flex items-center justify-between">
-          <div className="flex h-10 items-center border border-foreground">
+          <div className="flex h-9 items-center rounded-lg bg-primary text-primary-foreground">
             <button
               type="button"
               aria-label="Decrease quantity"
               disabled={isPending || isUnavailable}
               onClick={() => updateQuantity(quantity - 1)}
-              className="flex h-full w-10 items-center justify-center text-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:z-10 focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
+              className="flex h-full w-9 items-center justify-center text-primary-foreground outline-none transition-colors hover:bg-black/10 focus-visible:z-10 focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
             >
               <Minus className="size-3.5" aria-hidden />
             </button>
-            <span aria-live="polite" className="w-7 text-center text-sm font-bold tabular-nums">
+            <span aria-live="polite" className="w-6 text-center text-sm font-extrabold tabular-nums">
               {quantity}
             </span>
             <button
@@ -196,7 +196,7 @@ export function BasketLineItem({ item }: { item: BasketLineItemData }) {
               aria-label="Increase quantity"
               disabled={isPending || isUnavailable || quantity >= Math.min(productVariant.stockQuantity, 20)}
               onClick={() => updateQuantity(quantity + 1)}
-              className="flex h-full w-10 items-center justify-center text-foreground outline-none transition-colors hover:bg-muted hover:text-foreground focus-visible:z-10 focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
+              className="flex h-full w-9 items-center justify-center text-primary-foreground outline-none transition-colors hover:bg-black/10 focus-visible:z-10 focus-visible:ring-3 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40"
             >
               <Plus className="size-3.5" aria-hidden />
             </button>

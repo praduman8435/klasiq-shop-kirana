@@ -15,3 +15,8 @@ export const setBasketItemQuantitySchema = z.object({
 export const removeBasketItemSchema = z.object({
   basketItemId: z.string().min(1),
 });
+
+export const setVariantQuantitySchema = z.object({
+  productVariantId: z.string().min(1),
+  quantity: z.coerce.number().int().min(0).max(MAX_QUANTITY_PER_LINE),
+});

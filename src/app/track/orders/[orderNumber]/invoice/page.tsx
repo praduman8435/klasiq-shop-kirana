@@ -52,7 +52,7 @@ export default async function TrackInvoicePage({ params }: PageProps) {
         downloadHref={`/api/track/orders/${orderNumber}/invoice`}
         downloadFileName={`Invoice-${orderNumber}.pdf`}
       />
-      <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-sm border border-foreground bg-white print:rounded-none print:border-0 print:shadow-none">
+      <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-white print:rounded-none print:border-0 print:shadow-none">
         <InvoiceView invoice={invoice} />
       </div>
 

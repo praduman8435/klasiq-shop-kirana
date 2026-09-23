@@ -116,6 +116,15 @@ export function basketItemCount(
   return basket.items.reduce((sum, item) => sum + item.quantity, 0);
 }
 
+/** How many of each variant are in the bag, keyed by variant id — what a
+ * product card needs to show its ADD button or its − n + stepper. */
+export function basketVariantQuantities(
+  basket: Awaited<ReturnType<typeof getBasket>>,
+): Record<string, number> {
+  if (!basket) return {};
+  return Object.fromEntries(basket.items.map((item) => [item.productVariantId, item.quantity]));
+}
+
 export function basketTotalInPaise(
   basket: Awaited<ReturnType<typeof getBasket>>,
 ): number {

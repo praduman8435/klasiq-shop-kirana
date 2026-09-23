@@ -39,3 +39,18 @@ export async function getProductBySlug(slug: string) {
 }
 
 export type ProductDetail = NonNullable<Awaited<ReturnType<typeof getProductBySlug>>>;
+
+/**
+ * A handful of real, active product names for the header search box's
+ * rotating placeholder ("Search "Toor Dal""), so the suggestion is always
+ * something the store actually sells.
+ */
+export async function getSearchSuggestions(limit = 8): Promise<string[]> {
+  const products = await db.product.findMany({
+    where: { isActive: true, variants: { some: { isActive: true } } },
+    select: { name: true },
+    orderBy: { updatedAt: "desc" },
+    take: limit,
+  });
+  return products.map((product) => product.name);
+}

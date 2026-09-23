@@ -32,7 +32,7 @@ The neighbourhood kirana store, online — not an anonymous quick-commerce app. 
 ## Capabilities and Constraints
 
 - Products are sold in **pack sizes** (e.g. "500 g", "1 kg", "Pack of 4") — each pack size is its own variant with its own price, stock and SKU. Loose goods are sold as fixed pack sizes; there is no sell-by-weight.
-- Each pack size can carry an optional **MRP**; the selling price may never exceed it. The storefront prints the MRP in the product's declaration table and, only when the price is genuinely lower, a "Save ₹X" stamp.
+- Each pack size can carry an optional **MRP**; the selling price may never exceed it. Only when the price is genuinely lower, the storefront strikes the MRP through beside the price and shows a "₹X OFF" badge.
 - Products have an optional **brand** (plain text). Customer search and counter-sale search both match on brand.
 - Categories are fully dynamic and admin-managed (not hardcoded). The default set is eight aisles: Atta, Rice & Dal · Oil, Ghee & Masale · Dairy, Bread & Eggs · Snacks & Packaged Food · Tea, Coffee & Drinks · Personal Care · Cleaning & Household · Pooja Samagri.
 - No customer accounts or passwords anywhere — OTP phone verification is the only identity mechanism, and it is optional.
@@ -46,7 +46,9 @@ The neighbourhood kirana store, online — not an anonymous quick-commerce app. 
 
 - Name: **Klasiq** (running text), **KLASIQ** (all-caps wordmark/logo treatment only). The name is a play on "classic."
 - Tagline: "Classic quality, modern shopping."
-- Typography (storefront): Archivo throughout, using its width axis for condensed pack-label lettering. The admin panel keeps Fraunces + Plus Jakarta Sans.
+- Typography (storefront): Archivo throughout. The admin panel keeps Fraunces + Plus Jakarta Sans.
+- **Visual standard (owner's explicit choice):** the storefront follows the quick-commerce category standard — Blinkit and Zepto are the craft bar — in **Klasiq red and black**: red app header with a sticky search, ADD buttons that turn into in-place steppers, swipeable shelves, a floating cart bar. Positioning stays "the neighbourhood store"; the look is deliberately the familiar app pattern customers already know.
+- Homepage lead line: "All your daily essentials, from the store next door." Banner copy is built only from live store config (delivery radius/threshold, pickup, payment) — never invented offers, discounts or delivery times.
 - **To confirm for this store** (carried over from the original Klasiq fork, not yet verified for the kirana store — do not treat as fact): the heritage line "Serving local families for around 30 years", the backing store names "Milan Readymade & General Store" and "Shubham Vashtralaya", and the store phone number / Maps link in `STORE_CONTACT`.
 
 ## Evidence on Hand

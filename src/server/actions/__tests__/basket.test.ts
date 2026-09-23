@@ -23,7 +23,7 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-import { addToBasket, removeBasketItem, setBasketItemQuantity } from "@/server/actions/basket";
+import { addToBasket, removeBasketItem, setBasketItemQuantity, setVariantQuantity } from "@/server/actions/basket";
 
 let categoryId: string;
 const createdProductIds: string[] = [];
@@ -294,5 +294,54 @@ describe("Basket ownership isolation — cross-basket access (Phase 3.7 Part 4, 
     // Basket A's item must still exist, completely untouched.
     const stillThere = await db.basketItem.findUnique({ where: { id: itemInA.id } });
     expect(stillThere?.quantity).toBe(1);
+  });
+});
+
+describe("setVariantQuantity — the product-card stepper, keyed by variant id", () => {
+  async function lineFor(variantId: string) {
+    const basketId = await getCurrentBasketId();
+    return db.basketItem.findUnique({
+      where: { basketId_productVariantId: { basketId, productVariantId: variantId } },
+    });
+  }
+
+  it("adds a variant that isn't in the bag yet, then sets its quantity, then removes it at 0", async () => {
+    const variant = await createVariant({ stockQuantity: 5 });
+
+    expect(await setVariantQuantity({ productVariantId: variant.id, quantity: 1 })).toEqual({ success: true });
+    expect((await lineFor(variant.id))?.quantity).toBe(1);
+
+    expect(await setVariantQuantity({ productVariantId: variant.id, quantity: 3 })).toEqual({ success: true });
+    expect((await lineFor(variant.id))?.quantity).toBe(3);
+
+    expect(await setVariantQuantity({ productVariantId: variant.id, quantity: 0 })).toEqual({ success: true });
+    expect(await lineFor(variant.id)).toBeNull();
+  });
+
+  it("clamps to stock exactly like setBasketItemQuantity, never trusting the requested number", async () => {
+    const variant = await createVariant({ stockQuantity: 2 });
+    await setVariantQuantity({ productVariantId: variant.id, quantity: 1 });
+
+    const result = await setVariantQuantity({ productVariantId: variant.id, quantity: 9 });
+    expect(result.success).toBe(true);
+    expect(result.message).toMatch(/Only 2 left/);
+    expect((await lineFor(variant.id))?.quantity).toBe(2);
+  });
+
+  it("is a no-op success when asked to set 0 for a variant that isn't in the bag", async () => {
+    const variant = await createVariant({ stockQuantity: 5 });
+    expect(await setVariantQuantity({ productVariantId: variant.id, quantity: 0 })).toEqual({ success: true });
+  });
+
+  it("refuses an out-of-stock variant through the same addToBasket guard", async () => {
+    const variant = await createVariant({ stockQuantity: 0, stockStatus: "OUT_OF_STOCK" });
+    const result = await setVariantQuantity({ productVariantId: variant.id, quantity: 1 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a negative or over-limit quantity at validation", async () => {
+    const variant = await createVariant({ stockQuantity: 5 });
+    expect((await setVariantQuantity({ productVariantId: variant.id, quantity: -1 })).success).toBe(false);
+    expect((await setVariantQuantity({ productVariantId: variant.id, quantity: 999 })).success).toBe(false);
   });
 });

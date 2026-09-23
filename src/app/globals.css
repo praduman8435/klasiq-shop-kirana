@@ -39,9 +39,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --color-sticker: var(--sticker);
-  --color-sticker-foreground: var(--sticker-foreground);
-  --color-stamp: var(--stamp);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-deep: var(--brand-deep);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -103,108 +102,93 @@
 }
 
 /**
- * Storefront world — "Pack Declaration Panel", in Klasiq red and black.
- * Every product is shown the way its own pack states it: brand, net
- * quantity and a boxed MRP in black declaration print on pack-white
- * board, with the shop's red price sticker slapped on top. Scoped to `.store-theme`
- * (applied by the `(site)` layout and re-applied on the storefront's
- * portaled popups/toasts) so `:root`, `.admin-theme` and `.dark` — which
- * the admin panel depends on — are untouched.
+ * Storefront world — a production quick-commerce storefront (the category
+ * standard set by Blinkit and Zepto, at their level of craft) in Klasiq red
+ * and black. Scoped to `.store-theme` (applied by the `(site)` layout and
+ * re-applied on the storefront's portaled popups/toasts) so `:root`,
+ * `.admin-theme` and `.dark` — which the admin panel depends on — are
+ * untouched.
  *
- *   --primary   declaration black: structure and every action fill
- *               (buttons, selected pack size, the header band).
- *   --sticker   Klasiq red: the brand's voice, spent only on the price
- *               sticker, the bag count and the "Added" confirmation — one
- *               red mark per product, always with white text on it.
- *   --stamp     black inkjet batch-stamp: savings vs MRP.
- *   --ring      Klasiq red focus ring.
+ *   --primary     Klasiq red: the brand and the one action colour — the
+ *                 header band, ADD buttons and steppers, the cart bar,
+ *                 every primary button.
+ *   --foreground  near-black ink for all text.
+ *   --brand-soft  a pale Klasiq-red tint for category tiles and banners.
  *
  * Light only, by use scene: a neighbourhood customer reordering on a
  * budget Android phone, often in daylight.
  */
 .store-theme {
-  --background: oklch(0.965 0.003 250);
-  --foreground: oklch(0.19 0.004 270);
+  --background: oklch(0.975 0.003 250);
+  --foreground: oklch(0.2 0.006 270);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.19 0.004 270);
+  --card-foreground: oklch(0.2 0.006 270);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.19 0.004 270);
-  --primary: oklch(0.19 0.004 270);
+  --popover-foreground: oklch(0.2 0.006 270);
+  --primary: oklch(0.54 0.21 27);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.93 0.004 250);
-  --secondary-foreground: oklch(0.19 0.004 270);
-  --muted: oklch(0.945 0.004 250);
-  --muted-foreground: oklch(0.42 0.012 275);
-  --accent: oklch(0.54 0.21 27);
-  --accent-foreground: oklch(1 0 0);
+  --secondary: oklch(0.955 0.004 250);
+  --secondary-foreground: oklch(0.2 0.006 270);
+  --muted: oklch(0.96 0.004 250);
+  --muted-foreground: oklch(0.47 0.012 270);
+  --accent: oklch(0.955 0.03 25);
+  --accent-foreground: oklch(0.42 0.17 27);
   --destructive: oklch(0.52 0.2 27);
-  --border: oklch(0.84 0.005 260);
-  --input: oklch(0.19 0.004 270 / 55%);
-  --ring: oklch(0.54 0.21 27 / 60%);
-  --radius: 0;
-  --sticker: oklch(0.54 0.21 27);
-  --sticker-foreground: oklch(1 0 0);
-  --stamp: oklch(0.19 0.004 270);
+  --border: oklch(0.91 0.005 260);
+  --input: oklch(0.87 0.006 260);
+  --ring: oklch(0.54 0.21 27 / 45%);
+  --radius: 0.75rem;
+  --brand-soft: oklch(0.96 0.028 25);
+  --brand-deep: oklch(0.44 0.18 27);
 
   --font-sans: var(--font-archivo);
   --font-heading: var(--font-archivo);
   font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Condensed pack lettering — Archivo's width axis, the narrow cut packs
-   use for legal panels and brand lockups. */
 .store-theme :where(h1, h2, h3, h4) {
-  font-variation-settings: "wdth" 80;
-  letter-spacing: -0.01em;
-}
-.font-condensed {
-  font-variation-settings: "wdth" 72;
+  letter-spacing: -0.015em;
 }
 
-/* Declaration-panel label: "NET QTY", "MRP", aisle headings. */
-.decl-label {
-  font-variation-settings: "wdth" 72;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/* The shop's price sticker. Rotation is the sticker's only playful
-   property; everything else on the page stays square to the grid. */
-.price-sticker {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.125rem;
-  background: var(--sticker);
-  color: var(--sticker-foreground);
-  border-radius: 3px;
-  font-variation-settings: "wdth" 75;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-  transform: rotate(-3deg);
-  box-shadow: 0 1px 1px oklch(0.19 0.004 270 / 18%), 0 3px 8px -2px oklch(0.19 0.004 270 / 22%);
-}
-
-/* The world's one authored motion: a price gun stamping a sticker on.
-   Used when an item lands in the bag. */
-@keyframes price-gun {
+/* Small count "pop" when an item lands in the cart — the storefront's one
+   authored motion, on the cart bar's count. */
+@keyframes cart-pop {
   0% {
-    transform: rotate(-9deg) scale(1.35);
-    opacity: 0;
+    transform: scale(1);
   }
-  55% {
-    transform: rotate(-2deg) scale(0.94);
-    opacity: 1;
+  40% {
+    transform: scale(1.18);
   }
   100% {
-    transform: rotate(-3deg) scale(1);
+    transform: scale(1);
   }
 }
-.animate-price-gun {
-  animation: price-gun 320ms cubic-bezier(0.16, 1, 0.3, 1);
+.animate-cart-pop {
+  animation: cart-pop 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Search placeholder ticker: each suggestion rises into place. */
+@keyframes ticker-in {
+  from {
+    transform: translateY(70%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-ticker-in {
+  animation: ticker-in 360ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Horizontal shelves/carousels: native momentum scrolling, no scrollbar. */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /**

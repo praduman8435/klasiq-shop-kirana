@@ -8,8 +8,6 @@ import { Check, ChevronRight, Minus, Plus, Store, Truck, Wallet } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { ProductThumbnail } from "@/components/product/product-thumbnail";
 import { formatPaise } from "@/lib/money";
-import { PriceSticker } from "@/components/product/price-sticker";
-import { SavingsStamp } from "@/components/product/savings-stamp";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
 import { STOCK_STATUS_LABEL, STOCK_STATUS_TEXT_CLASS, isOrderable } from "@/lib/stock";
 import { cn } from "@/lib/utils";
@@ -183,8 +181,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           alt={product.name}
           categorySlug={product.category.slug}
           large
-          className="aspect-[4/3] w-full overflow-hidden border border-foreground bg-card sm:aspect-square lg:aspect-[4/3] lg:self-start"
-          packFront={{ netQty: selectedVariant?.size ?? null }}
+          className="aspect-square w-full overflow-hidden rounded-3xl border border-border bg-card lg:self-start"
         />
 
         {/* `min-w-0` is required, not decorative: a grid/flex item's
@@ -195,7 +192,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             instead silently widens this whole column (and the page)
             past the viewport. */}
         <div className="flex min-w-0 flex-col">
-          {product.brand && <p className="decl-label text-muted-foreground">{product.brand}</p>}
+          {product.brand && <p className="text-sm font-semibold text-primary">{product.brand}</p>}
           <h1 className="mt-2 text-balance font-heading text-3xl font-extrabold leading-none sm:text-4xl">
             {product.name}
           </h1>
@@ -206,7 +203,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           )}
 
           {!hasVariants ? (
-            <div className="mt-6 rounded-sm border border-dashed border-foreground/40 bg-card p-4 text-sm text-muted-foreground">
+            <div className="mt-6 rounded-2xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
               This item is currently unavailable. Please check back soon or browse{" "}
               <Link href={`/${product.category.slug}`} className="underline underline-offset-2">
                 other {product.category.name}
@@ -216,44 +213,34 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           ) : (
             <>
               {selectedVariant && (
-                <div className="mt-6">
-                  <PriceSticker
-                    priceInPaise={selectedVariant.priceInPaise}
-                    soldOut={!isOrderable(selectedVariant.stockStatus)}
-                    size="large"
-                  />
-                  <SavingsStamp
-                    priceInPaise={selectedVariant.priceInPaise}
-                    mrpInPaise={selectedVariant.mrpInPaise}
-                    className="ml-4 align-middle text-xs"
-                  />
-                  <dl className="mt-4 grid grid-cols-3 border border-foreground bg-card [&>div]:min-w-0 [&>div]:px-3 [&>div]:py-2.5 [&>div+div]:border-l [&>div+div]:border-foreground">
-                    <div>
-                      <dt className="decl-label">Net qty</dt>
-                      <dd className="mt-1 truncate text-base font-semibold">{selectedVariant.size}</dd>
-                    </div>
-                    <div>
-                      <dt className="decl-label">MRP</dt>
-                      <dd className="mt-1 truncate text-base font-semibold tabular-nums">
-                        {selectedVariant.mrpInPaise === null ? (
-                          <span className="text-muted-foreground">—</span>
-                        ) : (
-                          formatPaise(selectedVariant.mrpInPaise)
-                        )}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="decl-label">Stock</dt>
-                      <dd
-                        className={cn(
-                          "mt-1 truncate text-base font-semibold",
-                          STOCK_STATUS_TEXT_CLASS[selectedVariant.stockStatus],
-                        )}
-                      >
-                        {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
-                      </dd>
-                    </div>
-                  </dl>
+                <div className="mt-4">
+                  <p className="text-sm font-semibold text-muted-foreground">{selectedVariant.size}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                    <span className="text-3xl font-extrabold tabular-nums">
+                      {formatPaise(selectedVariant.priceInPaise)}
+                    </span>
+                    {selectedVariant.mrpInPaise !== null &&
+                      selectedVariant.mrpInPaise > selectedVariant.priceInPaise && (
+                        <>
+                          <span className="text-base text-muted-foreground line-through tabular-nums">
+                            <span className="sr-only">MRP </span>
+                            {formatPaise(selectedVariant.mrpInPaise)}
+                          </span>
+                          <span className="rounded-md bg-foreground px-1.5 py-1 text-xs font-extrabold leading-none text-background tabular-nums">
+                            {formatPaise(selectedVariant.mrpInPaise - selectedVariant.priceInPaise)} OFF
+                          </span>
+                        </>
+                      )}
+                  </div>
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {selectedVariant.mrpInPaise === null
+                      ? "Loose / unbranded item"
+                      : `MRP ${formatPaise(selectedVariant.mrpInPaise)}`}
+                    {" · "}
+                    <span className={cn("font-semibold", STOCK_STATUS_TEXT_CLASS[selectedVariant.stockStatus])}>
+                      {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
+                    </span>
+                  </p>
                 </div>
               )}
 
@@ -264,7 +251,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                   reintroducing the exact page-level horizontal overflow
                   the scrollable row was meant to prevent. */}
               <fieldset className="mt-6 min-w-0">
-                <legend className="decl-label text-foreground">Pack size</legend>
+                <legend className="text-sm font-bold text-foreground">Select pack size</legend>
                 {/* `role="radiogroup"`/`radio` (not `aria-pressed`, which
                     describes an independent on/off toggle) — this is a
                     single choice among many, and a screen reader should
@@ -301,10 +288,10 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                           onClick={() => selectVariant(variant.id)}
                           onKeyDown={(event) => handleSizeKeyDown(event, index)}
                           className={cn(
-                            "min-h-12 min-w-14 shrink-0 rounded-sm border px-4 text-base font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring",
+                            "min-h-12 min-w-16 shrink-0 rounded-xl border px-4 text-base font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring",
                             isSelected
-                              ? "border-foreground bg-foreground text-background"
-                              : "border-foreground bg-card text-foreground hover:bg-muted",
+                              ? "border-primary bg-accent text-accent-foreground ring-1 ring-primary"
+                              : "border-border bg-card text-foreground hover:border-foreground/30",
                             !orderable && "text-muted-foreground line-through opacity-50",
                           )}
                         >
@@ -323,7 +310,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               </fieldset>
 
               <div className="mt-6 flex items-center gap-2.5">
-                <div className="flex h-12 shrink-0 items-center rounded-sm border border-foreground bg-card">
+                <div className="flex h-12 shrink-0 items-center rounded-xl border border-border bg-card">
                   <button
                     type="button"
                     aria-label="Decrease quantity"
@@ -353,7 +340,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                     once. Both places call the identical `addToBag()`. */}
                 <Button
                   type="button"
-                  className="hidden h-12 flex-1 rounded-sm text-base font-bold sm:inline-flex"
+                  className="hidden h-12 flex-1 rounded-xl text-base font-bold sm:inline-flex"
                   disabled={!canOrder || isPending}
                   onClick={() => addToBag()}
                 >
@@ -373,7 +360,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               <Button
                 type="button"
                 variant="outline"
-                className="mt-2.5 hidden h-12 w-full rounded-sm border-foreground text-base font-bold sm:block"
+                className="mt-2.5 hidden h-12 w-full rounded-xl text-base font-bold sm:block"
                 disabled={!canOrder || isPending}
                 onClick={() => addToBag(() => router.push("/bag"))}
               >
@@ -421,15 +408,17 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           sized to this bar's own rendered height plus a small margin,
           not a guessed constant, so real content always clears it. */}
       {hasVariants && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-foreground bg-card px-4 py-3 sm:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card px-4 py-3 shadow-[0_-4px_16px_-8px_oklch(0.2_0.006_270/20%)] sm:hidden">
           <div className="flex items-center gap-2 pb-[env(safe-area-inset-bottom)]">
             {selectedVariant && canOrder && (
-              <PriceSticker priceInPaise={selectedVariant.priceInPaise} className="mr-1 shrink-0" />
+              <p className="mr-1 shrink-0 text-xl font-extrabold tabular-nums">
+                {formatPaise(selectedVariant.priceInPaise)}
+              </p>
             )}
             <Button
               type="button"
               variant="outline"
-              className="h-12 shrink-0 rounded-sm border-foreground px-4 font-bold"
+              className="h-12 shrink-0 rounded-xl px-4 font-bold"
               disabled={!canOrder || isPending}
               onClick={() => addToBag(() => router.push("/bag"))}
             >
@@ -437,7 +426,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             </Button>
             <Button
               type="button"
-              className="h-12 min-w-0 flex-1 rounded-sm font-bold"
+              className="h-12 min-w-0 flex-1 rounded-xl font-bold"
               disabled={!canOrder || isPending}
               onClick={() => addToBag()}
             >

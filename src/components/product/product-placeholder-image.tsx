@@ -3,21 +3,16 @@ import { cn } from "@/lib/utils";
 
 /**
  * A product with no photo — an expected, permanent state for much of the
- * catalogue, so it is designed, never a broken image. Small slots get a
- * quiet category icon on shelf grey. The Product Detail image passes
- * `packFront` and gets the pack's own front panel instead: category mark, brand in label caps and the product name
- * in condensed declaration print — recognisably "that pack", never
- * mistaken for a real photo.
+ * catalogue, so it is designed, never a broken image: a quiet category
+ * icon on a soft neutral tile, sized to its slot.
  */
 export function ProductPlaceholderImage({
   categorySlug,
   className,
   compact = false,
   large = false,
-  packFront,
 }: {
   categorySlug: string;
-  packFront?: { netQty: string | null };
   className?: string;
   /** Use for small thumbnails (e.g. checkout order summary rows) where a
    * large icon doesn't fit cleanly. */
@@ -30,22 +25,6 @@ export function ProductPlaceholderImage({
 }) {
   const Icon = getCategoryIcon(categorySlug);
 
-  if (packFront && !compact) {
-    return (
-      <div className={cn("relative flex flex-col overflow-hidden bg-muted p-6 sm:p-8", className)}>
-        <div className="flex flex-1 items-center justify-center">
-          {/* eslint-disable-next-line react-hooks/static-components */}
-          <Icon aria-hidden className="size-28 text-foreground/80 sm:size-36" strokeWidth={1} />
-        </div>
-        {packFront.netQty && (
-          <div aria-hidden className="self-start border border-foreground bg-card px-3 py-2">
-            <p className="decl-label">Net qty</p>
-            <p className="font-condensed mt-1 text-3xl font-extrabold leading-none">{packFront.netQty}</p>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div

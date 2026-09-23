@@ -2,31 +2,25 @@ import type { Viewport } from "next";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
 import { MobileBagBar } from "@/components/site/mobile-bag-bar";
-import { basketItemCount, basketTotalInPaise, getBasket } from "@/lib/basket";
+import { BasketQuantitiesProvider } from "@/components/basket/basket-quantities";
+import { basketItemCount, basketTotalInPaise, basketVariantQuantities, getBasket } from "@/lib/basket";
 import { BRAND } from "@/lib/constants";
 
 /*
- * DESIGN CONTRACT — storefront world (seed 2c6dbd85)
- * THESIS: every product is shown the way its own pack states it — brand,
- *   net quantity, boxed MRP — with the shop's red price sticker on
- *   top. Refuses the quick-commerce tile grid and the cream-serif grocer.
- * OWN-WORLD: Klasiq red and black. Pack-white board on a cool shelf-grey
- *   ground under a solid black header band; black declaration print and
- *   1px black rules forming boxed fields; square corners; Archivo,
- *   condensed caps for labels; one red price sticker (rotated -3deg) per
- *   product; black is every action; black inkjet stamp for savings.
- * STORY: the customer searches or picks an aisle, reads price vs MRP at a
- *   glance, picks a pack size and adds it in one tap.
- * FIRST VIEWPORT: boxed name panel — headline, full-width search with a
- *   black Search button, a ruled strip of real fulfilment facts — then the
- *   aisles as a ruled contents table.
- * FORM: Pack Declaration Panel, grounded candidate 4 of 7, seed 2c6dbd85.
- * FINISH: unreviewed and undocumented is unfinished; this build ends with
- *   the finish review, the verdict, and DESIGN.md
+ * DESIGN CONTRACT — storefront
+ * FORM: the quick-commerce category standard (Blinkit/Zepto craft bar),
+ *   chosen explicitly by the user, in Klasiq red and black.
+ * OWN-WORLD: solid Klasiq-red app header with a sticky rounded search;
+ *   white rounded tiles on a near-white ground; red is the one action
+ *   colour (ADD/steppers, cart bar, primary buttons); near-black ink.
+ * STORY: search or tap a category, add items straight from the tile with
+ *   an in-place stepper, watch the floating bag bar total, check out.
+ * FIRST VIEWPORT: red header + search, a one-line welcome, swipeable fact
+ *   banners (from live config only), then the category tile grid.
  */
 
 export const viewport: Viewport = {
-  themeColor: "#151518",
+  themeColor: "#cd171e",
 };
 
 /**
@@ -53,7 +47,7 @@ export default async function SiteLayout({
       </a>
       <SiteHeader storeName={BRAND.name} />
       <main id="main-content" className="flex-1">
-        {children}
+        <BasketQuantitiesProvider quantities={basketVariantQuantities(basket)}>{children}</BasketQuantitiesProvider>
       </main>
       <SiteFooter storeName={BRAND.name} />
       <MobileBagBar itemCount={basketItemCount(basket)} totalInPaise={basketTotalInPaise(basket)} />

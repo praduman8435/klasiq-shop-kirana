@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CategoryProductGrid } from "@/components/product/category-product-grid";
-import { ProductSearchForm } from "@/components/product/product-search-form";
 import { productSearchQuerySchema } from "@/lib/validation/product-search";
 import { getCategoryBySlug, getCategoryProducts } from "@/server/queries/categories";
 
@@ -66,7 +65,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
       title={category.name}
       description={category.description ?? undefined}
       products={products}
-      headerExtra={<ProductSearchForm action={`/${category.slug}`} query={query} />}
       emptyState={
         query ? (
           <>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Compass } from "lucide-react";
-import { SiteSearch } from "@/components/site/site-search";
 
 /**
  * Phase 3.7 Part 1 — storefront-specific 404, rendered inside the `(site)`
@@ -19,10 +18,9 @@ export default function SiteNotFound() {
         We couldn&apos;t find that page
       </h1>
       <p className="mt-2 text-muted-foreground">
-        The link may be outdated, or the page may have moved. Try searching
-        for what you need instead:
+        The link may be outdated, or the page may have moved. Use the search
+        bar above, or head back to the store.
       </p>
-      <SiteSearch size="compact" className="mt-6" />
       <Link
         href="/"
         className="mt-6 text-sm font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"

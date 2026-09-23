@@ -40,13 +40,13 @@ export function ProductSearchForm({
           defaultValue={query}
           placeholder={placeholder}
           autoComplete="off"
-          className="h-11 w-full rounded-sm border border-foreground bg-card pl-10 pr-4 text-sm outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring"
+          className="h-11 w-full rounded-xl border border-border bg-card pl-10 pr-4 text-base outline-none placeholder:text-muted-foreground focus-visible:ring-3 focus-visible:ring-ring"
         />
       </div>
       <button
         type="submit"
         aria-label="Search"
-        className="flex size-11 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground transition-colors hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+        className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground transition-colors hover:bg-primary/85 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
       >
         <Search className="size-4" aria-hidden />
       </button>
@@ -54,7 +54,7 @@ export function ProductSearchForm({
         <Link
           href={action}
           aria-label="Clear search"
-          className="flex size-11 shrink-0 items-center justify-center rounded-sm border border-foreground text-foreground transition-colors hover:bg-muted"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border text-foreground transition-colors hover:bg-muted"
         >
           <X className="size-4" aria-hidden />
         </Link>

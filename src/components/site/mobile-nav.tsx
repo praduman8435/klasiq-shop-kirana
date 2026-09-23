@@ -13,7 +13,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { CategoryNavLink } from "@/components/site/category-nav-link";
-import { SiteSearch } from "@/components/site/site-search";
 import { TrackOrdersLink } from "@/components/site/track-orders-link";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
@@ -41,11 +40,10 @@ export function MobileNav({ categories }: { categories: { slug: string; name: st
           layout's `.store-theme` scope, so the panel re-applies it. */}
       <SheetContent side="left" className="store-theme w-[85vw] max-w-sm">
         <SheetHeader>
-          <SheetTitle className="text-left font-heading text-xl font-extrabold">Aisles</SheetTitle>
+          <SheetTitle className="text-left font-heading text-xl font-extrabold">Shop by category</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-6 px-4 pb-6">
-          <SiteSearch size="compact" />
-          <nav aria-label="Categories" className="flex flex-col divide-y divide-foreground/15 border-y border-foreground">
+          <nav aria-label="Categories" className="flex flex-col gap-1">
             {categories.map((category) => (
               <CategoryNavLink
                 key={category.slug}
@@ -53,18 +51,18 @@ export function MobileNav({ categories }: { categories: { slug: string; name: st
                 name={category.name}
                 icon={getCategoryIcon(category.slug || category.name)}
                 onClick={() => setOpen(false)}
-                className="flex min-h-12 items-center gap-3 px-2 py-3 text-base font-semibold transition-colors hover:bg-muted"
-                activeClassName="bg-foreground text-background hover:bg-foreground [&_svg]:text-background"
+                className="flex min-h-12 items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold transition-colors hover:bg-muted [&_svg]:text-brand-deep"
+                activeClassName="bg-brand-soft text-brand-deep"
               />
             ))}
           </nav>
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-1 border-t border-border pt-4">
             <Link
               href="/search"
               onClick={() => setOpen(false)}
               aria-current={pathname === "/search" ? "page" : undefined}
               className={cn(
-                "flex min-h-12 items-center gap-3 px-2 py-3 text-base font-medium transition-colors hover:bg-muted",
+                "flex min-h-12 items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-colors hover:bg-muted",
                 pathname === "/search" && "bg-muted",
               )}
             >
@@ -73,7 +71,7 @@ export function MobileNav({ categories }: { categories: { slug: string; name: st
             </Link>
             <TrackOrdersLink
               onClick={() => setOpen(false)}
-              className="flex min-h-12 items-center gap-3 px-2 py-3 text-base font-medium transition-colors hover:bg-muted"
+              className="flex min-h-12 items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-colors hover:bg-muted"
               activeClassName="bg-muted"
               iconClassName="size-4.5 text-muted-foreground"
             >

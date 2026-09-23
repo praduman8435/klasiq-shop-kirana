@@ -19,7 +19,7 @@ export default async function BagPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-md px-4 py-14 sm:px-6">
-        <div className="flex flex-col items-center border border-dashed border-foreground/50 bg-card px-6 py-10 text-center">
+        <div className="flex flex-col items-center rounded-3xl bg-card px-6 py-12 text-center shadow-[0_1px_3px_oklch(0.2_0.006_270/8%)]">
           <ShoppingBag className="size-7" strokeWidth={1.5} aria-hidden />
           <h1 className="mt-3 font-heading text-2xl font-extrabold leading-none">
             Your bag is empty
@@ -67,7 +67,7 @@ export default async function BagPage() {
       <p className="mt-2 text-sm text-muted-foreground">{itemCountLabel}</p>
 
       <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
-        <ul className="flex-1 divide-y divide-foreground/20 border border-foreground bg-card px-3 sm:px-4 lg:max-w-2xl">
+        <ul className="flex-1 divide-y divide-border rounded-2xl border border-border bg-card px-3 sm:px-4 lg:max-w-2xl">
           {items.map((item) => (
             <BasketLineItem
               key={item.id}
@@ -106,7 +106,7 @@ export default async function BagPage() {
             "Delivery/pickup and payment are chosen at checkout" sentence
             replaced with a plain summary row — the fact itself, not a
             sentence explaining it. */}
-        <div className="border border-foreground bg-card p-4 lg:sticky lg:top-24 lg:w-[340px] lg:shrink-0">
+        <div className="rounded-2xl border border-border bg-card p-4 lg:sticky lg:top-40 lg:w-[340px] lg:shrink-0">
           <h2 className="font-heading text-xl font-extrabold leading-none">Order summary</h2>
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
@@ -122,9 +122,9 @@ export default async function BagPage() {
               convention exactly (see checkout-form.tsx) — delivery isn't
               known yet at this stage, so Total is the same computed
               `total` as Subtotal, not a separate calculation. */}
-          <div className="mt-3 flex items-center justify-between border-t border-foreground pt-3 text-base font-bold">
+          <div className="mt-3 flex items-center justify-between border-t border-border pt-3 text-lg font-extrabold">
             <span>Total</span>
-            <span className="price-sticker px-2 py-1.5 text-lg">{formatPaise(total)}</span>
+            <span className="tabular-nums">{formatPaise(total)}</span>
           </div>
 
           <Button
@@ -148,23 +148,25 @@ export default async function BagPage() {
 
       {/* Mobile-only sticky checkout bar — the SOLE checkout mechanism
           below `sm` (the in-content button above is hidden there). The
-          same floating black bar as the browse pages' `MobileBagBar`,
-          so the path bag → checkout keeps one consistent control in the
-          thumb zone: total on the red sticker, one tap to checkout. */}
+          same red cart bar as the browse pages' `MobileBagBar`, so the
+          path bag → checkout keeps one consistent control in the thumb
+          zone: count and total on the left, one tap to checkout. */}
       <div className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] sm:hidden">
         <Link
           href="/checkout"
-          className="flex h-14 items-center gap-3 bg-foreground pl-4 pr-3 text-background shadow-[0_6px_20px_-6px_oklch(0.19_0.004_270/55%)] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+          className="flex h-14 items-center gap-3 rounded-2xl bg-primary pl-4 pr-4 text-primary-foreground shadow-[0_8px_24px_-8px_oklch(0.54_0.21_27/70%)] transition-transform active:scale-[0.99] focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
         >
-          <span className="min-w-0 flex-1">
-            <span className="decl-label block text-background/70">{itemCountLabel}</span>
-            <span className="mt-0.5 block text-base font-bold leading-tight">Proceed to checkout</span>
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block text-xs font-semibold text-primary-foreground/85">{itemCountLabel}</span>
+            <span className="block text-base font-extrabold tabular-nums">
+              <span className="sr-only">Total </span>
+              {formatPaise(total)}
+            </span>
           </span>
-          <span className="price-sticker px-2 py-1.5 text-lg">
-            <span className="sr-only">Total </span>
-            {formatPaise(total)}
+          <span className="flex items-center gap-1 text-base font-extrabold">
+            Checkout
+            <ArrowRight className="size-5 shrink-0" strokeWidth={2.5} aria-hidden />
           </span>
-          <ArrowRight className="size-5 shrink-0" aria-hidden />
         </Link>
       </div>
     </div>

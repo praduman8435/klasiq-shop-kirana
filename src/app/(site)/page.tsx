@@ -1,97 +1,106 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { ArrowRight, Store, Truck, Wallet, type LucideIcon } from "lucide-react";
-import { SiteSearch } from "@/components/site/site-search";
-import { ProductCard } from "@/components/product/product-card";
-import { ProductSheet } from "@/components/product/product-sheet";
+import { PromoCarousel, type PromoSlide } from "@/components/home/promo-carousel";
+import { ProductShelf } from "@/components/home/product-shelf";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { BRAND } from "@/lib/constants";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
-import { cn } from "@/lib/utils";
-import { getFeaturedProducts, getHeaderCategories } from "@/server/queries/categories";
+import { formatPaise } from "@/lib/money";
+import { getCategoryProducts, getHeaderCategories } from "@/server/queries/categories";
 
 export const metadata: Metadata = {
   description: BRAND.description,
 };
 
-/** Only facts backed by live config — the same three the Product Detail
- * page's fulfilment list states, never a promise the store doesn't make. */
-function getStoreFacts(): { icon: LucideIcon; label: string; value: string }[] {
-  return [
-    ...(FULFILLMENT_CONFIG.pickupEnabled ? [{ icon: Store, label: "Pickup", value: "Collect at the store" }] : []),
-    ...(FULFILLMENT_CONFIG.deliveryEnabled ? [{ icon: Truck, label: "Delivery", value: "Local home delivery" }] : []),
-    { icon: Wallet, label: "Payment", value: "Pay at store or on delivery" },
-  ];
+const SHELF_SIZE = 12;
+
+/** Banner slides from live config only — every line is a fact the store
+ * stands behind (delivery radius/threshold, pickup, payment), never an
+ * invented offer or delivery time. */
+function getPromoSlides(firstAisleHref: string): PromoSlide[] {
+  const { deliveryEnabled, pickupEnabled, freeDeliveryRadiusMeters, freeDeliveryThresholdInPaise } =
+    FULFILLMENT_CONFIG;
+  const km = freeDeliveryRadiusMeters / 1000;
+  const radius = Number.isInteger(km) ? `${km} km` : `${km.toFixed(1)} km`;
+  const slides: PromoSlide[] = [];
+
+  if (deliveryEnabled) {
+    slides.push({
+      id: "free-delivery",
+      title: `Free delivery within ${radius}`,
+      body: `Further away? Still free on orders above ${formatPaise(freeDeliveryThresholdInPaise)}.`,
+      cta: { label: "Start shopping", href: firstAisleHref },
+      icon: "delivery",
+      tone: "red",
+    });
+  }
+  if (pickupEnabled) {
+    slides.push({
+      id: "pickup",
+      title: "Order now, pick up at the store",
+      body: "Your order is packed and waiting at the counter when you arrive.",
+      cta: { label: "Browse aisles", href: "#categories-heading" },
+      icon: "pickup",
+      tone: "ink",
+    });
+  }
+  slides.push({
+    id: "payment",
+    title: "Pay when it reaches you",
+    body: "Cash on delivery, or pay at the store. No card or online payment needed.",
+    icon: "payment",
+    tone: "soft",
+  });
+  return slides;
 }
 
 /**
- * Homepage — "search + aisles" first. The name panel is the pack's front:
- * headline, a full-width search, and a ruled strip of real fulfilment
- * facts like the NET QTY / MRP / BEST BEFORE row on a pack. The aisles
- * follow as a ruled contents table with dotted leaders, then a shelf of
- * real products laid out as a sheet of pack panels.
+ * Homepage, built to the quick-commerce standard (Blinkit/Zepto craft bar)
+ * in Klasiq red and black: a one-line welcome, swipeable fact banners, a
+ * shop-by-category tile grid, then one swipeable shelf per aisle. Search
+ * lives in the sticky header, so the page opens straight onto products.
  */
 export default async function HomePage() {
-  const [categories, featuredProducts] = await Promise.all([
-    getHeaderCategories(),
-    getFeaturedProducts(10),
-  ]);
-  const facts = getStoreFacts();
+  const categories = await getHeaderCategories();
+  const shelves = (
+    await Promise.all(
+      categories.map(async (category) => ({
+        category,
+        products: await getCategoryProducts(category.slug, undefined, SHELF_SIZE),
+      })),
+    )
+  ).filter((shelf) => shelf.products.length > 0);
+  const firstAisleHref = categories[0] ? `/${categories[0].slug}` : "/search";
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-8 px-4 pb-12 pt-4 sm:gap-12 sm:px-6 sm:pt-8">
-      <section aria-labelledby="home-heading" className="border border-foreground bg-card">
-        <div className="px-4 pb-5 pt-6 sm:px-8 sm:pb-8 sm:pt-10">
-          <h1
-            id="home-heading"
-            className="max-w-[14ch] text-balance text-4xl font-extrabold leading-[0.95] sm:text-6xl"
-          >
-            {BRAND.heroHeadline}
-          </h1>
-          <SiteSearch size="hero" className="mt-5 max-w-2xl sm:mt-7" />
-        </div>
-        <dl
-          className="grid border-t border-foreground [&>div+div]:border-l [&>div+div]:border-foreground"
-          style={{ gridTemplateColumns: `repeat(${facts.length}, minmax(0, 1fr))` }}
-        >
-          {facts.map((fact) => (
-            <div key={fact.label} className="flex min-w-0 flex-col gap-1.5 px-3 py-3 sm:flex-row sm:items-center sm:gap-3 sm:px-8 sm:py-4">
-              <fact.icon className="size-5 shrink-0" strokeWidth={1.75} aria-hidden />
-              <div className="min-w-0">
-                <dt className="decl-label">{fact.label}</dt>
-                <dd className="mt-1 text-xs leading-snug text-muted-foreground sm:text-sm">{fact.value}</dd>
-              </div>
-            </div>
-          ))}
-        </dl>
-      </section>
+    <div className="mx-auto flex max-w-6xl flex-col gap-7 px-4 pb-10 pt-4 sm:gap-10 sm:px-6 sm:pt-6">
+      <div className="flex flex-col gap-4">
+        <h1 className="max-w-xl text-balance text-2xl font-extrabold leading-[1.1] sm:text-3xl">
+          {BRAND.heroHeadline}
+        </h1>
+        <PromoCarousel slides={getPromoSlides(firstAisleHref)} />
+      </div>
 
       {categories.length > 0 && (
-        <section aria-labelledby="aisles-heading">
-          <h2 id="aisles-heading" className="text-2xl font-extrabold leading-none sm:text-3xl">
-            Aisles
+        <section aria-labelledby="categories-heading" className="scroll-mt-32">
+          <h2 id="categories-heading" className="text-lg font-extrabold leading-tight sm:text-xl">
+            Shop by category
           </h2>
-          <ul className="mt-4 grid grid-cols-2 gap-x-4 border border-foreground bg-card px-3 sm:gap-x-10 sm:px-6">
-            {categories.map((category, index) => {
+          <ul className="mt-3 grid grid-cols-4 gap-x-2.5 gap-y-4 sm:grid-cols-8 sm:gap-x-4">
+            {categories.map((category) => {
               const Icon = getCategoryIcon(category.slug || category.name);
               return (
-                <li key={category.slug} className={cn("min-w-0 border-foreground/20", index > 1 && "border-t")}>
+                <li key={category.slug}>
                   <Link
                     href={`/${category.slug}`}
-                    className="group flex min-h-14 items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring sm:min-h-13 sm:gap-3"
+                    className="group flex flex-col items-center gap-2 rounded-2xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
                   >
-                    <Icon className="size-5 shrink-0" strokeWidth={1.5} aria-hidden />
-                    <span className="min-w-0 text-sm font-bold leading-tight group-hover:underline group-hover:underline-offset-4 sm:text-base">
+                    <span className="flex aspect-square w-full items-center justify-center rounded-2xl bg-brand-soft transition-transform duration-200 group-hover:-translate-y-0.5 group-active:scale-95">
+                      <Icon className="size-8 text-brand-deep sm:size-10" strokeWidth={1.5} aria-hidden />
+                    </span>
+                    <span className="line-clamp-2 text-center text-xs font-semibold leading-tight text-foreground sm:text-sm">
                       {category.name}
                     </span>
-                    <span
-                      aria-hidden
-                      className="mx-1 hidden h-0 min-w-4 flex-1 translate-y-1 border-b-2 border-dotted border-foreground/35 sm:block"
-                    />
-                    <ArrowRight
-                      className="hidden size-4 shrink-0 transition-transform group-hover:translate-x-0.5 sm:block"
-                      aria-hidden
-                    />
                   </Link>
                 </li>
               );
@@ -100,18 +109,9 @@ export default async function HomePage() {
         </section>
       )}
 
-      {featuredProducts.length > 0 && (
-        <section aria-labelledby="essentials-heading">
-          <h2 id="essentials-heading" className="text-2xl font-extrabold leading-none sm:text-3xl">
-            Everyday essentials
-          </h2>
-          <ProductSheet className="mt-4">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </ProductSheet>
-        </section>
-      )}
+      {shelves.map(({ category, products }) => (
+        <ProductShelf key={category.slug} title={category.name} href={`/${category.slug}`} products={products} />
+      ))}
     </div>
   );
 }

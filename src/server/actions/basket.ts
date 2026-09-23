@@ -13,6 +13,7 @@ import {
   addToBasketSchema,
   removeBasketItemSchema,
   setBasketItemQuantitySchema,
+  setVariantQuantitySchema,
 } from "@/lib/validation/basket";
 
 export type BasketActionResult = {
@@ -189,4 +190,33 @@ export async function removeBasketItem(
   await db.basketItem.delete({ where: { id: item.id } });
   revalidateBasketViews();
   return { success: true };
+}
+
+/**
+ * The product-card stepper's one action: set how many of a variant are in
+ * the bag, by variant id (a card never knows basket line ids). Delegates
+ * to the existing, already-guarded paths — `addToBasket` when the variant
+ * isn't in the bag yet, `setBasketItemQuantity` (which deletes at 0 and
+ * clamps to stock) when it is — so there is still exactly one place each
+ * rule lives.
+ */
+export async function setVariantQuantity(input: unknown): Promise<BasketActionResult> {
+  const parsed = setVariantQuantitySchema.safeParse(input);
+  if (!parsed.success) {
+    return { success: false, message: "Invalid request." };
+  }
+  const { productVariantId, quantity } = parsed.data;
+
+  const basketId = await getBasketId();
+  const existing = basketId
+    ? await db.basketItem.findUnique({
+        where: { basketId_productVariantId: { basketId, productVariantId } },
+      })
+    : null;
+
+  if (!existing) {
+    if (quantity === 0) return { success: true };
+    return addToBasket({ productVariantId, quantity });
+  }
+  return setBasketItemQuantity({ basketItemId: existing.id, quantity });
 }
