@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getAdminSession } from "@/lib/admin/session";
 import { deriveStockStatus } from "@/lib/stock";
 import { rupeesToPaise } from "@/lib/money";
+import { deleteProductPhotoIfUnused } from "@/server/product-photos";
 import {
   checkPriceAgainstMrp,
   createProductSchema,
@@ -119,6 +120,8 @@ export async function updateProductAction(
       isActive: parsed.data.isActive,
     },
   });
+  // A replaced or removed uploaded photo is dead weight in the database.
+  if (current.imageUrl !== (parsed.data.imageUrl || null)) await deleteProductPhotoIfUnused(current.imageUrl);
 
   revalidateProductViews(parsed.data.id);
   return { success: true };

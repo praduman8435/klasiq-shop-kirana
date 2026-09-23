@@ -189,6 +189,23 @@ model Product {
   @@map("products")
 }
 
+/// A product photo the owner took or picked in admin, stored in the
+/// database itself (the app has no file storage: Vercel's disk is
+/// read-only). The phone shrinks it to an 800x800 WebP/JPEG first, so rows
+/// stay ~50–150 KB. Served at /api/product-photos/{id}; Product.imageUrl
+/// holds that path. Not a relation on Product on purpose: the owner can
+/// upload before the product is saved, and a row is immutable, so its URL
+/// can be cached forever.
+model ProductPhoto {
+  id          String   @id @default(cuid())
+  contentType String
+  byteSize    Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  @@map("product_photos")
+}
+
 /// A purchasable pack-size/price/stock combination of a Product. `size`
 /// holds the pack size ("500 g", "1 kg", "Pack of 4") — the column keeps
 /// its original name because order/return snapshots reference it, but every

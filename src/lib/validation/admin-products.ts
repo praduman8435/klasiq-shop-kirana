@@ -1,6 +1,9 @@
 import { z } from "zod";
 
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+/** A path on this site ("/products/atta.webp", "/api/product-photos/…"),
+ * never protocol-relative ("//evil.example"). */
+const SITE_PATH_PATTERN = /^\/(?!\/)[^\s]*$/;
 
 export const productFormSchema = z.object({
   name: z.string().trim().min(2, "Name is required.").max(150),
@@ -13,7 +16,14 @@ export const productFormSchema = z.object({
   description: z.string().trim().max(500).optional(),
   categoryId: z.string().min(1, "Choose a category."),
   brand: z.string().trim().max(60).optional(),
-  imageUrl: z.union([z.string().trim().url().max(500), z.literal("")]).optional(),
+  /** An uploaded photo or bundled image (a site path), or a full link. */
+  imageUrl: z
+    .union([
+      z.string().trim().max(500).regex(SITE_PATH_PATTERN, "Choose the photo again."),
+      z.string().trim().url().max(500).regex(/^https?:\/\//i, "Use an https:// link."),
+      z.literal(""),
+    ])
+    .optional(),
   isActive: z.boolean(),
 });
 

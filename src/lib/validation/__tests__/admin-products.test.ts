@@ -16,6 +16,18 @@ describe("productFormSchema", () => {
     expect(productFormSchema.safeParse(base()).success).toBe(true);
   });
 
+  it("accepts an uploaded or bundled photo path as the image", () => {
+    for (const imageUrl of ["/api/product-photos/cm1abc", "/products/toor-dal.webp", "https://cdn.example/a.jpg", ""]) {
+      expect(productFormSchema.safeParse(base({ imageUrl })).success).toBe(true);
+    }
+  });
+
+  it("rejects a protocol-relative or non-URL image", () => {
+    for (const imageUrl of ["//evil.example/a.jpg", "javascript:alert(1)", "not a url"]) {
+      expect(productFormSchema.safeParse(base({ imageUrl })).success).toBe(false);
+    }
+  });
+
   it("rejects an uppercase slug", () => {
     expect(productFormSchema.safeParse(base({ slug: "Toor-Dal" })).success).toBe(false);
   });
