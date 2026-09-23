@@ -742,6 +742,18 @@ model AdminLoginAttempt {
   @@map("admin_login_attempts")
 }
 
+/// One "find my order" attempt on /track (order number + mobile number),
+/// counted per IP to stop anyone scripting guesses. Same rolling-window
+/// shape as AdminLoginAttempt; old rows are swept opportunistically.
+model OrderLookupAttempt {
+  id        String   @id @default(cuid())
+  ipAddress String
+  createdAt DateTime @default(now())
+
+  @@index([ipAddress, createdAt])
+  @@map("order_lookup_attempts")
+}
+
 /// Why a variant's stock quantity changed. STOCK_RECEIVED and
 /// MANUAL_CORRECTION are staff-initiated from /admin/inventory;
 /// ORDER_CANCELLATION_RESTORE is written automatically when an admin

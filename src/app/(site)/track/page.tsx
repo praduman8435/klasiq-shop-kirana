@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { TrackOrdersForm } from "@/components/customer-portal/track-orders-form";
 import { getCustomerSession } from "@/lib/customer-portal/session";
+import { isCustomerOtpRequired } from "@/server/customer-portal/phone-login";
 
 export const metadata: Metadata = {
   title: "Track your orders",
@@ -33,7 +34,7 @@ export default async function TrackOrdersPage() {
             Enter the mobile number used when placing your order.
           </p>
         </div>
-        <TrackOrdersForm />
+        <TrackOrdersForm otpRequired={isCustomerOtpRequired()} />
       </div>
     </div>
   );

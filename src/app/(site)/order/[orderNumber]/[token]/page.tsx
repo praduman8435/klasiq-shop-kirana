@@ -8,6 +8,7 @@ import { formatPaise } from "@/lib/money";
 import { getFulfillmentLabel, getPaymentMethodLabel } from "@/lib/order-message";
 import { PAYMENT_STATUS_LABEL } from "@/lib/order-lifecycle";
 import { getOrderByNumberAndToken } from "@/server/queries/orders";
+import { isCustomerOtpRequired } from "@/server/customer-portal/phone-login";
 
 type PageProps = {
   params: Promise<{ orderNumber: string; token: string }>;
@@ -49,10 +50,20 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
 
       <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-accent p-3.5">
         <Bookmark className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium text-foreground">Save this page&apos;s link</span> — it&apos;s the
-          only way to view this order again without verifying your mobile number.
-        </p>
+        {isCustomerOtpRequired() ? (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Save this page&apos;s link</span> — it&apos;s the
+            only way to view this order again without verifying your mobile number.
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-foreground">Track this order anytime</span> — open{" "}
+            <Link href="/track" className="font-medium text-foreground underline underline-offset-2">
+              Track order
+            </Link>{" "}
+            and enter your mobile number.
+          </p>
+        )}
       </div>
 
       {/* One continuous surface with hairline dividers, matching the same

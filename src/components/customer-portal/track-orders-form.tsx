@@ -6,7 +6,7 @@ import { AlertTriangle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { requestOtpAction, verifyOtpAction } from "@/server/actions/customer-portal/auth";
+import { requestOtpAction, signInWithPhoneAction, verifyOtpAction } from "@/server/actions/customer-portal/auth";
 
 type Step = "phone" | "code";
 
@@ -22,7 +22,9 @@ function maskPhone(phone: string): string {
 
 const DEFAULT_RESEND_COOLDOWN_SECONDS = 45;
 
-export function TrackOrdersForm() {
+/** `otpRequired` false (testing phase): the mobile number alone opens the
+ * customer's orders — see src/server/customer-portal/phone-login.ts. */
+export function TrackOrdersForm({ otpRequired }: { otpRequired: boolean }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const phoneId = useId();
@@ -70,10 +72,24 @@ export function TrackOrdersForm() {
     });
   }
 
+  function openOrders() {
+    setError(null);
+    startTransition(async () => {
+      const result = await signInWithPhoneAction({ phone });
+      if (result.success) {
+        router.push("/track/orders");
+        router.refresh();
+        return;
+      }
+      setError(result.error.message);
+    });
+  }
+
   function handlePhoneSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (isPending || !phone.trim()) return;
-    requestCode();
+    if (otpRequired) requestCode();
+    else openOrders();
   }
 
   function handleCodeSubmit(event: React.FormEvent) {
@@ -144,7 +160,7 @@ export function TrackOrdersForm() {
         </div>
 
         <Button type="submit" size="lg" className="mt-2 h-12 w-full text-base" disabled={isPending}>
-          {isPending ? "Sending code..." : "Continue"}
+          {otpRequired ? (isPending ? "Sending code..." : "Continue") : isPending ? "Opening..." : "View my orders"}
         </Button>
       </form>
     );
