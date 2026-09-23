@@ -1,0 +1,6 @@
+# Never upload local-only files when deploying from the CLI.
+.env*
+!.env.example
+.impeccable/live
+.impeccable/questions
+node_modules
