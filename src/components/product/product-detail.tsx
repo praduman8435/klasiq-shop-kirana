@@ -8,23 +8,18 @@ import { Check, ChevronRight, Minus, Plus, Store, Truck, Wallet } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { ProductThumbnail } from "@/components/product/product-thumbnail";
 import { formatPaise } from "@/lib/money";
-import { MrpPrice } from "@/components/product/mrp-price";
+import { PriceSticker } from "@/components/product/price-sticker";
+import { SavingsStamp } from "@/components/product/savings-stamp";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
-import { STOCK_STATUS_LABEL, isOrderable } from "@/lib/stock";
+import { STOCK_STATUS_LABEL, STOCK_STATUS_TEXT_CLASS, isOrderable } from "@/lib/stock";
 import { cn } from "@/lib/utils";
 import { addToBasket } from "@/server/actions/basket";
 import type { ProductDetail as ProductDetailData } from "@/server/queries/products";
 
-const STOCK_BADGE_CLASS: Record<string, string> = {
-  IN_STOCK: "text-emerald-600 dark:text-emerald-400",
-  LOW_STOCK: "text-amber-600 dark:text-amber-400",
-  OUT_OF_STOCK: "text-muted-foreground line-through",
-};
 
 /**
- * Phase 3.7 Part 7 (PDP redesign) — dark-first (`RouteThemeScope`
- * applies `.dark` on both "/" and every "/product/*" route), compact,
- * editorial. Still reuses the exact same interaction model `ProductCard`
+ * Product Detail — the pack's full declaration panel: brand label, name,
+ * a large price sticker, and a ruled NET QTY | MRP | STOCK table. Still reuses the exact same interaction model `ProductCard`
  * established (default-variant selection, quantity clamp, `addToBasket`
  * Server Action, Add/Buy Now pairing) — only the LAYOUT and visual
  * hierarchy changed, never the commerce logic underneath.
@@ -34,7 +29,7 @@ const STOCK_BADGE_CLASS: Record<string, string> = {
  *    card — price/size/quantity/actions/fulfillment sit directly on the
  *    page canvas, separated by a hairline divider and spacing rhythm
  *    alone ("the page should breathe," not card-inside-card).
- * 2. Add to Bag is the PRIMARY (solid Klasiq Red) action and Buy Now is
+ * 2. Add to Bag is the PRIMARY (solid black) action and Buy Now is
  *    SECONDARY (outline) — the reverse of the prior visual weighting.
  *    Behavior is identical to before: Add to Bag never navigates away,
  *    Buy Now still adds then jumps straight to `/bag`.
@@ -188,7 +183,8 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           alt={product.name}
           categorySlug={product.category.slug}
           large
-          className="aspect-[4/3] w-full overflow-hidden rounded-2xl border transition-transform duration-500 ease-out hover:scale-[1.015] sm:aspect-square"
+          className="aspect-[4/3] w-full overflow-hidden border border-foreground bg-card sm:aspect-square lg:aspect-[4/3] lg:self-start"
+          packFront={{ netQty: selectedVariant?.size ?? null }}
         />
 
         {/* `min-w-0` is required, not decorative: a grid/flex item's
@@ -199,14 +195,10 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             instead silently widens this whole column (and the page)
             past the viewport. */}
         <div className="flex min-w-0 flex-col">
-          <h1 className="text-balance font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+          {product.brand && <p className="decl-label text-muted-foreground">{product.brand}</p>}
+          <h1 className="mt-2 text-balance font-heading text-3xl font-extrabold leading-none sm:text-4xl">
             {product.name}
           </h1>
-          {product.brand && (
-            <p className="mt-1.5 text-xs font-medium text-muted-foreground">
-              {product.brand}
-            </p>
-          )}
           {product.description && (
             <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
               {product.description}
@@ -214,7 +206,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           )}
 
           {!hasVariants ? (
-            <div className="mt-6 rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+            <div className="mt-6 rounded-sm border border-dashed border-foreground/40 bg-card p-4 text-sm text-muted-foreground">
               This item is currently unavailable. Please check back soon or browse{" "}
               <Link href={`/${product.category.slug}`} className="underline underline-offset-2">
                 other {product.category.name}
@@ -224,22 +216,46 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           ) : (
             <>
               {selectedVariant && (
-                <p className="mt-5 flex items-baseline gap-2.5">
-                  <span className="font-heading text-3xl font-semibold tabular-nums tracking-tight text-foreground">
-                    {formatPaise(selectedVariant.priceInPaise)}
-                  </span>
-                  <MrpPrice
+                <div className="mt-6">
+                  <PriceSticker
+                    priceInPaise={selectedVariant.priceInPaise}
+                    soldOut={!isOrderable(selectedVariant.stockStatus)}
+                    size="large"
+                  />
+                  <SavingsStamp
                     priceInPaise={selectedVariant.priceInPaise}
                     mrpInPaise={selectedVariant.mrpInPaise}
-                    className="text-sm"
+                    className="ml-4 align-middle text-xs"
                   />
-                  <span className={cn("text-sm font-medium", STOCK_BADGE_CLASS[selectedVariant.stockStatus])}>
-                    {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
-                  </span>
-                </p>
+                  <dl className="mt-4 grid grid-cols-3 border border-foreground bg-card [&>div]:min-w-0 [&>div]:px-3 [&>div]:py-2.5 [&>div+div]:border-l [&>div+div]:border-foreground">
+                    <div>
+                      <dt className="decl-label">Net qty</dt>
+                      <dd className="mt-1 truncate text-base font-semibold">{selectedVariant.size}</dd>
+                    </div>
+                    <div>
+                      <dt className="decl-label">MRP</dt>
+                      <dd className="mt-1 truncate text-base font-semibold tabular-nums">
+                        {selectedVariant.mrpInPaise === null ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          formatPaise(selectedVariant.mrpInPaise)
+                        )}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="decl-label">Stock</dt>
+                      <dd
+                        className={cn(
+                          "mt-1 truncate text-base font-semibold",
+                          STOCK_STATUS_TEXT_CLASS[selectedVariant.stockStatus],
+                        )}
+                      >
+                        {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
               )}
-
-              <div className="mt-6 h-px bg-border" aria-hidden />
 
               {/* `min-w-0` overrides `<fieldset>`'s own browser-default
                   `min-width: min-content` — without it, the fieldset
@@ -248,7 +264,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                   reintroducing the exact page-level horizontal overflow
                   the scrollable row was meant to prevent. */}
               <fieldset className="mt-6 min-w-0">
-                <legend className="text-sm font-medium text-foreground">Pack size</legend>
+                <legend className="decl-label text-foreground">Pack size</legend>
                 {/* `role="radiogroup"`/`radio` (not `aria-pressed`, which
                     describes an independent on/off toggle) — this is a
                     single choice among many, and a screen reader should
@@ -285,10 +301,10 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                           onClick={() => selectVariant(variant.id)}
                           onKeyDown={(event) => handleSizeKeyDown(event, index)}
                           className={cn(
-                            "min-h-11 min-w-11 shrink-0 rounded-full border-2 px-4 text-sm font-medium outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                            "min-h-12 min-w-14 shrink-0 rounded-sm border px-4 text-base font-semibold outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring",
                             isSelected
-                              ? "border-primary bg-primary text-primary-foreground"
-                              : "border-border bg-transparent text-foreground hover:bg-muted",
+                              ? "border-foreground bg-foreground text-background"
+                              : "border-foreground bg-card text-foreground hover:bg-muted",
                             !orderable && "text-muted-foreground line-through opacity-50",
                           )}
                         >
@@ -307,7 +323,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               </fieldset>
 
               <div className="mt-6 flex items-center gap-2.5">
-                <div className="flex h-11 shrink-0 items-center rounded-full border">
+                <div className="flex h-12 shrink-0 items-center rounded-sm border border-foreground bg-card">
                   <button
                     type="button"
                     aria-label="Decrease quantity"
@@ -337,7 +353,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                     once. Both places call the identical `addToBag()`. */}
                 <Button
                   type="button"
-                  className="hidden h-11 flex-1 sm:inline-flex"
+                  className="hidden h-12 flex-1 rounded-sm text-base font-bold sm:inline-flex"
                   disabled={!canOrder || isPending}
                   onClick={() => addToBag()}
                 >
@@ -357,7 +373,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               <Button
                 type="button"
                 variant="outline"
-                className="mt-2.5 hidden h-11 w-full sm:block"
+                className="mt-2.5 hidden h-12 w-full rounded-sm border-foreground text-base font-bold sm:block"
                 disabled={!canOrder || isPending}
                 onClick={() => addToBag(() => router.push("/bag"))}
               >
@@ -373,18 +389,18 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               <ul className="mt-6 flex flex-col gap-2 text-sm text-muted-foreground">
                 {FULFILLMENT_CONFIG.pickupEnabled && (
                   <li className="flex items-center gap-2">
-                    <Store className="size-4 shrink-0 text-foreground/60" aria-hidden />
+                    <Store className="size-4 shrink-0 text-foreground" aria-hidden />
                     Store Pickup available
                   </li>
                 )}
                 {FULFILLMENT_CONFIG.deliveryEnabled && (
                   <li className="flex items-center gap-2">
-                    <Truck className="size-4 shrink-0 text-foreground/60" aria-hidden />
+                    <Truck className="size-4 shrink-0 text-foreground" aria-hidden />
                     Local Delivery available
                   </li>
                 )}
                 <li className="flex items-center gap-2">
-                  <Wallet className="size-4 shrink-0 text-foreground/60" aria-hidden />
+                  <Wallet className="size-4 shrink-0 text-foreground" aria-hidden />
                   Pay at store or cash on delivery
                 </li>
               </ul>
@@ -405,17 +421,15 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           sized to this bar's own rendered height plus a small margin,
           not a guessed constant, so real content always clears it. */}
       {hasVariants && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 px-4 py-3 backdrop-blur supports-backdrop-filter:bg-card/80 sm:hidden">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-foreground bg-card px-4 py-3 sm:hidden">
           <div className="flex items-center gap-2 pb-[env(safe-area-inset-bottom)]">
-            {selectedVariant && (
-              <p className="shrink-0 font-heading text-lg font-semibold tabular-nums">
-                {formatPaise(selectedVariant.priceInPaise)}
-              </p>
+            {selectedVariant && canOrder && (
+              <PriceSticker priceInPaise={selectedVariant.priceInPaise} className="mr-1 shrink-0" />
             )}
             <Button
               type="button"
               variant="outline"
-              className="h-11 shrink-0 px-4"
+              className="h-12 shrink-0 rounded-sm border-foreground px-4 font-bold"
               disabled={!canOrder || isPending}
               onClick={() => addToBag(() => router.push("/bag"))}
             >
@@ -423,7 +437,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             </Button>
             <Button
               type="button"
-              className="h-11 min-w-0 flex-1"
+              className="h-12 min-w-0 flex-1 rounded-sm font-bold"
               disabled={!canOrder || isPending}
               onClick={() => addToBag()}
             >

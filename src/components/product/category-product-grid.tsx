@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { ProductCard } from "@/components/product/product-card";
+import { ProductSheet } from "@/components/product/product-sheet";
 import type { ProductWithVariants } from "@/types/catalog";
 
 /**
@@ -24,29 +25,25 @@ export function CategoryProductGrid({
   return (
     <div className="mx-auto max-w-6xl px-4 py-5 sm:px-6 sm:py-8">
       <div className="max-w-2xl">
-        <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-          {title}
-        </h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        <h1 className="font-heading text-3xl font-extrabold leading-none sm:text-4xl">{title}</h1>
+        {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
       </div>
 
       {headerExtra && <div className="mt-4 max-w-lg">{headerExtra}</div>}
 
-      <div className="mt-5 border-t sm:mt-6" />
-
       {products.length === 0 ? (
-        <div className="flex flex-col items-center py-12 text-center">
+        <div className="mt-5 flex flex-col items-center border border-dashed border-foreground/40 bg-card px-4 py-12 text-center sm:mt-6">
           <p className="text-sm font-medium text-foreground">No products found</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {emptyState ?? "Try another search or category."}
           </p>
         </div>
       ) : (
-        <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-6 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <ProductSheet className="mt-5 sm:mt-6">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
-        </div>
+        </ProductSheet>
       )}
     </div>
   );

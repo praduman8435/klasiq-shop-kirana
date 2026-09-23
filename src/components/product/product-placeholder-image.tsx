@@ -2,26 +2,22 @@ import { getCategoryIcon } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
 
 /**
- * Phase 3.7 Part 7 — previously stamped a literal "PLACEHOLDER" text
- * badge on every image-less product, which read as a leftover debug
- * artifact rather than an intentional design choice (see
- * docs/PHASE_3_7_REPORT.md Part 7 "Product presentation").
- *
- * Homepage final-polish pass — the original diagonal repeating-stripe
- * pattern + circular icon badge read as a generic "dev placeholder"
- * rather than something a premium retailer would actually ship. Replaced
- * with a flat, single-tone surface and a large, quiet "ghost" icon —
- * closer to how a fashion storefront treats a not-yet-photographed item
- * (a calm neutral panel with a small brand-relevant mark), still
- * unmistakably a placeholder, never mistaken for a real photo.
+ * A product with no photo — an expected, permanent state for much of the
+ * catalogue, so it is designed, never a broken image. Small slots get a
+ * quiet category icon on shelf grey. The Product Detail image passes
+ * `packFront` and gets the pack's own front panel instead: category mark, brand in label caps and the product name
+ * in condensed declaration print — recognisably "that pack", never
+ * mistaken for a real photo.
  */
 export function ProductPlaceholderImage({
   categorySlug,
   className,
   compact = false,
   large = false,
+  packFront,
 }: {
   categorySlug: string;
+  packFront?: { netQty: string | null };
   className?: string;
   /** Use for small thumbnails (e.g. checkout order summary rows) where a
    * large icon doesn't fit cleanly. */
@@ -33,6 +29,23 @@ export function ProductPlaceholderImage({
   large?: boolean;
 }) {
   const Icon = getCategoryIcon(categorySlug);
+
+  if (packFront && !compact) {
+    return (
+      <div className={cn("relative flex flex-col overflow-hidden bg-muted p-6 sm:p-8", className)}>
+        <div className="flex flex-1 items-center justify-center">
+          {/* eslint-disable-next-line react-hooks/static-components */}
+          <Icon aria-hidden className="size-28 text-foreground/80 sm:size-36" strokeWidth={1} />
+        </div>
+        {packFront.netQty && (
+          <div aria-hidden className="self-start border border-foreground bg-card px-3 py-2">
+            <p className="decl-label">Net qty</p>
+            <p className="font-condensed mt-1 text-3xl font-extrabold leading-none">{packFront.netQty}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div

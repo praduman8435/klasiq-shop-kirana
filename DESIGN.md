@@ -1,270 +1,334 @@
 ---
-name: Klasiq
-description: Classic quality, modern shopping — a neighbourhood kirana storefront (currently still wearing the bold, cinematic visual language inherited from the original Klasiq uniform store; see PRODUCT.md).
+name: Klasiq Storefront
+description: The neighbourhood kirana, shown the way each pack declares itself, with the shop's own price sticker on top.
 colors:
-  klasiq-red: "oklch(0.47 0.19 25)"
-  klasiq-red-ink: "oklch(0.98 0.012 25)"
-  marquee-gold: "oklch(0.8 0.15 85)"
-  marquee-gold-ink: "oklch(0.24 0.05 70)"
-  midnight-ink: "oklch(0.16 0.02 260)"
-  parchment: "oklch(0.98 0.005 85)"
-  paper: "oklch(1 0 0)"
-  quiet-slate: "oklch(0.95 0.01 260)"
-  quiet-slate-ink: "oklch(0.22 0.04 260)"
-  soft-fog: "oklch(0.96 0.006 85)"
-  fog-ink: "oklch(0.46 0.02 260)"
-  hairline: "oklch(0.9 0.01 260)"
-  alert-red: "oklch(0.5 0.2 20)"
+  declaration-black: "oklch(0.19 0.004 270)"
+  pack-white: "oklch(1 0 0)"
+  shelf-grey: "oklch(0.965 0.003 250)"
+  shelf-grey-recessed: "oklch(0.945 0.004 250)"
+  shelf-grey-deep: "oklch(0.93 0.004 250)"
+  fine-print-grey: "oklch(0.42 0.012 275)"
+  hairline-grey: "oklch(0.84 0.005 260)"
+  sticker-yellow: "oklch(0.887 0.182 95.3)"
+  inkjet-violet: "oklch(0.45 0.19 280)"
+  status-in-stock: "oklch(0.508 0.118 165.612)"
+  status-low-stock: "oklch(0.555 0.163 48.998)"
+  status-error: "oklch(0.52 0.2 27)"
 typography:
   display:
-    fontFamily: "Fraunces, ui-serif, Georgia, serif"
-    fontSize: "48px"
-    fontWeight: 600
-    lineHeight: "48px"
-    letterSpacing: "-1.2px"
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "clamp(2.25rem, 6vw, 3.75rem)"
+    fontWeight: 800
+    lineHeight: 0.95
+    letterSpacing: "-0.01em"
+    fontVariation: "\"wdth\" 80"
   headline:
-    fontFamily: "Fraunces, ui-serif, Georgia, serif"
-    fontSize: "30px"
-    fontWeight: 600
-    lineHeight: "36px"
-    letterSpacing: "normal"
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.875rem"
+    fontWeight: 800
+    lineHeight: 1
+    letterSpacing: "-0.01em"
+    fontVariation: "\"wdth\" 80"
   title:
-    fontFamily: "Fraunces, ui-serif, Georgia, serif"
-    fontSize: "20px"
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.875rem"
     fontWeight: 600
-    lineHeight: "28px"
-    letterSpacing: "-0.5px"
+    lineHeight: 1.375
+    fontVariation: "\"wdth\" 80"
   body:
-    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "16px"
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.875rem"
     fontWeight: 400
-    lineHeight: "24px"
-    letterSpacing: "normal"
+    lineHeight: 1.5
   label:
-    fontFamily: "Plus Jakarta Sans, ui-sans-serif, system-ui, sans-serif"
-    fontSize: "12px"
-    fontWeight: 600
-    lineHeight: "16px"
-    letterSpacing: "0.6px"
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.6875rem"
+    fontWeight: 700
+    lineHeight: 1
+    letterSpacing: "0.06em"
+    fontVariation: "\"wdth\" 72"
+  wordmark:
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.5rem"
+    fontWeight: 800
+    lineHeight: 1
+    letterSpacing: "0.02em"
+    fontVariation: "\"wdth\" 72"
+  price:
+    fontFamily: "Archivo, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.125rem"
+    fontWeight: 800
+    lineHeight: 1
+    fontFeature: "\"tnum\""
+    fontVariation: "\"wdth\" 75"
 rounded:
-  sm: "8px"
-  md: "10px"
-  lg: "12px"
-  xl: "16px"
-  2xl: "22px"
-  full: "9999px"
+  none: "0px"
+  sticker: "3px"
 spacing:
-  xs: "8px"
-  sm: "12px"
-  md: "16px"
-  lg: "24px"
-  xl: "40px"
-  2xl: "56px"
-  3xl: "80px"
+  cell: "6px"
+  panel-sm: "10px"
+  panel: "12px"
+  gutter: "16px"
+  gutter-sm: "24px"
+  section: "32px"
+  section-sm: "48px"
 components:
   button-primary:
-    backgroundColor: "{colors.klasiq-red}"
-    textColor: "{colors.klasiq-red-ink}"
-    rounded: "{rounded.lg}"
-    height: "32px"
-    padding: "0 10px"
-  button-primary-hover:
-    backgroundColor: "oklch(0.47 0.19 25 / 80%)"
-    textColor: "{colors.klasiq-red-ink}"
+    backgroundColor: "{colors.declaration-black}"
+    textColor: "{colors.pack-white}"
+    typography: "{typography.title}"
+    rounded: "{rounded.none}"
+    height: "40px"
   button-outline:
-    backgroundColor: "{colors.parchment}"
-    textColor: "{colors.midnight-ink}"
-    rounded: "{rounded.lg}"
-    height: "32px"
-  button-secondary:
-    backgroundColor: "{colors.quiet-slate}"
-    textColor: "{colors.quiet-slate-ink}"
-    rounded: "{rounded.lg}"
-    height: "32px"
-  input:
-    backgroundColor: "transparent"
-    textColor: "{colors.midnight-ink}"
-    rounded: "{rounded.lg}"
-    height: "32px"
-    padding: "4px 10px"
-  card:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.midnight-ink}"
-    rounded: "{rounded.xl}"
-    padding: "16px"
-  product-card:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.midnight-ink}"
-    rounded: "{rounded.xl}"
-  badge-pill:
-    backgroundColor: "{colors.klasiq-red}"
-    textColor: "{colors.klasiq-red-ink}"
-    rounded: "{rounded.full}"
-    padding: "2px 8px"
-  category-tile:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.midnight-ink}"
-    rounded: "{rounded.2xl}"
-    padding: "24px"
-  select-trigger:
-    backgroundColor: "{colors.paper}"
-    textColor: "{colors.midnight-ink}"
-    rounded: "{rounded.full}"
-    height: "36px"
-    padding: "4px 12px 4px 36px"
+    backgroundColor: "{colors.shelf-grey}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.none}"
+    height: "48px"
+  button-added:
+    backgroundColor: "{colors.sticker-yellow}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.none}"
+    height: "40px"
+  input-search:
+    backgroundColor: "{colors.pack-white}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.none}"
+    height: "40px"
+  input-search-hero:
+    backgroundColor: "{colors.pack-white}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.none}"
+    height: "52px"
+  price-sticker:
+    backgroundColor: "{colors.sticker-yellow}"
+    textColor: "{colors.declaration-black}"
+    typography: "{typography.price}"
+    rounded: "{rounded.sticker}"
+    padding: "6px 8px"
+  price-sticker-sold-out:
+    backgroundColor: "{colors.pack-white}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.sticker}"
+    padding: "6px 8px"
+  savings-stamp:
+    textColor: "{colors.inkjet-violet}"
+    typography: "{typography.label}"
+    rounded: "{rounded.none}"
+    padding: "4px 6px"
+  pack-panel:
+    backgroundColor: "{colors.pack-white}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.none}"
+    padding: "10px"
+  size-chip:
+    backgroundColor: "{colors.pack-white}"
+    textColor: "{colors.declaration-black}"
+    rounded: "{rounded.none}"
+    height: "48px"
+    padding: "0 16px"
+  size-chip-selected:
+    backgroundColor: "{colors.declaration-black}"
+    textColor: "{colors.pack-white}"
+    rounded: "{rounded.none}"
+    height: "48px"
+  nav-aisle-active:
+    backgroundColor: "{colors.declaration-black}"
+    textColor: "{colors.pack-white}"
+    typography: "{typography.label}"
+    rounded: "{rounded.none}"
+    padding: "8px"
 ---
 
-# Design System: Klasiq
+# Design System: Klasiq Storefront
 
 ## Overview
 
-**Creative North Star: "Classic, Modernized"**
+**Creative North Star: "The Pack Declaration Panel"**
 
-Klasiq's storefront plays the Klasiq/"classic" wordplay straight: a family-run neighbourhood store rendered in a bold, cinematic, contemporary visual language. Near-black navy ink on warm parchment gives every screen the confidence of an established institution, while a single controlled red (Klasiq Red) and a sparing gold highlight (Marquee Gold) carry the "bold, energetic, cinematic" energy the brand wants without borrowing anyone else's iconography. The system is deliberately not soft or pastel — it reads as assured and a little theatrical, the way a well-run family store that's been getting it right for thirty years can afford to be.
+Every product is shown the way its own pack states it: brand in small condensed caps, the product name, and a ruled box of NET QTY and MRP in black declaration print, exactly as printed on the back of an Indian pack. On top of that the shop slaps its own fluorescent price sticker, a little crooked, the way a kirana owner's price gun leaves it. The page is a sheet of these pack panels: pack-white board laid on a cool shelf-grey ground, divided by 1px black rules into boxed fields, with square corners everywhere.
 
-Density stays tight and retail-native: product cards behave like compact shelf tags, not mini detail pages, so more of the catalog is visible at once on every breakpoint. Surfaces are flat by default — depth is earned by interaction, not stacked on by default — which keeps the cinematic color work from tipping into visual noise. This is explicitly not a superhero-branded skin: no comic iconography, no character likenesses, no halftone/ben-day-dot styling. It is also not a generic SaaS-template look (soft blue gradients, rounded-everything, timid contrast), and not a generic quick-commerce clone.
+The system is dense, legible and literal. It borrows its whole vocabulary from things the customer already reads in the shop (the declaration table, the price sticker, the violet inkjet batch stamp, the customer-care box on the back panel) and adds nothing decorative on top. Hierarchy comes from rules, weight and the condensed width axis, not from colour, shadow or rounding. Black is the only colour that asks you to act; yellow only tells you a price; violet only tells you what you save.
+
+It deliberately refuses two neighbours: the quick-commerce tile grid (floating rounded cards, pastel category bubbles, discount badges) and the cream-serif "artisan grocer" look. Light only, because the use scene is a budget Android phone, often in daylight.
+
+**Scope.** This file covers the customer storefront only: everything inside the `.store-theme` scope, which the `(site)` layout applies and which portaled popups (mobile menu sheet, select popups, toasts) re-apply themselves. The admin panel (`/admin`) is a separate, unchanged system: its own `.admin-theme` and `.dark` token blocks in `globals.css`, with Fraunces and Plus Jakarta Sans. Nothing here applies to it, and storefront tokens must never leak into it.
 
 **Key Characteristics:**
-- Near-black navy text on warm parchment surfaces, punctuated by one controlled red and one sparing gold
-- Flat-by-default cards and tiles; shadow appears only as a response to hover/focus
-- Fully rounded pills for badges, tabs, and the compact size-picker; softer rounded rectangles for cards and tiles
-- Fraunces display serif for headings paired with Plus Jakarta Sans for everything functional
-- Product cards are deliberately compact — shelf-tag density, not detail-page sprawl
+- Pack-white panels on shelf-grey ground, boxed by 1px declaration-black rules.
+- Square corners throughout (radius 0); the price sticker alone has 3px.
+- One typeface, Archivo, with its width axis carrying condensed caps labels and headings.
+- One yellow price sticker per product, rotated -3deg, always black text.
+- A violet inkjet "SAVE ₹X" stamp, rotated -2deg, only when the price is genuinely under MRP.
+- Flat: no shadows except the sticker's own paper lift.
+- One authored motion: the price-gun stamp on the bag count.
 
 ## Colors
 
-The palette is a small, deliberate set: one warm-neutral surface family carrying near-black navy text, one commanding red used as the system's only true call-to-action color, and one gold used only as a rare spotlight.
+A near-monochrome print palette (black ink on white board on grey shelf) with exactly two spot inks, each bound to one meaning.
 
 ### Primary
-- **Klasiq Red** (`oklch(0.47 0.19 25)`): the brand's one confident color — primary buttons, prices, active nav/tab states, the size-picker's selection ring. Never used as a background fill for large surfaces.
-- **Klasiq Red Ink** (`oklch(0.98 0.012 25)`): the near-white text/icon color that sits on top of Klasiq Red.
+- **Declaration Black** (`declaration-black`): all text, all 1px box rules, and the only "act here" fill: Add to Bag, the hero Search button, the bag link, the selected pack size, the active aisle in the header. Also the sticker's and stamp's text colour.
 
 ### Secondary
-- **Marquee Gold** (`oklch(0.8 0.15 85)`): a rare spotlight highlight — the hero's "Trusted local retail" eyebrow badge and similar single-use callouts. It is never a base or repeating UI color.
-- **Marquee Gold Ink** (`oklch(0.24 0.05 70)`): the dark warm text that sits on top of Marquee Gold.
+- **Sticker Yellow** (`sticker-yellow`): the shop's fluorescent price sticker. It appears on prices, on the header bag count, and, for 1.4 seconds, as the fill of a product card's CTA in its "Added" state. Always with Declaration Black text on it; never used as a text colour on white (it would fail contrast), never on a border, never as a section background.
+
+### Tertiary
+- **Inkjet Violet** (`inkjet-violet`): the batch-stamp ink. It prints the "SAVE ₹X" stamp (1px violet box, violet text) and, at 55% alpha, every focus ring on the storefront. Intended also for order numbers; not yet applied there (see Known Gaps).
 
 ### Neutral
-- **Midnight Ink** (`oklch(0.16 0.02 260)`): the system's near-black navy — default body and heading text on light surfaces.
-- **Parchment** (`oklch(0.98 0.005 85)`): the warm off-white page background.
-- **Paper** (`oklch(1 0 0)`): pure white — cards, popovers, product-card surfaces, sitting one step lighter than Parchment.
-- **Quiet Slate** (`oklch(0.95 0.01 260)`): a cool pale neutral used for secondary chip/pill backgrounds (e.g. inactive fulfillment-tab pill).
-- **Quiet Slate Ink** (`oklch(0.22 0.04 260)`): the text color paired with Quiet Slate.
-- **Soft Fog** (`oklch(0.96 0.006 85)`): the mutest background step — disabled states, subtle section fills.
-- **Fog Ink** (`oklch(0.46 0.02 260)`): muted/secondary text — captions, helper copy, stock-status subtext.
-- **Hairline** (`oklch(0.9 0.01 260)`): the system's only border/divider color, used at 1px everywhere a border appears.
-- **Alert Red** (`oklch(0.5 0.2 20)`): reserved for genuine errors and destructive actions (form validation, delete/destructive buttons) — never used decoratively, and never confused with Klasiq Red's CTA role.
+- **Pack White** (`pack-white`): the board every panel is printed on: product panels, header, footer, hero name panel, aisles table, inputs, toasts.
+- **Shelf Grey** (`shelf-grey`): the page ground the panels sit on. Also the outline button's fill.
+- **Shelf Grey Recessed** (`shelf-grey-recessed`): the photo slot of a product with no photograph, and every hover wash (`hover:bg-muted`) on nav rows, chips and outline controls.
+- **Shelf Grey Deep** (`shelf-grey-deep`): secondary surfaces from the shared component library; rare on storefront pages.
+- **Fine-print Grey** (`fine-print-grey`): secondary text: brand labels, descriptions, fact values, placeholders, the breadcrumb. Passes AA on both white and shelf grey.
+- **Hairline Grey** (`hairline-grey`): the global default border colour inherited by shared components and toasts. Storefront boxes do not use it; they use Declaration Black (see The Black Rule Rule).
+
+### Status
+- **In Stock Green** (`status-in-stock`), **Low Stock Amber** (`status-low-stock`), **Error Red** (`status-error`): stock-status text and inline errors only, never fills. Set in semibold at label or body size.
 
 ### Named Rules
-**The One Red Rule.** Klasiq Red is the system's only color allowed to mean "act here." If a screen has more than one element competing for that color, one of them is wrong.
+**The One Action Colour Rule.** Declaration Black is the only fill that means "press this." A yellow, violet or grey button does not exist.
 
-**The Gold Is Rare Rule.** Marquee Gold appears at most once or twice per screen, always as a small badge or accent — never as a background fill, never repeated across a grid of items.
+**The Sticker Means Price Rule.** Sticker Yellow marks what the customer pays (and the bag count, which is the running tally of it). If a yellow surface is not a price, the count, or the momentary "Added" confirmation, it is wrong.
 
-### Dark Variant (Homepage + Product Detail + Bag)
-
-The customer homepage (`/`), every Product Detail Page (`/product/[slug]`), and the Bag (`/bag`) — all via a shared `RouteThemeScope` component applying the literal `.dark` class per its own `isDarkRoute()` allowlist — wear a dark-first variant of this same system. Every other route (category, checkout, order, track, admin) stays on the light system above; add a route to that allowlist only once it has actually been redesigned dark-first. Checkout in particular stays light deliberately — the Bag's own dark redesign explicitly scoped the Bag→Checkout boundary as an intentional tonal seam at a natural transaction boundary, not an oversight. Same hues, same named rules (One Red Rule, Gold Is Rare Rule), inverted lightness:
-
-- **Background** `oklch(0.13 0.02 260)` — near-black navy, the same hue as Midnight Ink, now the base surface instead of the text color.
-- **Muted** `oklch(0.17 0.015 260)` (recessed) → **Card** `oklch(0.2 0.02 260)` (raised) → **Secondary** `oklch(0.23 0.015 260)` → **Popover** `oklch(0.25 0.02 260)` — a real 4-step tonal ramp, each step a deliberate ~0.03-0.05 lightness jump so surfaces are distinguishable without relying on the border alone (an earlier pass with near-identical steps measured under 1.1:1 surface contrast and had to be widened).
-- **Foreground** `oklch(0.96 0.006 85)` — the light system's Parchment value, now the text color instead of the background.
-- **Klasiq Red and Marquee Gold are unchanged** — both already read correctly against dark surfaces with no adjustment. The one caveat: a *translucent* red tint with red text (e.g. `bg-primary/10 text-primary`) does **not** carry over safely to dark — it measured under 4:1 text contrast in practice. Any "selected/signature" treatment on a dark surface should use a **solid** `bg-primary text-primary-foreground` fill instead (the same recipe the checkout fulfillment tabs already use), never a translucent tint.
-- **Border** `oklch(1 0 0 / 12%)` — translucent white, not a flat hex, so it reads correctly regardless of which surface step sits behind it.
+**The Stamp Means Saving Rule.** Inkjet Violet prints savings against MRP and focus. It never decorates, and a SAVE stamp renders only when price is strictly below MRP.
 
 ## Typography
 
-**Display Font:** Fraunces (with ui-serif, Georgia fallback)
-**Body Font:** Plus Jakarta Sans (with ui-sans-serif, system-ui fallback)
+**Display Font:** Archivo (with ui-sans-serif, system-ui, sans-serif), loaded with its `wdth` axis as `--font-archivo`
+**Body Font:** Archivo
+**Label Font:** Archivo at `wdth` 72, uppercase
 
-**Character:** Fraunces' warm, slightly editorial serif carries the "heritage made confident" feeling in headings, while Plus Jakarta Sans keeps every functional surface (prices, labels, controls, body copy) crisp and thoroughly modern. The pairing is what makes "classic, modernized" legible at the type level, not just the color level.
+**Character:** One grotesque doing every job, the way a pack's legal panel does: headings narrowed to `wdth` 80 and set heavy and tight, labels narrowed further to `wdth` 72 in small spaced caps, body at normal width. The narrow cut is what makes it read as print on a pack rather than a web app.
 
 ### Hierarchy
-- **Display** (600, up to 48px, -1.2px tracking): reserved for a full-width page headline; capped at 48px per the Compact Display Rule below. The homepage hero headline itself now runs smaller still (`text-2xl` → `md:text-4xl`, 24-36px) — a second, even-more-restrained pass in the same spirit: short, controlled, never screen-filling.
-- **Headline** (600, 30px, 36px line-height): page titles (e.g. a category page's `<h1>`). Homepage section headings ("Shop by category," "Shop the essentials") run smaller still (`text-base` → `sm:text-lg`, 16-18px) to match the homepage's overall compaction — they're wayfinding labels for a dense page, not standalone page titles.
-- **Title** (600, 20px, 28px line-height, -0.5px tracking): the store wordmark and comparable prominent short labels.
-- **Body** (400, 16px, 24px line-height): default running copy; a lead variant at 18px/28px is used for hero subcopy only.
-- **Label** (600, 12px, 16px line-height, 0.6px tracking, uppercase): the hero eyebrow badge and similar small all-caps tags.
+- **Display** (800, 36px mobile to 60px desktop, line-height 0.95, `wdth` 80): the homepage name-panel headline only, capped at about 14ch.
+- **Headline** (800, 30px to 36px for page titles, 24px to 30px for section titles, line-height 1, `wdth` 80): category, product, track and empty-bag titles; "Aisles", "Everyday essentials".
+- **Title** (600, 14px, line-height 1.375, `wdth` 80): product names on panels, clamped to two lines. Aisle names use 700 at 16px.
+- **Body** (400, 14px; 16px in inputs and chips; line-height 1.5): descriptions, fact values, footer copy. Product descriptions cap at about 28rem.
+- **Label** (700, 11px, letter-spacing 0.06em, uppercase, `wdth` 72): NET QTY, MRP, STOCK, PACK SIZE, PICKUP, CUSTOMER CARE, brand names, header aisle links, the SAVE stamp.
+- **Wordmark** (800, 20px to 24px, letter-spacing 0.02em, `wdth` 72): KLASIQ in the header and footer.
+- **Price** (800, `wdth` 75, tabular figures): 18px on panels, 30px to 36px on the product page.
 
 ### Named Rules
-**The Compact Display Rule.** Display type never exceeds 48px, even in the hero. The brief explicitly rejected an oversized, all-whitespace hero headline; display type stays confident, not enormous.
+**The Declaration Label Rule.** Every field name on a boxed field is a Label: condensed, bold, 11px, spaced caps. Field values sit under it in semibold at body size. Never sentence-case a field name; never use Label style for anything that is not a field name, brand, aisle link or stamp.
+
+**The Tabular Money Rule.** Every rupee amount (price, MRP, saving, total) uses tabular figures so columns of prices align like a printed table.
 
 ## Layout
 
-The storefront uses a centered max-width container (max-w-5xl for content-focused sections, max-w-6xl for the header bar) with responsive horizontal padding (`px-4` at mobile, `px-6` from `sm` up). Section rhythm runs on the `spacing` scale's larger steps — `py-14`(56px)/`py-20`(80px) for full-bleed hero/category bands — while component-internal rhythm stays tight (`gap-1.5`–`gap-3`, 6–12px).
+A single centred column capped at 72rem (`max-w-6xl`) with a 16px gutter, 24px from 640px up. Homepage sections stack with 32px gaps (48px from 640px). The header is a sticky 56px white bar ruled off by one black line.
 
-The product grid collapses to a genuine single column below 400px — measured directly, not guessed: `ProductCard`'s quantity-stepper + Add button row needs roughly 150px of card width to render without its Add button being invisibly clipped by the card's own `overflow-hidden` (a `flex-1` button still has a browser-default `min-width: auto`, so it won't shrink below "Add" text's own readable minimum), a floor a 2-column grid only clears once the viewport is wide enough to give each column that much room. From 400px it's 2 columns, 3 at `sm`, 4 at `lg`, 5 at `xl` — a deliberate density choice so compact product cards read as a real catalog once there's room for one. The single-column card itself uses a shorter `aspect-[4/3]` image (reverting to the standard square once multi-column at 400px+) so the image doesn't dominate the card's height when it's the only thing in the row. Checkout and order-detail surfaces switch from a single stacked column below `lg` to a two-column layout at `lg`+ (form fields left, a sticky order summary right at `lg:sticky lg:top-24`).
+Products sit in a **product sheet**: a grid of 2 columns on phones, 3 from 640px, 4 from 1024px, 5 from 1280px. Panels share a single 1px rule instead of floating with gaps: each panel draws its own full box and is pulled 1px up and left, so neighbouring edges merge and an incomplete last row simply ends.
+
+Inside a panel the rhythm is tight: 10px padding (12px from 640px), 6px padding in declaration-table cells, 8px between blocks. The product page uses a two-column split from 640px (image, then declaration panel) with a 40px to 64px gap.
+
+Tap targets follow the budget-phone scene: compact controls are 40px tall, form fields and icon buttons 44px, product-page chips and actions 48px, the hero search 52px. Below 640px, the product page and bag carry a fixed bottom purchase bar and hide their in-page duplicates.
+
+Horizontal rows that can overflow (header aisle links, pack-size chips) scroll in place rather than wrap, with a short fade to the panel colour at the trailing edge only when they actually overflow.
 
 ## Elevation & Depth
 
-Flat-by-default, shadow-on-intent. Surfaces at rest carry a 1px Hairline border and a tonal background step (Paper on Parchment, or Soft Fog for muted panels) — no ambient shadow. Shadow is reserved for two things: an explicit hover response (product cards lift with `hover:shadow-md` and a 2px translate) and true floating overlays (select/popover panels use `ring-1 ring-foreground/10` plus `shadow-md`, not a heavier drop shadow).
+Flat. Depth is the print metaphor: white board over grey shelf, and black rules boxing fields. Panels, buttons, inputs and popups do not cast shadows. The single exception is the price sticker, which carries a small paper-lift shadow so it reads as stuck on top of the pack rather than printed on it.
 
 ### Shadow Vocabulary
-- **Hover lift** (`box-shadow: theme(shadow-md)`, paired with `translateY(-2px)`): product cards and category tiles only, on hover — signals "this is clickable," never applied at rest.
-- **Popover shadow** (`box-shadow: theme(shadow-md)` + `ring-1 ring-foreground/10`): select dropdowns and similar transient overlays.
+- **Sticker lift** (`box-shadow: 0 1px 1px oklch(0.19 0.004 270 / 18%), 0 3px 8px -2px oklch(0.19 0.004 270 / 22%)`): the price sticker only.
 
 ### Named Rules
-**The Flat-By-Default Rule.** Nothing casts a shadow at rest. If a surface needs to look "raised" while idle, that's a signal to use a tonal background step or a Hairline border instead, not a shadow.
+**The Only Sticker Lifts Rule.** If something that is not the price sticker has a shadow, remove it. Separation comes from a rule or a surface change.
 
 ## Shapes
 
-Two families of corner language, used deliberately: fully rounded pills (`rounded-full`, 9999px) for anything selectable or badge-like — the compact size picker, tab toggles, the hero eyebrow badge, "Track Orders" link, and (since the homepage redesign) the homepage's own category-rail chips, which replaced the earlier `rounded-2xl` category-tile cards entirely — and softer rounded rectangles for containers. Container radius scales with size: small controls (buttons, inputs) sit at 12px, cards and product cards at 16px. Borders are always 1px Hairline (or, in the homepage's dark variant, a translucent white border at the equivalent weight); there is no double-border or outlined-plus-shadow combination anywhere in the system.
+Square to the grid. `--radius` is 0 inside the storefront scope, so every `rounded-*` utility resolves to a hard corner. The price sticker alone has 3px corners, like a die-cut label.
+
+Rotation is reserved for things applied to the pack after printing: the price sticker at -3deg and the savings stamp at -2deg. Everything else stays square to the grid.
+
+Rules carry meaning by style:
+- **Solid 1px Declaration Black**: the outer edge of every box: panels, declaration tables, inputs, the hero panel, the aisles table, the footer's back-panel cells, outline buttons.
+- **1px black at 15-20%**: row dividers inside a box (aisle rows, mobile-menu rows).
+- **2px dotted black at 35%**: leaders between an aisle name and its arrow, like a printed contents table.
+- **Dashed black at 40-50%**: absence: an out-of-stock CTA, an empty search result, an empty bag.
+
+### Named Rules
+**The Black Rule Rule.** A box's edge is 1px Declaration Black, never Hairline Grey. Grey appears only as a lighter divider inside a box that already has a black edge.
+
+**The Dashed Absence Rule.** A dashed rule means "nothing here / not available." Never use it for decoration or for an active control.
 
 ## Components
 
 ### Buttons
-- **Shape:** rounded rectangle (12px / `rounded-lg`), 1px transparent border by default.
-- **Primary:** Klasiq Red background, Klasiq Red Ink text, 32px height, 10px horizontal padding at the default size (`h-8 px-2.5`); a 44px `lg` size is used for the checkout submit.
-- **Hover / Focus:** primary hover drops to 80% opacity (`bg-primary/80`); every variant gets a 3px ring in `ring-ring/50` on focus-visible; active state nudges 1px down (`translate-y-px`) rather than changing color.
-- **Outline / Secondary / Ghost:** Outline sits on Parchment with a Hairline border and fills to Soft Fog on hover; Secondary uses Quiet Slate/Quiet Slate Ink and darkens slightly on hover; Ghost is borderless until hover, when it also fills to Soft Fog.
+Blunt and printed: a black slab with white bold type, no rounding, no shadow.
+- **Shape:** square corners (0).
+- **Primary:** Declaration Black fill, Pack White text, bold 14px (16px on the product page), full-width in panels; 40px tall on panels, 48px on the product page, 52px for the hero Search.
+- **Hover / Active / Focus:** hover lightens the fill to 85% black; active nudges down 1px; focus shows a 3px Inkjet Violet ring at 55%.
+- **Outline:** 1px black rule on shelf grey, black bold text, grey hover wash (Buy Now, clear-search, Track Orders).
+- **Added state (card CTA):** Sticker Yellow fill with black text and a check icon for 1.4s, then back to primary.
+- **Out of stock:** dashed 40% black rule, Fine-print Grey text, not pressable.
 
-### Chips / Pills
-- **Style:** fully rounded (`rounded-full`), Quiet Slate background for inactive states.
-- **State:** the fulfillment-method toggle (Store Pickup / Local Delivery) is a pill-shaped tab group — the active pill switches to Klasiq Red with Klasiq Red Ink text and a subtle shadow; the hero eyebrow badge is a static Marquee Gold pill.
+### Price Sticker (signature)
+The shop's own price, stuck on the pack. Sticker Yellow, black 800-weight condensed tabular figures, 3px corners, rotated -3deg, with the sticker lift shadow. Sits over the bottom-right of the product image on panels and above the declaration table on the product page (large size), and beside the actions in the mobile purchase bar. One per product, never more. Sold out, it turns blank Pack White with a black rule and reads SOLD OUT, like an empty shelf tag.
 
-### Cards / Containers
-- **Corner Style:** 16px (`rounded-xl`) for the generic Card primitive and ProductCard; 22px (`rounded-2xl`) for the larger category-discovery tiles.
-- **Background:** Paper on top of the page's Parchment background — the system's primary depth cue is this one background-color step, not shadow.
-- **Shadow Strategy:** none at rest; `hover:shadow-md` + a 2px lift only on interactive cards (see Elevation & Depth).
-- **Border:** 1px Hairline.
-- **Internal Padding:** 16px (`--card-spacing: --spacing(4)`) for the generic Card; ProductCard uses a tighter 10px (`p-2.5`) to stay compact.
+### Savings Stamp (signature)
+The violet inkjet batch stamp: "SAVE ₹X" in Label style, Inkjet Violet text inside a 1px violet box, rotated -2deg. Renders only when price is strictly under MRP; otherwise nothing takes its place.
+
+### Pack Panel (product card)
+- **Background:** Pack White, inside the product sheet's shared black rules; no radius, no shadow.
+- **Image slot:** 5:4, full-bleed to the panel edge, with the price sticker pinned bottom-right.
+- **Content order:** brand (Label, grey), name (Title, two lines max, underline on hover), the declaration table, a stock-and-savings line, then the full-width black Add to Bag.
+- **Declaration table:** a 1px black box split 3:2 into NET QTY and MRP cells by a black rule; each cell is a Label over a semibold value. With several pack sizes, the NET QTY value becomes an inline, borderless select. A missing MRP prints an em dash.
+- **Product page version:** same logic at larger size: a three-cell NET QTY | MRP | STOCK table, the large sticker, and the stamp beside it.
+
+### No-photo Placeholder
+A designed state, not a fallback: most of the catalogue has no photograph. On panels it is the category's line icon (1.25 stroke, Fine-print Grey at 75%) centred on Shelf Grey Recessed. On the product page it becomes a pack front: a large 1-stroke category mark on white inside the black-ruled image box, with a boxed NET QTY label and the selected size in heavy condensed print. Never an invented photo, never a broken-image glyph.
+
+### Chips (pack size)
+- **Style:** 48px tall, at least 56px wide, 1px black rule, square, semibold 16px.
+- **State:** selected fills Declaration Black with white text; unselected is Pack White with a grey hover wash; unavailable sizes are struck through at 50% opacity. Behaves as a single-choice radio group.
 
 ### Inputs / Fields
-- **Style:** transparent background, 1px Hairline border, 12px radius, 32px height by default.
-- **Focus:** border shifts to Klasiq Red (`focus-visible:border-ring`) with a 3px `ring-ring/50` glow — no background change.
-- **Error / Disabled:** invalid fields get an Alert Red border and ring; disabled fields drop to 50% opacity with a faint Hairline fill.
+- **Style:** Pack White, 1px Declaration Black rule, square corners, grey leading search icon, Fine-print Grey placeholder. 40px compact, 44px in-page, 52px hero.
+- **Hero search:** the field butts directly into a black Search button with no gap and no rule between them, reading as one boxed field.
+- **Focus:** 3px Inkjet Violet ring at 55%; no border colour shift.
+- **Error:** Error Red text beneath, set in medium weight.
 
 ### Navigation
-- **Style:** the header wordmark uses Title-scale Fraunces; category links are Body-scale, medium-weight, pill-shaped on hover/active (`rounded-full` + Soft Fog fill). "Track Orders" is a Hairline-bordered pill with an icon. Mobile collapses the category nav and product search into a left-side sheet (`Menu` icon trigger), keeping "Search Products" and "Track Orders" as plain list rows below the categories.
+- **Header:** sticky white bar with one black bottom rule; KLASIQ wordmark left; aisles as Label-style links at 75% black, grey wash on hover, solid black with white text when active; compact search; an outline Track Orders button; the black Bag button.
+- **Bag count:** a small price sticker inside the black Bag button, replayed with the price-gun stamp (320ms, `cubic-bezier(0.16, 1, 0.3, 1)`) whenever the count changes. This is the world's single authored motion.
+- **Mobile:** a left sheet titled "Aisles" with search on top and full-width 48px rows between black top and bottom rules, 15% dividers, and a black fill on the active aisle.
+- **Aisles table (home):** a white, black-ruled contents table (two columns from 640px): icon, bold aisle name, dotted leader, arrow that nudges right on hover.
 
-### Product Card (signature)
-The system's most distinctive component and the one the brief most explicitly redesigned: a compact shelf-tag card, not a mini detail page. Square-to-portrait thumbnail on top, then name, price + stock status, a single pill-shaped `Select` for size (replacing a row of size buttons), a 36px quantity stepper, and an "Add" button — all inside 16px-radius Paper card with a 10px internal padding. The whole card lifts 2px with a shadow on hover; nothing else about it animates. The Add button's label stays literally "Add" (never "Add to Bag") to survive 2-column mobile grids without truncating; the full action is still exposed to assistive tech via `aria-label`.
+### Fact Strip and Back Panel
+The hero's bottom strip and the footer both use the ruled-cell pattern: equal cells split by 1px black rules, each a Label over a short value. The footer is the pack's back panel: a KLASIQ "marketed by" cell, a CUSTOMER CARE cell, and a search cell. Only facts backed by live config appear.
 
-### Product Image Placeholder
-
-Shown whenever a product has no photo (a permanent, expected state for much of the catalog, not an error) — a flat, single-tone `bg-muted` panel with a large, quiet category icon (`text-muted-foreground/75`, `strokeWidth: 1.25`) centered inside. Deliberately not a diagonal stripe pattern or a circular badge (an earlier version of both was tried and read as a generic dev placeholder rather than something a retailer would actually ship). The icon scales to its context — compact (checkout/bag line items), default (product cards, category grids), or large (the Product Detail page's much bigger image slot) — a fixed size read as sparse and lost once the component started being used in a panel several times larger than the card contexts it was originally tuned for.
-
-### Horizontal Scroll Fade (signature)
-Any row that scrolls horizontally instead of wrapping (the homepage category rail, the header's own category nav, the Product Detail size selector) pairs `overflow-x-auto` with a trailing edge fade — a `pointer-events-none` absolutely-positioned strip using `bg-gradient-to-l from-background to-transparent` — rather than relying on a chip or option happening to peek past the visible edge on its own. A final QA pass found that "natural" peek is accidental: a width-by-width sweep of the homepage rail found it missing entirely at exactly 375px (a common real device width) even though it held at every neighboring width tested. The fade makes "there's more to scroll" a guaranteed cue instead of a coincidence of pixel math, and costs nothing when a row isn't actually scrollable (nothing sits under the faded strip in that case). Don't add arrows on top of this — the fade is the whole affordance.
-
-### Homepage Category Rail (signature)
-Replaced the earlier 5-card category grid. A horizontally-scrolling single row of pill chips (icon + label, `rounded-full`), never wrapping to multiple lines at any width — the same "always a real scroller, never an awkward wrap" behavior the rest of the system already used for the header's own category nav (see Horizontal Scroll Fade above — both now share the identical fade treatment). Exactly one chip — the category `pickBrowseFallbackCategory` resolves as primary/uniform-like — gets the signature solid `bg-primary text-primary-foreground` treatment; every other chip shares one neutral `bg-card` treatment. On the homepage's dark variant, the signature chip must stay a *solid* fill, never a translucent tint — see Colors → Dark Variant for why.
-
-### Mobile Sticky Purchase Bar (Product Detail)
-Below `sm`, a `fixed inset-x-0 bottom-0` bar (`bg-card/95` with backdrop blur, 1px top Hairline) keeps price, a compact outline "Buy Now," and a solid primary "Add to Bag" reachable without scrolling back up past description/fulfillment content. It reuses the exact same `addToBag()` call and disabled/loading state as the inline buttons above it — one source of truth, two renderings. Bottom padding on the page (`pb-[calc(5rem+env(safe-area-inset-bottom))]`, mobile only, sized to the bar's own measured rendered height rather than a guessed constant) plus `pb-[env(safe-area-inset-bottom)]` inside the bar itself keep it clear of real content and respect device safe areas. Use this pattern any time a purchase-style page needs a persistent mobile action bar; don't duplicate more than price + the two purchase actions into it.
-
-### Fulfillment Info List (Product Detail)
-A short, compact list of real fulfillment/payment facts sourced from `FULFILLMENT_CONFIG` and business logic only (Store Pickup, Local Delivery, "Pay at store or cash on delivery") — a small icon (`text-foreground/60`) plus one line of plain copy per item, no card wrapper, no divider of its own (it inherits the page's spacing rhythm instead). Never invent a policy or promise not backed by real config; never expand this into a marketing "why choose us" section.
+### Toasts
+Pack White with a Hairline Grey border and square corners, inside the storefront scope; lifted 88px on mobile to clear the purchase bar.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep Klasiq Red as the only color that means "act here" — CTAs, prices, active states (see The One Red Rule).
-- **Do** keep Marquee Gold rare — one badge per screen, never a repeating or background color (see The Gold Is Rare Rule).
-- **Do** keep product cards compact — shelf-tag density (image, name, price/stock, compact size picker, Add) over a mini detail page.
-- **Do** use the pill shape (`rounded-full`) for anything selectable — tabs, the size picker, badges — and reserve softer rounded rectangles for containers.
-- **Do** let shadow appear only on hover or for true overlays; surfaces stay flat at rest (see The Flat-By-Default Rule).
-- **Do** keep display type at or below 48px, even in the hero (see The Compact Display Rule).
+- **Do** box every field group in 1px Declaration Black on Pack White, with Label-style field names over semibold values.
+- **Do** give each product exactly one price sticker: Sticker Yellow, black text, 3px corners, -3deg.
+- **Do** print "SAVE ₹X" in the violet stamp only when price is strictly below MRP.
+- **Do** keep every action Declaration Black with white text, and every focus ring Inkjet Violet at 55%.
+- **Do** set every rupee amount in tabular figures.
+- **Do** treat the no-photo placeholder as the main case: category mark on shelf grey, or the pack-front panel on the product page.
+- **Do** keep tap targets at 40px minimum, 48px for primary product-page controls.
+- **Do** keep motion to colour transitions, a 1px press, and the price-gun stamp; everything collapses under reduced motion.
 
 ### Don't:
-- **Don't** introduce comic/superhero iconography, halftone/ben-day-dot textures, or any likeness-based imagery — "cinematic energy" is a color-and-contrast metaphor here, not a licensed aesthetic.
-- **Don't** give any one aisle (staples, snacks, personal care…) its own visual treatment — the palette and components are shared and neutral across every category.
-- **Don't** widen the product card back toward a detail-page layout (full-width buy button, expanded size-button row, long description) to "fix" a spacing complaint — the fix is always inside the existing compact card.
-- **Don't** add a shadow to a surface just to make it feel important while at rest — use a Paper-on-Parchment background step or a Hairline border instead.
+- **Don't** round corners on anything but the price sticker.
+- **Don't** use Sticker Yellow as text, borders, section fills, or for anything that is not a price, the bag count, or the momentary "Added" confirmation.
+- **Don't** add shadows to panels, buttons, inputs or popups; only the sticker lifts.
+- **Don't** float products as separate rounded cards with gaps; they share one rule in the product sheet.
+- **Don't** introduce a second typeface or a serif; Archivo's width axis does the contrast.
+- **Don't** rotate anything except the sticker (-3deg) and the stamp (-2deg).
+- **Don't** add a second authored animation; the price-gun stamp is the one moment.
+- **Don't** invent photography, testimonials or store facts to fill space.
+
+## Known Gaps
+
+Recorded honestly; these are not rules.
+- **Order numbers** do not yet carry the violet inkjet stamp the world intends for them.
+- **Footer copy and contact:** the "Backed by…" line and the store phone number and Maps link are carried over from the original fork and are unverified for this store (PRODUCT.md, "To confirm").
+- **Product photography** is mostly absent. The placeholder is the designed state; real photos, when added, sit square in the same slots with no radius.
+- **Bag page** still carries pre-world details: a semibold, tight-tracked title instead of the heavy condensed headline, grey hairline dividers instead of black rules, and a frosted, translucent mobile checkout bar. These are drift to correct, not part of the system.

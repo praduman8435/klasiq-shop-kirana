@@ -1,6 +1,6 @@
 export default function InvoiceLoading() {
   return (
-    <div className="dark min-h-screen bg-background px-4 py-10 text-foreground">
+    <div className="store-theme min-h-screen bg-background px-4 py-10 text-foreground">
       <div className="mx-auto w-full max-w-2xl p-4 sm:p-8" role="status" aria-label="Loading invoice">
         <span className="sr-only">Loading invoice…</span>
         <div className="flex items-start justify-between gap-4">

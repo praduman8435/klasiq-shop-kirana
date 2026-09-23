@@ -14,29 +14,20 @@ import {
 } from "@/components/ui/select";
 import { ProductThumbnail } from "@/components/product/product-thumbnail";
 import { formatPaise } from "@/lib/money";
-import { MrpPrice } from "@/components/product/mrp-price";
-import { STOCK_STATUS_LABEL, isOrderable } from "@/lib/stock";
+import { PriceSticker } from "@/components/product/price-sticker";
+import { SavingsStamp } from "@/components/product/savings-stamp";
+import { STOCK_STATUS_LABEL, STOCK_STATUS_TEXT_CLASS, isOrderable } from "@/lib/stock";
 import { cn } from "@/lib/utils";
 import { addToBasket } from "@/server/actions/basket";
 import type { ProductWithVariants } from "@/types/catalog";
 
-const STOCK_BADGE_CLASS: Record<string, string> = {
-  IN_STOCK: "text-emerald-600 dark:text-emerald-400",
-  LOW_STOCK: "text-amber-600 dark:text-amber-400",
-  OUT_OF_STOCK: "text-muted-foreground line-through",
-};
 
 /**
- * Premium retail pass — the previous version leaned on bold weight
- * everywhere (700-weight price, a bordered quantity-stepper-shaped size
- * select, an icon-only Add button) to establish structure, which read as
- * "admin panel" rather than storefront. Hierarchy now comes from size,
- * spacing and color rather than uniform boldness: a medium-weight serif
- * name, a same-row price/size pairing, and one full-width text CTA at the
- * card's own weight class (never louder than the product name above it).
- * Same shared component behind every category page, /search, AND the
- * homepage's "Shop the essentials" rail — one card design system, not a
- * bigger homepage variant and a smaller category one.
+ * The product as its own pack's declaration panel: brand in label caps,
+ * the product name, then a ruled NET QTY | MRP table exactly as printed on
+ * the back of the pack — with the shop's yellow price sticker slapped on
+ * the image. Same shared component behind every category page, /search,
+ * and the homepage shelf.
  */
 export function ProductCard({ product }: { product: ProductWithVariants }) {
   const router = useRouter();
@@ -88,76 +79,92 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
   const ctaLabel = !canOrder ? "Out of Stock" : justAdded ? "Added" : isPending ? "Adding..." : "Add to Bag";
 
   return (
-    <div className="group flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card transition-colors hover:border-foreground/15">
+    <div className="group relative flex flex-col bg-card">
       {/* This image link duplicates the product-name link just below,
-          which already has a proper accessible name. Rather than give
-          both an identical name (a screen reader would announce
-          "Product X" twice in a row for one card), this one is hidden
-          from assistive tech entirely — sighted mouse/touch users can
-          still click the image, keyboard/AT users reach the same
-          destination via the named text link. */}
+          which already has a proper accessible name — hidden from
+          assistive tech so a screen reader doesn't announce the product
+          twice; keyboard/AT users reach it via the named text link. */}
       <Link
         href={`/product/${product.slug}`}
         aria-hidden="true"
         tabIndex={-1}
-        className="block focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+        className="relative block focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
       >
-        {/* `bg-card` (not the default `bg-muted`) keeps the image slot on
-            the exact same surface as the content below it — the previous
-            visible seam between a darker image panel and a lighter
-            content panel read as two stacked UI regions rather than one
-            considered object. */}
         <ProductThumbnail
           imageUrl={product.imageUrl}
           alt={product.name}
           categorySlug={product.category.slug}
-          className="aspect-square w-full rounded-none bg-card transition-transform duration-300 group-hover:scale-[1.03]"
+          className="aspect-[5/4] w-full rounded-none"
         />
+        {selectedVariant && (
+          <PriceSticker
+            priceInPaise={selectedVariant.priceInPaise}
+            soldOut={!canOrder}
+            className="absolute bottom-2 right-2"
+          />
+        )}
       </Link>
 
-      <div className="flex flex-1 flex-col gap-1.5 p-3">
-        <h3 className="line-clamp-1 font-heading text-sm font-medium leading-snug">
+      <div className="flex flex-1 flex-col px-2.5 pb-2.5 pt-2 sm:px-3 sm:pb-3">
+        {product.brand && (
+          <p className="decl-label truncate text-muted-foreground">{product.brand}</p>
+        )}
+        <h3 className="mb-2 mt-1 line-clamp-2 text-sm font-semibold leading-snug">
           <Link href={`/product/${product.slug}`} className="hover:underline">
             {product.name}
           </Link>
         </h3>
 
         {selectedVariant && (
-          <div className="flex items-center justify-between gap-2">
-            <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
-              <span className="text-sm font-medium tabular-nums text-foreground">
-                {formatPaise(selectedVariant.priceInPaise)}
-              </span>
-              <MrpPrice priceInPaise={selectedVariant.priceInPaise} mrpInPaise={selectedVariant.mrpInPaise} />
-            </span>
-            {hasSizeChoice && (
-              <Select value={selectedVariantId} onValueChange={(id) => setSelectedVariantId(id as string)}>
-                <SelectTrigger
-                  size="sm"
-                  aria-label={`Select pack size for ${product.name}`}
-                  className="h-7 min-w-0 shrink-0 gap-0.5 rounded-md border-0 bg-transparent px-1.5 text-xs font-medium text-foreground shadow-none hover:bg-muted dark:bg-transparent dark:hover:bg-muted/50"
-                >
-                  <SelectValue>{selectedVariant.size}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {sortedVariants.map((variant) => {
-                    const orderable = isOrderable(variant.stockStatus);
-                    return (
-                      <SelectItem key={variant.id} value={variant.id} disabled={!orderable}>
-                        {variant.size}
-                        {!orderable && " — Out of stock"}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+          <dl className="mt-auto grid grid-cols-[3fr_2fr] border border-foreground [&>div]:min-w-0 [&>div]:px-1.5 [&>div]:py-1.5 [&>div+div]:border-l [&>div+div]:border-foreground">
+            <div>
+              <dt className="decl-label">Net qty</dt>
+              <dd className="mt-0.5">
+                {hasSizeChoice ? (
+                  <Select value={selectedVariantId} onValueChange={(id) => setSelectedVariantId(id as string)}>
+                    <SelectTrigger
+                      size="sm"
+                      aria-label={`Select pack size for ${product.name}`}
+                      className="-ml-1 h-6 w-full min-w-0 gap-0.5 rounded-sm border-0 bg-transparent px-1 text-sm font-semibold text-foreground shadow-none hover:bg-muted"
+                    >
+                      <SelectValue>{selectedVariant.size}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="store-theme rounded-sm ring-foreground">
+                      {sortedVariants.map((variant) => {
+                        const orderable = isOrderable(variant.stockStatus);
+                        return (
+                          <SelectItem key={variant.id} value={variant.id} disabled={!orderable}>
+                            {variant.size} · {formatPaise(variant.priceInPaise)}
+                            {!orderable && " — Out of stock"}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <span className="block text-sm font-semibold leading-tight [overflow-wrap:anywhere] py-0.5">{selectedVariant.size}</span>
+                )}
+              </dd>
+            </div>
+            <div>
+              <dt className="decl-label">MRP</dt>
+              <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums leading-6">
+                {selectedVariant.mrpInPaise === null ? (
+                  <span className="text-muted-foreground">—</span>
+                ) : (
+                  formatPaise(selectedVariant.mrpInPaise)
+                )}
+              </dd>
+            </div>
+          </dl>
         )}
 
         {selectedVariant && (
-          <p className={cn("text-xs font-medium leading-none", STOCK_BADGE_CLASS[selectedVariant.stockStatus])}>
-            {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
+          <p className="mt-2 flex min-h-5 flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs font-semibold leading-4">
+            <span className={STOCK_STATUS_TEXT_CLASS[selectedVariant.stockStatus]}>
+              {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
+            </span>
+            <SavingsStamp priceInPaise={selectedVariant.priceInPaise} mrpInPaise={selectedVariant.mrpInPaise} />
           </p>
         )}
 
@@ -169,15 +176,15 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
           disabled={!canOrder || isPending}
           onClick={addToBag}
           className={cn(
-            "mt-1.5 flex h-9 w-full items-center justify-center gap-1.5 rounded-lg text-sm font-medium transition-all active:scale-[0.98] disabled:pointer-events-none",
+            "mt-2 flex h-10 w-full items-center justify-center gap-1.5 rounded-sm text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring active:translate-y-px disabled:pointer-events-none",
             !canOrder
-              ? "bg-muted text-muted-foreground"
+              ? "border border-dashed border-foreground/40 text-muted-foreground"
               : justAdded
-                ? "bg-emerald-600 text-white"
-                : "bg-primary text-primary-foreground hover:bg-primary/90",
+                ? "bg-sticker text-sticker-foreground"
+                : "bg-primary text-primary-foreground hover:bg-primary/85",
           )}
         >
-          {justAdded && <Check className="size-3.5" aria-hidden />}
+          {justAdded && <Check className="size-4" aria-hidden />}
           {ctaLabel}
         </button>
       </div>

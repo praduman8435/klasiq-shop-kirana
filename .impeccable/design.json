@@ -1,227 +1,266 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-08-12T00:00:00Z",
-  "title": "Design System: Klasiq",
+  "generatedAt": "2026-09-23T10:45:28.753Z",
+  "title": "Design System: Klasiq Storefront",
   "extensions": {
     "colorMeta": {
-      "klasiq-red": {
+      "declaration-black": {
         "role": "primary",
-        "displayName": "Klasiq Red",
-        "canonical": "oklch(0.47 0.19 25)",
+        "displayName": "Declaration Black",
+        "canonical": "oklch(0.19 0.004 270)",
         "tonalRamp": [
-          "oklch(0.15 0.19 25)",
-          "oklch(0.26 0.19 25)",
-          "oklch(0.38 0.19 25)",
-          "oklch(0.49 0.19 25)",
-          "oklch(0.61 0.19 25)",
-          "oklch(0.72 0.19 25)",
-          "oklch(0.84 0.19 25)",
-          "oklch(0.95 0.19 25)"
+          "oklch(0.15 0.004 270)",
+          "oklch(0.27 0.004 270)",
+          "oklch(0.39 0.004 270)",
+          "oklch(0.51 0.004 270)",
+          "oklch(0.63 0.004 270)",
+          "oklch(0.75 0.004 270)",
+          "oklch(0.87 0.004 270)",
+          "oklch(0.95 0.004 270)"
         ]
       },
-      "klasiq-red-ink": {
-        "role": "primary-foreground",
-        "displayName": "Klasiq Red Ink",
-        "canonical": "oklch(0.98 0.012 25)",
-        "tonalRamp": [
-          "oklch(0.15 0.012 25)",
-          "oklch(0.26 0.012 25)",
-          "oklch(0.38 0.012 25)",
-          "oklch(0.49 0.012 25)",
-          "oklch(0.61 0.012 25)",
-          "oklch(0.72 0.012 25)",
-          "oklch(0.84 0.012 25)",
-          "oklch(0.95 0.012 25)"
-        ]
-      },
-      "marquee-gold": {
+      "sticker-yellow": {
         "role": "secondary",
-        "displayName": "Marquee Gold",
-        "canonical": "oklch(0.8 0.15 85)",
+        "displayName": "Sticker Yellow",
+        "canonical": "oklch(0.887 0.182 95.3)",
         "tonalRamp": [
-          "oklch(0.15 0.15 85)",
-          "oklch(0.26 0.15 85)",
-          "oklch(0.38 0.15 85)",
-          "oklch(0.49 0.15 85)",
-          "oklch(0.61 0.15 85)",
-          "oklch(0.72 0.15 85)",
-          "oklch(0.84 0.15 85)",
-          "oklch(0.95 0.15 85)"
+          "oklch(0.15 0.182 95.3)",
+          "oklch(0.27 0.182 95.3)",
+          "oklch(0.39 0.182 95.3)",
+          "oklch(0.51 0.182 95.3)",
+          "oklch(0.63 0.182 95.3)",
+          "oklch(0.75 0.182 95.3)",
+          "oklch(0.87 0.182 95.3)",
+          "oklch(0.95 0.182 95.3)"
         ]
       },
-      "marquee-gold-ink": {
-        "role": "secondary-foreground",
-        "displayName": "Marquee Gold Ink",
-        "canonical": "oklch(0.24 0.05 70)",
+      "inkjet-violet": {
+        "role": "tertiary",
+        "displayName": "Inkjet Violet",
+        "canonical": "oklch(0.45 0.19 280)",
         "tonalRamp": [
-          "oklch(0.15 0.05 70)",
-          "oklch(0.26 0.05 70)",
-          "oklch(0.38 0.05 70)",
-          "oklch(0.49 0.05 70)",
-          "oklch(0.61 0.05 70)",
-          "oklch(0.72 0.05 70)",
-          "oklch(0.84 0.05 70)",
-          "oklch(0.95 0.05 70)"
+          "oklch(0.15 0.19 280)",
+          "oklch(0.27 0.19 280)",
+          "oklch(0.39 0.19 280)",
+          "oklch(0.51 0.19 280)",
+          "oklch(0.63 0.19 280)",
+          "oklch(0.75 0.19 280)",
+          "oklch(0.87 0.19 280)",
+          "oklch(0.95 0.19 280)"
         ]
       },
-      "midnight-ink": {
+      "pack-white": {
         "role": "neutral",
-        "displayName": "Midnight Ink",
-        "canonical": "oklch(0.16 0.02 260)",
-        "tonalRamp": [
-          "oklch(0.15 0.02 260)",
-          "oklch(0.26 0.02 260)",
-          "oklch(0.38 0.02 260)",
-          "oklch(0.49 0.02 260)",
-          "oklch(0.61 0.02 260)",
-          "oklch(0.72 0.02 260)",
-          "oklch(0.84 0.02 260)",
-          "oklch(0.95 0.02 260)"
-        ]
-      },
-      "parchment": {
-        "role": "neutral",
-        "displayName": "Parchment",
-        "canonical": "oklch(0.98 0.005 85)",
-        "tonalRamp": [
-          "oklch(0.15 0.005 85)",
-          "oklch(0.26 0.005 85)",
-          "oklch(0.38 0.005 85)",
-          "oklch(0.49 0.005 85)",
-          "oklch(0.61 0.005 85)",
-          "oklch(0.72 0.005 85)",
-          "oklch(0.84 0.005 85)",
-          "oklch(0.95 0.005 85)"
-        ]
-      },
-      "paper": {
-        "role": "neutral",
-        "displayName": "Paper",
+        "displayName": "Pack White",
         "canonical": "oklch(1 0 0)",
         "tonalRamp": [
           "oklch(0.15 0 0)",
-          "oklch(0.26 0 0)",
-          "oklch(0.38 0 0)",
-          "oklch(0.49 0 0)",
-          "oklch(0.61 0 0)",
-          "oklch(0.72 0 0)",
-          "oklch(0.84 0 0)",
+          "oklch(0.27 0 0)",
+          "oklch(0.39 0 0)",
+          "oklch(0.51 0 0)",
+          "oklch(0.63 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.87 0 0)",
           "oklch(0.95 0 0)"
         ]
       },
-      "quiet-slate": {
+      "shelf-grey": {
         "role": "neutral",
-        "displayName": "Quiet Slate",
-        "canonical": "oklch(0.95 0.01 260)",
+        "displayName": "Shelf Grey",
+        "canonical": "oklch(0.965 0.003 250)",
         "tonalRamp": [
-          "oklch(0.15 0.01 260)",
-          "oklch(0.26 0.01 260)",
-          "oklch(0.38 0.01 260)",
-          "oklch(0.49 0.01 260)",
-          "oklch(0.61 0.01 260)",
-          "oklch(0.72 0.01 260)",
-          "oklch(0.84 0.01 260)",
-          "oklch(0.95 0.01 260)"
+          "oklch(0.15 0.003 250)",
+          "oklch(0.27 0.003 250)",
+          "oklch(0.39 0.003 250)",
+          "oklch(0.51 0.003 250)",
+          "oklch(0.63 0.003 250)",
+          "oklch(0.75 0.003 250)",
+          "oklch(0.87 0.003 250)",
+          "oklch(0.95 0.003 250)"
         ]
       },
-      "quiet-slate-ink": {
+      "shelf-grey-recessed": {
         "role": "neutral",
-        "displayName": "Quiet Slate Ink",
-        "canonical": "oklch(0.22 0.04 260)",
+        "displayName": "Shelf Grey Recessed",
+        "canonical": "oklch(0.945 0.004 250)",
         "tonalRamp": [
-          "oklch(0.15 0.04 260)",
-          "oklch(0.26 0.04 260)",
-          "oklch(0.38 0.04 260)",
-          "oklch(0.49 0.04 260)",
-          "oklch(0.61 0.04 260)",
-          "oklch(0.72 0.04 260)",
-          "oklch(0.84 0.04 260)",
-          "oklch(0.95 0.04 260)"
+          "oklch(0.15 0.004 250)",
+          "oklch(0.27 0.004 250)",
+          "oklch(0.39 0.004 250)",
+          "oklch(0.51 0.004 250)",
+          "oklch(0.63 0.004 250)",
+          "oklch(0.75 0.004 250)",
+          "oklch(0.87 0.004 250)",
+          "oklch(0.95 0.004 250)"
         ]
       },
-      "soft-fog": {
+      "shelf-grey-deep": {
         "role": "neutral",
-        "displayName": "Soft Fog",
-        "canonical": "oklch(0.96 0.006 85)",
+        "displayName": "Shelf Grey Deep",
+        "canonical": "oklch(0.93 0.004 250)",
         "tonalRamp": [
-          "oklch(0.15 0.006 85)",
-          "oklch(0.26 0.006 85)",
-          "oklch(0.38 0.006 85)",
-          "oklch(0.49 0.006 85)",
-          "oklch(0.61 0.006 85)",
-          "oklch(0.72 0.006 85)",
-          "oklch(0.84 0.006 85)",
-          "oklch(0.95 0.006 85)"
+          "oklch(0.15 0.004 250)",
+          "oklch(0.27 0.004 250)",
+          "oklch(0.39 0.004 250)",
+          "oklch(0.51 0.004 250)",
+          "oklch(0.63 0.004 250)",
+          "oklch(0.75 0.004 250)",
+          "oklch(0.87 0.004 250)",
+          "oklch(0.95 0.004 250)"
         ]
       },
-      "fog-ink": {
+      "fine-print-grey": {
         "role": "neutral",
-        "displayName": "Fog Ink",
-        "canonical": "oklch(0.46 0.02 260)",
+        "displayName": "Fine-print Grey",
+        "canonical": "oklch(0.42 0.012 275)",
         "tonalRamp": [
-          "oklch(0.15 0.02 260)",
-          "oklch(0.26 0.02 260)",
-          "oklch(0.38 0.02 260)",
-          "oklch(0.49 0.02 260)",
-          "oklch(0.61 0.02 260)",
-          "oklch(0.72 0.02 260)",
-          "oklch(0.84 0.02 260)",
-          "oklch(0.95 0.02 260)"
+          "oklch(0.15 0.012 275)",
+          "oklch(0.27 0.012 275)",
+          "oklch(0.39 0.012 275)",
+          "oklch(0.51 0.012 275)",
+          "oklch(0.63 0.012 275)",
+          "oklch(0.75 0.012 275)",
+          "oklch(0.87 0.012 275)",
+          "oklch(0.95 0.012 275)"
         ]
       },
-      "hairline": {
+      "hairline-grey": {
         "role": "neutral",
-        "displayName": "Hairline",
-        "canonical": "oklch(0.9 0.01 260)",
+        "displayName": "Hairline Grey",
+        "canonical": "oklch(0.84 0.005 260)",
         "tonalRamp": [
-          "oklch(0.15 0.01 260)",
-          "oklch(0.26 0.01 260)",
-          "oklch(0.38 0.01 260)",
-          "oklch(0.49 0.01 260)",
-          "oklch(0.61 0.01 260)",
-          "oklch(0.72 0.01 260)",
-          "oklch(0.84 0.01 260)",
-          "oklch(0.95 0.01 260)"
+          "oklch(0.15 0.005 260)",
+          "oklch(0.27 0.005 260)",
+          "oklch(0.39 0.005 260)",
+          "oklch(0.51 0.005 260)",
+          "oklch(0.63 0.005 260)",
+          "oklch(0.75 0.005 260)",
+          "oklch(0.87 0.005 260)",
+          "oklch(0.95 0.005 260)"
         ]
       },
-      "alert-red": {
-        "role": "destructive",
-        "displayName": "Alert Red",
-        "canonical": "oklch(0.5 0.2 20)",
+      "status-in-stock": {
+        "role": "status",
+        "displayName": "In Stock Green",
+        "canonical": "oklch(0.508 0.118 165.612)",
         "tonalRamp": [
-          "oklch(0.15 0.2 20)",
-          "oklch(0.26 0.2 20)",
-          "oklch(0.38 0.2 20)",
-          "oklch(0.49 0.2 20)",
-          "oklch(0.61 0.2 20)",
-          "oklch(0.72 0.2 20)",
-          "oklch(0.84 0.2 20)",
-          "oklch(0.95 0.2 20)"
+          "oklch(0.15 0.118 165.612)",
+          "oklch(0.27 0.118 165.612)",
+          "oklch(0.39 0.118 165.612)",
+          "oklch(0.51 0.118 165.612)",
+          "oklch(0.63 0.118 165.612)",
+          "oklch(0.75 0.118 165.612)",
+          "oklch(0.87 0.118 165.612)",
+          "oklch(0.95 0.118 165.612)"
+        ]
+      },
+      "status-low-stock": {
+        "role": "status",
+        "displayName": "Low Stock Amber",
+        "canonical": "oklch(0.555 0.163 48.998)",
+        "tonalRamp": [
+          "oklch(0.15 0.163 48.998)",
+          "oklch(0.27 0.163 48.998)",
+          "oklch(0.39 0.163 48.998)",
+          "oklch(0.51 0.163 48.998)",
+          "oklch(0.63 0.163 48.998)",
+          "oklch(0.75 0.163 48.998)",
+          "oklch(0.87 0.163 48.998)",
+          "oklch(0.95 0.163 48.998)"
+        ]
+      },
+      "status-error": {
+        "role": "status",
+        "displayName": "Error Red",
+        "canonical": "oklch(0.52 0.2 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.2 27)",
+          "oklch(0.27 0.2 27)",
+          "oklch(0.39 0.2 27)",
+          "oklch(0.51 0.2 27)",
+          "oklch(0.63 0.2 27)",
+          "oklch(0.75 0.2 27)",
+          "oklch(0.87 0.2 27)",
+          "oklch(0.95 0.2 27)"
         ]
       }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Homepage hero headline only." },
-      "headline": { "displayName": "Headline", "purpose": "Section headings, e.g. \"Shop by category\"." },
-      "title": { "displayName": "Title", "purpose": "Store wordmark and comparably prominent short labels." },
-      "body": { "displayName": "Body", "purpose": "Default running copy; an 18px/28px lead variant is used for hero subcopy only." },
-      "label": { "displayName": "Label", "purpose": "Small uppercase tags, e.g. the hero eyebrow badge." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Homepage name-panel headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles (30-36px) and section titles (24-30px)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Product names on pack panels, two lines max."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Descriptions, fact values, footer copy; 16px in inputs and chips."
+      },
+      "label": {
+        "displayName": "Declaration Label",
+        "purpose": "Field names (NET QTY, MRP, STOCK), brands, header aisle links, the SAVE stamp."
+      },
+      "wordmark": {
+        "displayName": "Wordmark",
+        "purpose": "KLASIQ in header and footer."
+      },
+      "price": {
+        "displayName": "Price",
+        "purpose": "Price sticker figures; 18px on panels, 30-36px on the product page."
+      }
     },
     "shadows": [
-      { "name": "hover-lift", "value": "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)", "purpose": "Product cards and category tiles on hover only — never at rest." },
-      { "name": "popover-shadow", "value": "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)", "purpose": "Select dropdowns and other transient overlays, paired with a 1px ring-foreground/10." }
+      {
+        "name": "sticker-lift",
+        "value": "0 1px 1px oklch(0.19 0.004 270 / 18%), 0 3px 8px -2px oklch(0.19 0.004 270 / 22%)",
+        "purpose": "The price sticker only; everything else is flat."
+      }
     ],
     "motion": [
-      { "name": "transition-standard", "value": "150ms ease", "purpose": "Default color/background/border transitions across buttons, links, and pills." },
-      { "name": "transition-hover-lift", "value": "300ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Product card and category tile hover lift/scale/rotate." },
-      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce collapses all animation/transition durations to 0.01ms", "purpose": "Global accessibility override — respected everywhere, no exceptions." }
+      {
+        "name": "price-gun",
+        "value": "price-gun 320ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "The one authored motion: the bag-count sticker stamps on when an item is added (rotate -9deg scale 1.35 → -2deg 0.94 → -3deg 1)."
+      },
+      {
+        "name": "state-transition",
+        "value": "color/background-color 150ms",
+        "purpose": "Hover washes and fill changes."
+      },
+      {
+        "name": "press",
+        "value": "translateY(1px)",
+        "purpose": "Active state on buttons."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "all durations 0.01ms",
+        "purpose": "Global collapse under prefers-reduced-motion: reduce."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "md", "value": "768px" },
-      { "name": "lg", "value": "1024px" },
-      { "name": "xl", "value": "1280px" },
-      { "name": "2xl", "value": "1536px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
     ]
   },
   "components": [
@@ -229,89 +268,147 @@
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The system's one confident CTA color — used for primary actions like Add, Place Order.",
+      "description": "The only action fill: Add to Bag, Search, Bag, Proceed to Checkout.",
       "html": "<button class=\"ds-btn-primary\">Add to Bag</button>",
-      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 12px; border: 1px solid transparent; background: var(--primary); color: var(--primary-foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; white-space: nowrap; transition: background-color 150ms ease, transform 100ms ease; } .ds-btn-primary:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-primary:active { transform: translateY(1px); }"
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;height:40px;min-width:180px;padding:0 20px;background:oklch(0.19 0.004 270);color:#fff;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:700;border:0;border-radius:0;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
     },
     {
       "name": "Outline Button",
       "kind": "button",
       "refersTo": "button-outline",
-      "description": "Secondary action button — Hairline border on Parchment, fills to Soft Fog on hover.",
-      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
-      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--background); color: var(--foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; transition: background-color 150ms ease; } .ds-btn-outline:hover { background: var(--muted); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+      "description": "Secondary action (Buy Now, Track Orders, clear search): black rule on shelf grey.",
+      "html": "<button class=\"ds-btn-outline\">Buy Now</button>",
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;height:48px;min-width:200px;padding:0 20px;background:oklch(0.965 0.003 250);color:oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:16px;font-weight:700;border:1px solid oklch(0.19 0.004 270);border-radius:0;cursor:pointer;transition:background-color .15s}.ds-btn-outline:hover{background:oklch(0.945 0.004 250)}.ds-btn-outline:active{transform:translateY(1px)}.ds-btn-outline:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
     },
     {
-      "name": "Input Field",
+      "name": "Hero Search",
       "kind": "input",
-      "refersTo": "input",
-      "description": "Default text input — transparent fill, Hairline border, Klasiq Red focus ring.",
-      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search your school…\">",
-      "css": ".ds-input { height: 32px; width: 100%; border-radius: 12px; border: 1px solid var(--border); background: transparent; padding: 4px 10px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; color: var(--foreground); transition: border-color 150ms ease; } .ds-input::placeholder { color: var(--muted-foreground); } .ds-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+      "refersTo": "input-search-hero",
+      "description": "Boxed search field butted into a black Search button.",
+      "html": "<form class=\"ds-search\" role=\"search\" onsubmit=\"return false\"><span class=\"ds-search-field\"><svg class=\"ds-search-icon\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input type=\"search\" aria-label=\"Search products\" placeholder=\"Search atta, dal, soap, brands...\"></span><button type=\"submit\">Search</button></form>",
+      "css": ".ds-search{display:flex;width:100%;max-width:560px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-search-field{position:relative;flex:1;min-width:0}.ds-search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:oklch(0.42 0.012 275);pointer-events:none}.ds-search input{width:100%;height:52px;padding:0 12px 0 44px;background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);border-right:0;border-radius:0;font:inherit;font-size:16px;outline:none}.ds-search input::placeholder{color:oklch(0.42 0.012 275)}.ds-search input:focus-visible{box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}.ds-search button{height:52px;padding:0 20px;background:oklch(0.19 0.004 270);color:#fff;border:0;border-radius:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:background-color .15s}.ds-search button:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-search button:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
     },
     {
-      "name": "Eyebrow Badge",
-      "kind": "chip",
-      "refersTo": "badge-pill",
-      "description": "The rare Marquee Gold spotlight pill — at most once or twice per screen (The Gold Is Rare Rule).",
-      "html": "<span class=\"ds-eyebrow-badge\">Trusted local retail</span>",
-      "css": ".ds-eyebrow-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; background: var(--accent); color: var(--accent-foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; }"
-    },
-    {
-      "name": "Fulfillment Pill Toggle",
-      "kind": "chip",
-      "refersTo": "button-secondary",
-      "description": "A pill-shaped tab group; the active pill switches to Klasiq Red, e.g. Store Pickup / Local Delivery.",
-      "html": "<div class=\"ds-pill-group\" role=\"tablist\"><button class=\"ds-pill ds-pill-active\" role=\"tab\" aria-selected=\"true\">Store Pickup</button><button class=\"ds-pill\" role=\"tab\" aria-selected=\"false\">Local Delivery</button></div>",
-      "css": ".ds-pill-group { display: inline-flex; border-radius: 9999px; border: 1px solid var(--border); background: var(--muted); padding: 4px; gap: 2px; } .ds-pill { border: none; background: none; border-radius: 9999px; padding: 8px 20px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: var(--muted-foreground); transition: background-color 150ms ease, color 150ms ease; } .ds-pill:not(.ds-pill-active):hover { color: var(--foreground); } .ds-pill-active { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }"
-    },
-    {
-      "name": "Homepage Category Rail Chip",
-      "kind": "chip",
-      "refersTo": "category-tile",
-      "description": "Replaces the earlier Category Tile card. A horizontally-scrolling pill chip (icon + label); the one signature chip (resolved by pickBrowseFallbackCategory) uses a solid fill, every other chip shares one neutral treatment. See DESIGN.md's Homepage Category Rail section.",
-      "html": "<a href=\"#\" class=\"ds-rail-chip ds-rail-chip-signature\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 4h16v4l-4 3v9H8v-9L4 8z\"/></svg><span>Uniforms</span></a>",
-      "css": ".ds-rail-chip { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; border-radius: 9999px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); padding: 10px 16px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; } .ds-rail-chip:hover { background: var(--muted); border-color: color-mix(in oklch, var(--primary) 25%, transparent); } .ds-rail-chip-signature { border-color: transparent; background: var(--primary); color: var(--primary-foreground); } .ds-rail-chip-signature:hover { background: var(--primary); border-color: transparent; }"
-    },
-    {
-      "name": "Product Card",
+      "name": "Price Sticker",
       "kind": "custom",
-      "refersTo": "product-card",
-      "description": "Signature component: a compact shelf-tag card (image, name, price/stock, pill-shaped size Select, quantity stepper, Add) replacing the earlier detail-page-like card. See DESIGN.md's Product Card section.",
-      "html": "<div class=\"ds-product-card\"><div class=\"ds-product-thumb\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"28\" height=\"28\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 3h2l1.5 2h5L16 3h2l3.5 4-3 2v11a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1V9l-3-2z\"/></svg></div><div class=\"ds-product-body\"><h3 class=\"ds-product-name\">Classic Fit Shirt</h3><p class=\"ds-product-price\">₹499 <span class=\"ds-stock-ok\">In stock</span></p><select class=\"ds-size-select\"><option>Size 32</option><option>Size 34</option></select><div class=\"ds-product-actions\"><div class=\"ds-qty-stepper\"><button type=\"button\" aria-label=\"Decrease quantity\">−</button><span>1</span><button type=\"button\" aria-label=\"Increase quantity\">+</button></div><button type=\"button\" class=\"ds-add-btn\">Add</button></div></div></div>",
-      "css": ".ds-product-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; border: 1px solid var(--border); background: var(--card); transition: transform 300ms cubic-bezier(0.4,0,0.2,1), box-shadow 300ms cubic-bezier(0.4,0,0.2,1); } .ds-product-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); } .ds-product-thumb { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, var(--muted) 0px, var(--muted) 10px, var(--secondary) 10px, var(--secondary) 20px); color: var(--muted-foreground); } .ds-product-body { display: flex; flex-direction: column; gap: 8px; padding: 10px; } .ds-product-name { margin: 0; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 600; color: var(--foreground); } .ds-product-price { margin: 0; display: flex; align-items: baseline; gap: 6px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 700; color: var(--foreground); } .ds-stock-ok { font-size: 11px; font-weight: 500; color: #0a7d3f; } .ds-size-select { height: 36px; width: 100%; border-radius: 9999px; border: 2px solid var(--border); background: var(--card); padding: 4px 12px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; color: var(--foreground); } .ds-product-actions { display: flex; align-items: center; gap: 6px; } .ds-qty-stepper { display: flex; align-items: center; height: 36px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; } .ds-qty-stepper button { width: 32px; height: 100%; border: none; background: none; font-size: 16px; color: var(--foreground); cursor: pointer; } .ds-qty-stepper button:hover { background: var(--muted); } .ds-qty-stepper span { width: 24px; text-align: center; font-size: 14px; color: var(--foreground); } .ds-add-btn { flex: 1; height: 36px; border-radius: 12px; border: none; background: var(--primary); color: var(--primary-foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 150ms ease; } .ds-add-btn:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); }"
+      "refersTo": "price-sticker",
+      "description": "The shop's fluorescent price sticker: one per product, -3deg, black text.",
+      "html": "<span class=\"ds-sticker\"><span class=\"ds-sr\">Price </span>₹62</span> <span class=\"ds-sticker ds-sticker-lg\">₹135</span> <span class=\"ds-sticker ds-sticker-out\">Sold out</span>",
+      "css": ".ds-sticker{display:inline-flex;align-items:baseline;padding:6px 8px;margin:8px;background:oklch(0.887 0.182 95.3);color:oklch(0.19 0.004 270);border-radius:3px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;line-height:1;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%)}.ds-sticker-lg{padding:8px 12px;font-size:36px}.ds-sticker-out{background:#fff;border:1px solid oklch(0.19 0.004 270);font-size:12px;text-transform:uppercase;letter-spacing:.025em}.ds-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}"
+    },
+    {
+      "name": "Savings Stamp",
+      "kind": "custom",
+      "refersTo": "savings-stamp",
+      "description": "Violet inkjet SAVE stamp; only when price is under MRP.",
+      "html": "<span class=\"ds-stamp\">Save ₹15</span>",
+      "css": ".ds-stamp{display:inline-block;padding:4px 6px;border:1px solid oklch(0.45 0.19 280);color:oklch(0.45 0.19 280);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase;font-variant-numeric:tabular-nums;transform:rotate(-2deg)}"
+    },
+    {
+      "name": "Pack Panel",
+      "kind": "card",
+      "refersTo": "pack-panel",
+      "description": "Product card as the pack's declaration panel: brand, name, NET QTY | MRP box, stamp, black CTA.",
+      "html": "<article class=\"ds-panel\"><div class=\"ds-panel-img\"><svg viewBox=\"0 0 24 24\" width=\"44\" height=\"44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2 22 16 8\"/><path d=\"M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z\"/><path d=\"M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z\"/><path d=\"M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z\"/><path d=\"M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z\"/></svg><span class=\"ds-panel-sticker\">₹135</span></div><div class=\"ds-panel-body\"><p class=\"ds-panel-brand\">India Gate</p><h3 class=\"ds-panel-name\">Basmati Rice</h3><dl class=\"ds-panel-decl\"><div><dt>Net qty</dt><dd>1 kg</dd></div><div><dt>MRP</dt><dd>₹150</dd></div></dl><p class=\"ds-panel-meta\"><span class=\"ds-panel-stock\">In Stock</span><span class=\"ds-panel-stamp\">Save ₹15</span></p><button class=\"ds-panel-cta\">Add to Bag</button></div></article>",
+      "css": ".ds-panel{width:220px;background:#fff;border:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;color:oklch(0.19 0.004 270)}.ds-panel-img{position:relative;aspect-ratio:5/4;display:flex;align-items:center;justify-content:center;background:oklch(0.945 0.004 250);color:oklch(0.42 0.012 275 / 75%)}.ds-panel-sticker{position:absolute;right:8px;bottom:8px;padding:6px 8px;background:oklch(0.887 0.182 95.3);color:oklch(0.19 0.004 270);border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:18px;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%)}.ds-panel-body{padding:8px 12px 12px}.ds-panel-brand,.ds-panel-decl dt,.ds-panel-stamp{font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase}.ds-panel-brand{margin:0;color:oklch(0.42 0.012 275)}.ds-panel-name{margin:4px 0 8px;font-size:14px;font-weight:600;line-height:1.375;font-variation-settings:\"wdth\" 80}.ds-panel-decl{display:grid;grid-template-columns:3fr 2fr;margin:0;border:1px solid oklch(0.19 0.004 270)}.ds-panel-decl div{padding:6px}.ds-panel-decl div+div{border-left:1px solid oklch(0.19 0.004 270)}.ds-panel-decl dd{margin:2px 0 0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}.ds-panel-meta{display:flex;justify-content:space-between;align-items:center;margin:8px 0 0;font-size:12px;font-weight:600}.ds-panel-stock{color:oklch(0.508 0.118 165.612)}.ds-panel-stamp{padding:4px 6px;border:1px solid oklch(0.45 0.19 280);color:oklch(0.45 0.19 280);transform:rotate(-2deg)}.ds-panel-cta{margin-top:8px;width:100%;height:40px;background:oklch(0.19 0.004 270);color:#fff;border:0;border-radius:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background-color .15s}.ds-panel-cta:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-panel-cta:active{transform:translateY(1px)}.ds-panel-cta:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+    },
+    {
+      "name": "Pack Size Chips",
+      "kind": "chip",
+      "refersTo": "size-chip",
+      "description": "Single-choice pack-size radio group on the product page.",
+      "html": "<div class=\"ds-chips\" role=\"radiogroup\" aria-label=\"Pack size\"><button role=\"radio\" aria-checked=\"true\" class=\"ds-chip\">1 kg</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-chip\">5 kg</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-chip ds-chip-off\">10 kg</button></div>",
+      "css": ".ds-chips{display:flex;gap:8px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-chip{min-height:48px;min-width:56px;padding:0 16px;background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);border-radius:0;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:background-color .15s}.ds-chip:hover{background:oklch(0.945 0.004 250)}.ds-chip[aria-checked=\"true\"]{background:oklch(0.19 0.004 270);color:#fff}.ds-chip-off{color:oklch(0.42 0.012 275);text-decoration:line-through;opacity:.5}.ds-chip:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+    },
+    {
+      "name": "Header Navigation",
+      "kind": "nav",
+      "refersTo": "nav-aisle-active",
+      "description": "White bar ruled off by one black line; Label-style aisle links; black Bag with sticker count.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-nav-mark\">KLASIQ</span><nav class=\"ds-nav-links\"><a href=\"#\" aria-current=\"page\">Atta, Rice &amp; Dal</a><a href=\"#\">Oil, Ghee &amp; Masale</a><a href=\"#\">Dairy, Bread &amp; Eggs</a></nav><a href=\"#\" class=\"ds-nav-bag\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 10a4 4 0 0 1-8 0\"/><path d=\"M3.103 6.034h17.794\"/><path d=\"M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z\"/></svg>Bag<span class=\"ds-nav-count\">3</span></a></header>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:#fff;border-bottom:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;color:oklch(0.19 0.004 270)}.ds-nav-mark{font-variation-settings:\"wdth\" 72;font-size:24px;font-weight:800;letter-spacing:.02em;line-height:1}.ds-nav-links{display:flex;gap:2px}.ds-nav-links a{padding:8px;color:oklch(0.19 0.004 270 / 75%);text-decoration:none;font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;transition:background-color .15s,color .15s}.ds-nav-links a:hover{background:oklch(0.945 0.004 250);color:oklch(0.19 0.004 270)}.ds-nav-links a[aria-current=\"page\"]{background:oklch(0.19 0.004 270);color:#fff}.ds-nav-links a:focus-visible,.ds-nav-bag:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}.ds-nav-bag{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;background:oklch(0.19 0.004 270);color:#fff;text-decoration:none;font-size:14px;font-weight:600;transition:background-color .15s}.ds-nav-bag:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-nav-count{min-width:24px;justify-content:center;display:inline-flex;margin-right:-4px;padding:4px 6px;background:oklch(0.887 0.182 95.3);color:oklch(0.19 0.004 270);border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:12px;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%);animation:ds-price-gun 320ms cubic-bezier(0.16,1,0.3,1)}@keyframes ds-price-gun{0%{transform:rotate(-9deg) scale(1.35);opacity:0}55%{transform:rotate(-2deg) scale(.94);opacity:1}100%{transform:rotate(-3deg) scale(1)}}@media (prefers-reduced-motion:reduce){.ds-nav-count{animation:none}}"
+    },
+    {
+      "name": "Aisles Contents Table",
+      "kind": "custom",
+      "description": "Homepage aisles as a ruled contents table with dotted leaders.",
+      "html": "<ul class=\"ds-aisles\"><li><a href=\"#\"><span class=\"ds-aisle-name\">Atta, Rice &amp; Dal</span><span class=\"ds-aisle-leader\" aria-hidden=\"true\"></span><svg class=\"ds-aisle-arrow\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a></li><li><a href=\"#\"><span class=\"ds-aisle-name\">Pooja Samagri</span><span class=\"ds-aisle-leader\" aria-hidden=\"true\"></span><svg class=\"ds-aisle-arrow\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a></li></ul>",
+      "css": ".ds-aisles{list-style:none;margin:0;padding:0 16px;width:360px;background:#fff;border:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-aisles li+li{border-top:1px solid oklch(0.19 0.004 270 / 20%)}.ds-aisles a{display:flex;align-items:center;gap:12px;min-height:52px;color:oklch(0.19 0.004 270);text-decoration:none}.ds-aisle-name{font-size:16px;font-weight:700;line-height:1.25}.ds-aisles a:hover .ds-aisle-name{text-decoration:underline;text-underline-offset:4px}.ds-aisle-leader{flex:1;min-width:16px;margin:0 4px;transform:translateY(4px);border-bottom:2px dotted oklch(0.19 0.004 270 / 35%)}.ds-aisle-arrow{transition:transform .15s}.ds-aisles a:hover .ds-aisle-arrow{transform:translateX(2px)}.ds-aisles a:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
     }
   ],
   "narrative": {
-    "northStar": "Classic, Modernized",
-    "overview": "Klasiq's storefront plays the Klasiq/\"classic\" wordplay straight: a decades-old, family-run uniform counter rendered in a bold, cinematic, contemporary visual language. Near-black navy ink on warm parchment gives every screen the confidence of an established institution, while a single controlled red (Klasiq Red) and a sparing gold highlight (Marquee Gold) carry the \"bold, energetic, cinematic\" energy the brand wants without borrowing anyone else's iconography. The system is deliberately not soft or pastel — it reads as assured and a little theatrical, the way a well-run family store that's been getting it right for thirty years can afford to be.\n\nDensity stays tight and retail-native: product cards behave like compact shelf tags, not mini detail pages, so more of the catalog is visible at once on every breakpoint. Surfaces are flat by default — depth is earned by interaction, not stacked on by default — which keeps the cinematic color work from tipping into visual noise. This is explicitly not a superhero-branded skin: no comic iconography, no character likenesses, no halftone/ben-day-dot styling. It is also not a generic SaaS-template look (soft blue gradients, rounded-everything, timid contrast) and not a childish \"back to school\" theme — the general-retail half of the catalog (footwear, bags, kurtis) has to feel just as at home here as uniforms.",
+    "northStar": "The Pack Declaration Panel",
+    "overview": "Every product is shown the way its own pack states it: brand in small condensed caps, the product name, and a ruled box of NET QTY and MRP in black declaration print, exactly as printed on the back of an Indian pack. On top of that the shop slaps its own fluorescent price sticker, a little crooked, the way a kirana owner's price gun leaves it. The page is a sheet of these pack panels: pack-white board laid on a cool shelf-grey ground, divided by 1px black rules into boxed fields, with square corners everywhere.\n\nThe system is dense, legible and literal. It borrows its whole vocabulary from things the customer already reads in the shop (the declaration table, the price sticker, the violet inkjet batch stamp, the customer-care box on the back panel) and adds nothing decorative on top. Hierarchy comes from rules, weight and the condensed width axis, not from colour, shadow or rounding. Black is the only colour that asks you to act; yellow only tells you a price; violet only tells you what you save.\n\nIt deliberately refuses two neighbours: the quick-commerce tile grid (floating rounded cards, pastel category bubbles, discount badges) and the cream-serif \"artisan grocer\" look. Light only, because the use scene is a budget Android phone, often in daylight.",
     "keyCharacteristics": [
-      "Near-black navy text on warm parchment surfaces, punctuated by one controlled red and one sparing gold",
-      "Flat-by-default cards and tiles; shadow appears only as a response to hover/focus",
-      "Fully rounded pills for badges, tabs, and the compact size-picker; softer rounded rectangles for cards and tiles",
-      "Fraunces display serif for headings paired with Plus Jakarta Sans for everything functional",
-      "Product cards are deliberately compact — shelf-tag density, not detail-page sprawl"
+      "Pack-white panels on shelf-grey ground, boxed by 1px declaration-black rules.",
+      "Square corners throughout (radius 0); the price sticker alone has 3px.",
+      "One typeface, Archivo, with its width axis carrying condensed caps labels and headings.",
+      "One yellow price sticker per product, rotated -3deg, always black text.",
+      "A violet inkjet \"SAVE ₹X\" stamp, rotated -2deg, only when the price is genuinely under MRP.",
+      "Flat: no shadows except the sticker's own paper lift.",
+      "One authored motion: the price-gun stamp on the bag count."
     ],
     "rules": [
-      { "name": "The One Red Rule", "body": "Klasiq Red is the system's only color allowed to mean \"act here.\" If a screen has more than one element competing for that color, one of them is wrong.", "section": "colors" },
-      { "name": "The Gold Is Rare Rule", "body": "Marquee Gold appears at most once or twice per screen, always as a small badge or accent — never as a background fill, never repeated across a grid of items.", "section": "colors" },
-      { "name": "The Compact Display Rule", "body": "Display type never exceeds 48px, even in the hero. The brief explicitly rejected an oversized, all-whitespace hero headline; display type stays confident, not enormous.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Nothing casts a shadow at rest. If a surface needs to look \"raised\" while idle, that's a signal to use a tonal background step or a Hairline border instead, not a shadow.", "section": "elevation" },
-      { "name": "The Solid Signature Rule", "body": "On the homepage's dark variant, a \"selected/signature\" treatment (e.g. the one red category chip) must use a solid fill (bg-primary + primary-foreground), never a translucent tint with tinted text — a translucent red-on-dark measured under 4:1 text contrast in practice, failing AA.", "section": "colors" }
+      {
+        "name": "The One Action Colour Rule",
+        "body": "Declaration Black is the only fill that means \"press this.\" A yellow, violet or grey button does not exist.",
+        "section": "colors"
+      },
+      {
+        "name": "The Sticker Means Price Rule",
+        "body": "Sticker Yellow marks what the customer pays (and the bag count, which is the running tally of it). If a yellow surface is not a price, the count, or the momentary \"Added\" confirmation, it is wrong.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stamp Means Saving Rule",
+        "body": "Inkjet Violet prints savings against MRP and focus. It never decorates, and a SAVE stamp renders only when price is strictly below MRP.",
+        "section": "colors"
+      },
+      {
+        "name": "The Declaration Label Rule",
+        "body": "Every field name on a boxed field is a Label: condensed, bold, 11px, spaced caps. Field values sit under it in semibold at body size. Never sentence-case a field name; never use Label style for anything that is not a field name, brand, aisle link or stamp.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Money Rule",
+        "body": "Every rupee amount (price, MRP, saving, total) uses tabular figures so columns of prices align like a printed table.",
+        "section": "typography"
+      },
+      {
+        "name": "The Only Sticker Lifts Rule",
+        "body": "If something that is not the price sticker has a shadow, remove it. Separation comes from a rule or a surface change.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Black Rule Rule",
+        "body": "A box's edge is 1px Declaration Black, never Hairline Grey. Grey appears only as a lighter divider inside a box that already has a black edge.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Dashed Absence Rule",
+        "body": "A dashed rule means \"nothing here / not available.\" Never use it for decoration or for an active control.",
+        "section": "shapes"
+      }
     ],
     "dos": [
-      "Do keep Klasiq Red as the only color that means \"act here\" — CTAs, prices, active states (see The One Red Rule).",
-      "Do keep Marquee Gold rare — one badge per screen, never a repeating or background color (see The Gold Is Rare Rule).",
-      "Do keep product cards compact — shelf-tag density (image, name, price/stock, compact size picker, Add) over a mini detail page.",
-      "Do use the pill shape (rounded-full) for anything selectable — tabs, the size picker, badges — and reserve softer rounded rectangles for containers.",
-      "Do let shadow appear only on hover or for true overlays; surfaces stay flat at rest (see The Flat-By-Default Rule).",
-      "Do keep display type at or below 48px, even in the hero (see The Compact Display Rule)."
+      "Do box every field group in 1px Declaration Black on Pack White, with Label-style field names over semibold values.",
+      "Do give each product exactly one price sticker: Sticker Yellow, black text, 3px corners, -3deg.",
+      "Do print \"SAVE ₹X\" in the violet stamp only when price is strictly below MRP.",
+      "Do keep every action Declaration Black with white text, and every focus ring Inkjet Violet at 55%.",
+      "Do set every rupee amount in tabular figures.",
+      "Do treat the no-photo placeholder as the main case: category mark on shelf grey, or the pack-front panel on the product page.",
+      "Do keep tap targets at 40px minimum, 48px for primary product-page controls.",
+      "Do keep motion to colour transitions, a 1px press, and the price-gun stamp; everything collapses under reduced motion."
     ],
     "donts": [
-      "Don't introduce comic/superhero iconography, halftone/ben-day-dot textures, or any likeness-based imagery — \"cinematic energy\" is a color-and-contrast metaphor here, not a licensed aesthetic.",
-      "Don't let general-retail categories (footwear, bags, kurtis) feel like an afterthought to the uniform/school framing, or vice versa — the palette and components are shared and neutral across both.",
-      "Don't widen the product card back toward a detail-page layout (full-width buy button, expanded size-button row, long description) to \"fix\" a spacing complaint — the fix is always inside the existing compact card.",
-      "Don't add a shadow to a surface just to make it feel important while at rest — use a Paper-on-Parchment background step or a Hairline border instead."
+      "Don't round corners on anything but the price sticker.",
+      "Don't use Sticker Yellow as text, borders, section fills, or for anything that is not a price, the bag count, or the momentary \"Added\" confirmation.",
+      "Don't add shadows to panels, buttons, inputs or popups; only the sticker lifts.",
+      "Don't float products as separate rounded cards with gaps; they share one rule in the product sheet.",
+      "Don't introduce a second typeface or a serif; Archivo's width axis does the contrast.",
+      "Don't rotate anything except the sticker (-3deg) and the stamp (-2deg).",
+      "Don't add a second authored animation; the price-gun stamp is the one moment.",
+      "Don't invent photography, testimonials or store facts to fill space."
     ]
   }
 }

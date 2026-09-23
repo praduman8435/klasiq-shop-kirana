@@ -27,6 +27,7 @@ export function ProductThumbnail({
   className,
   compact = false,
   large = false,
+  packFront,
 }: {
   imageUrl?: string | null;
   alt: string;
@@ -36,6 +37,11 @@ export function ProductThumbnail({
   /** Use on the Product Detail page's much larger image slot — see
    * `ProductPlaceholderImage`'s own doc comment. */
   large?: boolean;
+  /** When given, a missing photo renders as a pack-front panel (a large
+   * category mark plus the selected net quantity) instead of the bare
+   * icon. Only for the Product Detail image — the title beside it already
+   * carries brand and name, so the panel never repeats them. */
+  packFront?: { netQty: string | null };
 }) {
   const [failed, setFailed] = useState(false);
 
@@ -46,6 +52,7 @@ export function ProductThumbnail({
         className={className}
         compact={compact}
         large={large}
+        packFront={packFront}
       />
     );
   }

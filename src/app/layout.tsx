@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { Archivo, Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND } from "@/lib/constants";
 import { SITE_URL } from "@/lib/site-config";
@@ -15,6 +15,16 @@ const headingFont = Fraunces({
   variable: "--font-heading",
   subsets: ["latin"],
   weight: ["500", "600", "700"],
+  display: "swap",
+});
+
+/** Storefront face only — `.store-theme` (globals.css) maps the storefront's
+ * `--font-sans`/`--font-heading` onto it; admin keeps the two faces above.
+ * The width axis carries the condensed pack-label lettering. */
+const storeFont = Archivo({
+  variable: "--font-archivo",
+  subsets: ["latin"],
+  axes: ["wdth"],
   display: "swap",
 });
 
@@ -48,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${bodyFont.variable} ${headingFont.variable} h-full antialiased`}
+      className={`${bodyFont.variable} ${headingFont.variable} ${storeFont.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
         {children}

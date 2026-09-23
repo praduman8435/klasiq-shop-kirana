@@ -40,23 +40,19 @@ export default async function TrackInvoicePage({ params }: PageProps) {
   if (!invoice) notFound();
 
   return (
-    // Dark Klasiq chrome around the invoice, matching every other
-    // customer-portal screen — but `InvoiceView` itself stays exactly as
-    // it was: a fixed light "paper" document, deliberately never
-    // theme-aware (see that component's own doc comment) and shared
-    // unchanged with the Admin invoice page. This wrapper is the ONLY
-    // thing that changed; the document a customer prints or downloads is
-    // byte-for-byte the same as before. `dark` is hardcoded (not
-    // `isDarkRoute`-conditional) — this standalone route has no light
-    // variant to fall back to, unlike pages inside `(site)`.
-    <div className="dark min-h-screen bg-background px-4 py-10 text-foreground print:bg-white print:p-0">
+    // Storefront chrome (`.store-theme`) around the invoice, matching
+    // every other customer-portal screen — this standalone route sits
+    // outside the `(site)` layout, so it applies the scope itself.
+    // `InvoiceView` stays a fixed light "paper" document, deliberately
+    // never theme-aware and shared unchanged with the Admin invoice page.
+    <div className="store-theme min-h-screen bg-background px-4 py-10 text-foreground print:bg-white print:p-0">
       <InvoiceActions
         backHref={`/track/orders/${orderNumber}`}
         backLabel="Back to Order"
         downloadHref={`/api/track/orders/${orderNumber}/invoice`}
         downloadFileName={`Invoice-${orderNumber}.pdf`}
       />
-      <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-lg shadow-black/30 print:rounded-none print:shadow-none">
+      <div className="mx-auto w-full max-w-2xl overflow-hidden rounded-sm border border-foreground bg-white print:rounded-none print:border-0 print:shadow-none">
         <InvoiceView invoice={invoice} />
       </div>
 

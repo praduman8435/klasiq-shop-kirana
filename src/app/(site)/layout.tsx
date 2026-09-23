@@ -1,17 +1,37 @@
+import type { Viewport } from "next";
 import { SiteHeader } from "@/components/site/header";
 import { SiteFooter } from "@/components/site/footer";
-import { RouteThemeScope } from "@/components/site/route-theme-scope";
 import { BRAND } from "@/lib/constants";
 
+/*
+ * DESIGN CONTRACT — storefront world (seed 2c6dbd85)
+ * THESIS: every product is shown the way its own pack states it — brand,
+ *   net quantity, boxed MRP — with the shop's fluorescent price sticker on
+ *   top. Refuses the quick-commerce tile grid and the cream-serif grocer.
+ * OWN-WORLD: pack-white board on a cool shelf-grey ground; black
+ *   declaration print and 1px black rules forming boxed fields; square
+ *   corners; Archivo, condensed caps for labels; one yellow price sticker
+ *   (rotated -3deg) per product; violet inkjet stamp for savings/order refs.
+ * STORY: the customer searches or picks an aisle, reads price vs MRP at a
+ *   glance, picks a pack size and adds it in one tap.
+ * FIRST VIEWPORT: boxed name panel — headline, full-width search with a
+ *   black Search button, a ruled strip of real fulfilment facts — then the
+ *   aisles as a ruled contents table.
+ * FORM: Pack Declaration Panel, grounded candidate 4 of 7, seed 2c6dbd85.
+ * FINISH: unreviewed and undocumented is unfinished; this build ends with
+ *   the finish review, the verdict, and DESIGN.md
+ */
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+};
+
 /**
- * Phase 3.7 Part 7 (homepage redesign) — wraps the whole storefront tree
- * in ONE `RouteThemeScope`, rather than scoping the header/footer/page
- * body separately. A single scope guarantees an opaque `bg-background`
- * fill directly behind everything (including translucent surfaces like
- * the footer's `bg-secondary/40`) whenever the homepage's `.dark` theme
- * is active — three independent scopes left translucent children
- * blending against the true (light) `<body>` background peeking through
- * the gaps between them, which read as washed-out grey instead of dark.
+ * Wraps the whole storefront in ONE `.store-theme` scope (tokens + font,
+ * see globals.css), so every page — header, footer and body — shares one
+ * opaque background and one visual world. Portaled storefront surfaces
+ * (mobile menu sheet, select popups, toasts) re-apply the same class
+ * themselves, since they render outside this tree at `document.body`.
  */
 export default function SiteLayout({
   children,
@@ -19,10 +39,10 @@ export default function SiteLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <RouteThemeScope as="div" className="flex min-h-full flex-1 flex-col bg-background text-foreground">
+    <div className="store-theme flex min-h-full flex-1 flex-col bg-background text-foreground">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
       >
         Skip to content
       </a>
@@ -31,6 +51,6 @@ export default function SiteLayout({
         {children}
       </main>
       <SiteFooter storeName={BRAND.name} />
-    </RouteThemeScope>
+    </div>
   );
 }

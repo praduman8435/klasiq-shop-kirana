@@ -39,6 +39,9 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-sticker: var(--sticker);
+  --color-sticker-foreground: var(--sticker-foreground);
+  --color-stamp: var(--stamp);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -97,6 +100,111 @@
   --sidebar-accent-foreground: oklch(0.3 0.03 40);
   --sidebar-border: oklch(0.9 0.015 60);
   --sidebar-ring: oklch(0.33 0.11 25 / 45%);
+}
+
+/**
+ * Storefront world — "Pack Declaration Panel". Every product is shown the
+ * way its own pack states it: brand, net quantity and a boxed MRP in
+ * black declaration print on pack-white board, with the shop's
+ * fluorescent price sticker slapped on top. Scoped to `.store-theme`
+ * (applied by the `(site)` layout and re-applied on the storefront's
+ * portaled popups/toasts) so `:root`, `.admin-theme` and `.dark` — which
+ * the admin panel depends on — are untouched.
+ *
+ *   --primary   declaration black: the one "act here" fill (buttons,
+ *               selected pack size).
+ *   --sticker   fluorescent price-sticker yellow: prices and the bag
+ *               count ONLY, always with black text on it, never as text
+ *               colour on white.
+ *   --stamp     violet inkjet batch-stamp: savings vs MRP, order numbers,
+ *               focus rings.
+ *
+ * Light only, by use scene: a neighbourhood customer reordering on a
+ * budget Android phone, often in daylight.
+ */
+.store-theme {
+  --background: oklch(0.965 0.003 250);
+  --foreground: oklch(0.19 0.004 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.004 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.004 270);
+  --primary: oklch(0.19 0.004 270);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.93 0.004 250);
+  --secondary-foreground: oklch(0.19 0.004 270);
+  --muted: oklch(0.945 0.004 250);
+  --muted-foreground: oklch(0.42 0.012 275);
+  --accent: oklch(0.887 0.182 95.3);
+  --accent-foreground: oklch(0.19 0.004 270);
+  --destructive: oklch(0.52 0.2 27);
+  --border: oklch(0.84 0.005 260);
+  --input: oklch(0.19 0.004 270 / 55%);
+  --ring: oklch(0.45 0.19 280 / 55%);
+  --radius: 0;
+  --sticker: oklch(0.887 0.182 95.3);
+  --sticker-foreground: oklch(0.19 0.004 270);
+  --stamp: oklch(0.45 0.19 280);
+
+  --font-sans: var(--font-archivo);
+  --font-heading: var(--font-archivo);
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Condensed pack lettering — Archivo's width axis, the narrow cut packs
+   use for legal panels and brand lockups. */
+.store-theme :where(h1, h2, h3, h4) {
+  font-variation-settings: "wdth" 80;
+  letter-spacing: -0.01em;
+}
+.font-condensed {
+  font-variation-settings: "wdth" 72;
+}
+
+/* Declaration-panel label: "NET QTY", "MRP", aisle headings. */
+.decl-label {
+  font-variation-settings: "wdth" 72;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* The shop's price sticker. Rotation is the sticker's only playful
+   property; everything else on the page stays square to the grid. */
+.price-sticker {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.125rem;
+  background: var(--sticker);
+  color: var(--sticker-foreground);
+  border-radius: 3px;
+  font-variation-settings: "wdth" 75;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transform: rotate(-3deg);
+  box-shadow: 0 1px 1px oklch(0.19 0.004 270 / 18%), 0 3px 8px -2px oklch(0.19 0.004 270 / 22%);
+}
+
+/* The world's one authored motion: a price gun stamping a sticker on.
+   Used when an item lands in the bag. */
+@keyframes price-gun {
+  0% {
+    transform: rotate(-9deg) scale(1.35);
+    opacity: 0;
+  }
+  55% {
+    transform: rotate(-2deg) scale(0.94);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(-3deg) scale(1);
+  }
+}
+.animate-price-gun {
+  animation: price-gun 320ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /**
@@ -237,33 +345,6 @@
 @media print {
   @page {
     margin: 1.5cm;
-  }
-}
-
-/* Homepage final-polish pass — two named keyframes used only by the
-   homepage hero (referenced via Tailwind's arbitrary `animate-[name_...]`
-   utility, which needs the `@keyframes` declared somewhere real). Both
-   are covered by the blanket `prefers-reduced-motion` override just
-   below, same as every other transition/animation in the app. */
-@keyframes hero-glow-drift {
-  0%,
-  100% {
-    transform: translate(-50%, 0) scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: translate(-50%, 14px) scale(1.08);
-    opacity: 0.9;
-  }
-}
-@keyframes hero-entrance {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

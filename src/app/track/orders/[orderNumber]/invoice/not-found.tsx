@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
  * This route renders outside every layout group (see page.tsx's own doc
  * comment), so without this it fell through to the chrome-free global
  * `not-found.tsx` — fine in isolation, but now visually inconsistent with
- * this page's own new dark background. Copy matches
+ * this page's own storefront background. Copy matches
  * track/(protected)/orders/[orderNumber]/not-found.tsx: equally
  * non-revealing whether the order doesn't exist or simply isn't linked
  * to this account (see getInvoiceForAuthenticatedCustomer's own doc
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
  */
 export default function InvoiceNotFound() {
   return (
-    <div className="dark flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
+    <div className="store-theme flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
       <div className="mx-auto flex max-w-md flex-col items-center text-center">
         <span className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
           <AlertTriangle className="size-6" aria-hidden />

@@ -18,19 +18,23 @@ export default async function BagPage() {
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center px-4 py-14 text-center sm:px-6">
-        <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <ShoppingBag className="size-5" aria-hidden />
-        </span>
-        <h1 className="mt-3 font-heading text-xl font-semibold">
-          Your Bag is empty
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Items you add will appear here.
-        </p>
-        <Button render={<Link href="/" />} nativeButton={false} className="mt-5 h-11">
-          Continue Shopping
-        </Button>
+      <div className="mx-auto max-w-md px-4 py-14 sm:px-6">
+        <div className="flex flex-col items-center border border-dashed border-foreground/50 bg-card px-6 py-10 text-center">
+          <ShoppingBag className="size-7" strokeWidth={1.5} aria-hidden />
+          <h1 className="mt-3 font-heading text-2xl font-extrabold leading-none">
+            Your bag is empty
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Items you add will appear here.
+          </p>
+          <Button
+            render={<Link href="/" />}
+            nativeButton={false}
+            className="mt-5 h-11"
+          >
+            Continue Shopping
+          </Button>
+        </div>
       </div>
     );
   }
@@ -62,9 +66,7 @@ export default async function BagPage() {
       <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
         Your Bag
       </h1>
-      <p className="mt-0.5 text-sm text-muted-foreground">
-        {itemCountLabel}
-      </p>
+      <p className="mt-0.5 text-sm text-muted-foreground">{itemCountLabel}</p>
 
       <div className="mt-3 h-px bg-border" aria-hidden />
 
@@ -87,7 +89,8 @@ export default async function BagPage() {
                   product: {
                     name: item.productVariant.product.name,
                     imageUrl: item.productVariant.product.imageUrl,
-                    categorySlugForPlaceholder: item.productVariant.product.category.slug,
+                    categorySlugForPlaceholder:
+                      item.productVariant.product.category.slug,
                     isActive: item.productVariant.product.isActive,
                     brand: item.productVariant.product.brand,
                   },
@@ -108,14 +111,18 @@ export default async function BagPage() {
             replaced with a plain summary row — the fact itself, not a
             sentence explaining it. */}
         <div className="border-t pt-4 lg:sticky lg:top-24 lg:w-[340px] lg:shrink-0 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
-          <h2 className="font-heading text-base font-semibold">Order summary</h2>
+          <h2 className="font-heading text-base font-semibold">
+            Order summary
+          </h2>
           <div className="mt-3 flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Subtotal</span>
             <span>{formatPaise(total)}</span>
           </div>
           <div className="mt-1.5 flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Delivery</span>
-            <span className="text-muted-foreground">Calculated at checkout</span>
+            <span className="text-muted-foreground">
+              Calculated at checkout
+            </span>
           </div>
           {/* Matches Checkout's own Subtotal/Delivery/Total summary
               convention exactly (see checkout-form.tsx) — delivery isn't
@@ -160,9 +167,15 @@ export default async function BagPage() {
         <div className="pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Total</span>
-            <span className="font-heading font-semibold tabular-nums">{formatPaise(total)}</span>
+            <span className="font-heading font-semibold tabular-nums">
+              {formatPaise(total)}
+            </span>
           </div>
-          <Button render={<Link href="/checkout" />} nativeButton={false} className="mt-1.5 h-12 w-full">
+          <Button
+            render={<Link href="/checkout" />}
+            nativeButton={false}
+            className="mt-1.5 h-12 w-full"
+          >
             Proceed to Checkout
           </Button>
         </div>
