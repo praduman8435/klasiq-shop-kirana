@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "appRoot": "/Users/user/shop",
+  "repoRoot": "/Users/user/shop",
+  "contextRoot": "/Users/user/shop",
+  "sessionRoot": "/Users/user/shop/.impeccable/live",
+  "productPath": "/Users/user/shop/PRODUCT.md",
+  "designPath": "/Users/user/shop/DESIGN.md",
+  "resolvedFrom": "cwd"
+}

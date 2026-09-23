@@ -1,0 +1,287 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-heading: var(--font-heading);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  /* Phase 3.7 Part 7 (final visual direction) — replaces the previous
+     cream/maroon system, which read as flat and template-like in real
+     browser review. "Marvel-inspired energy, premium retail execution":
+     a deep cinematic navy/near-black (reusing `--foreground` as an
+     invertible dark-surface token for the hero band and select
+     high-contrast moments), a powerful controlled red as the one
+     primary/CTA color, warm off-white everyday surfaces, and a bright
+     gold used sparingly as the secondary highlight — never a second
+     competing CTA color. Scoped to storefront only: `.admin-theme`
+     below restores the ORIGINAL values verbatim so the admin panel's
+     appearance is completely unchanged — see that block's own comment. */
+  --background: oklch(0.98 0.005 85);
+  --foreground: oklch(0.16 0.02 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.02 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.02 260);
+  /* Powerful, controlled red — the ONE brand/CTA color. Deep and
+     saturated enough to feel confident and premium, never neon. */
+  --primary: oklch(0.47 0.19 25);
+  --primary-foreground: oklch(0.98 0.012 25);
+  --secondary: oklch(0.95 0.01 260);
+  --secondary-foreground: oklch(0.22 0.04 260);
+  --muted: oklch(0.96 0.006 85);
+  --muted-foreground: oklch(0.46 0.02 260);
+  /* Bright gold — the "used sparingly" secondary highlight (badges,
+     a single hero accent), deliberately never a second CTA color
+     competing with the red primary. */
+  --accent: oklch(0.8 0.15 85);
+  --accent-foreground: oklch(0.24 0.05 70);
+  --destructive: oklch(0.5 0.2 20);
+  --border: oklch(0.9 0.01 260);
+  --input: oklch(0.9 0.01 260);
+  --ring: oklch(0.47 0.19 25 / 45%);
+  --chart-1: oklch(0.47 0.19 25);
+  --chart-2: oklch(0.8 0.15 85);
+  --chart-3: oklch(0.45 0.08 150);
+  --chart-4: oklch(0.6 0.1 230);
+  --chart-5: oklch(0.5 0.02 260);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.98 0.008 85);
+  --sidebar-foreground: oklch(0.24 0.025 45);
+  --sidebar-primary: oklch(0.33 0.11 25);
+  --sidebar-primary-foreground: oklch(0.98 0.008 85);
+  --sidebar-accent: oklch(0.95 0.012 75);
+  --sidebar-accent-foreground: oklch(0.3 0.03 40);
+  --sidebar-border: oklch(0.9 0.015 60);
+  --sidebar-ring: oklch(0.33 0.11 25 / 45%);
+}
+
+/**
+ * Phase 3.7 Part 7 (final visual direction) — `globals.css` is the ONE
+ * stylesheet shared by both the customer storefront and the admin panel
+ * (imported once in the root `layout.tsx`; see that file's own doc
+ * comment on why admin/storefront chrome must never leak into each
+ * other). Redesigning `:root` for the storefront's "wow factor" would,
+ * without this block, also silently redesign the admin panel — explicitly
+ * out of scope for this part. `.admin-theme` (applied by a new
+ * `src/app/admin/layout.tsx` wrapping every admin route, protected or
+ * not) restores every token below to its EXACT pre-redesign value, so
+ * admin's appearance is pixel-identical to before this part.
+ */
+.admin-theme {
+  --background: oklch(0.985 0.008 85);
+  --foreground: oklch(0.24 0.025 45);
+  --card: oklch(0.995 0.006 85);
+  --card-foreground: oklch(0.24 0.025 45);
+  --popover: oklch(0.995 0.006 85);
+  --popover-foreground: oklch(0.24 0.025 45);
+  --primary: oklch(0.33 0.11 25);
+  --primary-foreground: oklch(0.98 0.008 85);
+  --secondary: oklch(0.95 0.012 75);
+  --secondary-foreground: oklch(0.3 0.03 40);
+  --muted: oklch(0.95 0.012 75);
+  --muted-foreground: oklch(0.5 0.02 45);
+  --accent: oklch(0.82 0.11 75);
+  --accent-foreground: oklch(0.28 0.05 50);
+  --destructive: oklch(0.55 0.19 27);
+  --border: oklch(0.9 0.015 60);
+  --input: oklch(0.9 0.015 60);
+  --ring: oklch(0.33 0.11 25 / 45%);
+  --chart-1: oklch(0.55 0.13 25);
+  --chart-2: oklch(0.7 0.11 75);
+  --chart-3: oklch(0.45 0.08 150);
+  --chart-4: oklch(0.6 0.1 230);
+  --chart-5: oklch(0.5 0.02 45);
+  --sidebar: oklch(0.98 0.008 85);
+  --sidebar-foreground: oklch(0.24 0.025 45);
+  --sidebar-primary: oklch(0.33 0.11 25);
+  --sidebar-primary-foreground: oklch(0.98 0.008 85);
+  --sidebar-accent: oklch(0.95 0.012 75);
+  --sidebar-accent-foreground: oklch(0.3 0.03 40);
+  --sidebar-border: oklch(0.9 0.015 60);
+  --sidebar-ring: oklch(0.33 0.11 25 / 45%);
+}
+
+/**
+ * Phase 3.7 Part 7 (homepage redesign) — Klasiq's dark-first system,
+ * replacing the generic unbranded shadcn scaffold values that lived here
+ * (a stock brown/orange dark theme, never actually applied anywhere in
+ * this app). Near-black navy surfaces (reusing the light system's
+ * `midnight-ink` hue for continuity), warm off-white text, the same
+ * Klasiq Red (left exactly as-is — its lightness was already the
+ * knife-edge of passing 4.5:1 against its own foreground; brightening it
+ * further for "dark-mode pop" would have pushed it back under AA), and
+ * the same rare gold accent (already light, needs no change on dark).
+ * Applied via the literal `.dark` class so every pre-existing `dark:`
+ * Tailwind utility already sprinkled through shared components (Button,
+ * Input, Select, stock-status colors) activates for free — see
+ * `@custom-variant dark` above.
+ *
+ * Critique fix — the first pass here used near-identical lightness steps
+ * (background 0.15 / card 0.20 / muted 0.21), which measured at only
+ * 1.09:1 and 1.02:1 surface-to-surface contrast: visually flat, with
+ * elevation carried entirely by the translucent border, not by any real
+ * tonal step, and `hover:bg-muted` reading as almost no visible change at
+ * all. Widened to real ~0.05-0.06 L steps, and reordered so `muted`
+ * (recessed) sits BELOW `card` (raised) as its name implies, rather than
+ * fractionally above it: background(0.13) < muted(0.17) < card(0.20) <
+ * secondary(0.23) < popover(0.25).
+ *
+ * Scoped by route via `RouteThemeScope` (applied once at the `(site)`
+ * layout) — currently the homepage and every Product Detail page
+ * (`isDarkRoute()`). Every other route (category, bag, checkout, order,
+ * track, admin) never gets `.dark` on an ancestor, so this block has
+ * zero effect there.
+ */
+.dark {
+  --background: oklch(0.13 0.02 260);
+  --foreground: oklch(0.96 0.006 85);
+  --card: oklch(0.2 0.02 260);
+  --card-foreground: oklch(0.96 0.006 85);
+  --popover: oklch(0.25 0.02 260);
+  --popover-foreground: oklch(0.96 0.006 85);
+  --primary: oklch(0.56 0.2 25);
+  --primary-foreground: oklch(0.98 0.012 25);
+  --secondary: oklch(0.23 0.015 260);
+  --secondary-foreground: oklch(0.92 0.006 85);
+  --muted: oklch(0.17 0.015 260);
+  --muted-foreground: oklch(0.7 0.015 260);
+  --accent: oklch(0.8 0.15 85);
+  --accent-foreground: oklch(0.22 0.05 70);
+  --destructive: oklch(0.62 0.2 20);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.56 0.2 25 / 45%);
+  --chart-1: oklch(0.56 0.2 25);
+  --chart-2: oklch(0.8 0.15 85);
+  --chart-3: oklch(0.55 0.08 150);
+  --chart-4: oklch(0.65 0.1 230);
+  --chart-5: oklch(0.65 0.02 260);
+  --sidebar: oklch(0.13 0.02 260);
+  --sidebar-foreground: oklch(0.96 0.006 85);
+  --sidebar-primary: oklch(0.56 0.2 25);
+  --sidebar-primary-foreground: oklch(0.98 0.012 25);
+  --sidebar-accent: oklch(0.23 0.015 260);
+  --sidebar-accent-foreground: oklch(0.92 0.006 85);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.56 0.2 25 / 45%);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+  }
+}
+
+/* Phase 3.6.6 Part 2 — Invoice print layout (section 5): proper page
+   margins for the dedicated invoice print pages
+   (src/app/admin/orders/[orderNumber]/invoice,
+   src/app/track/orders/[orderNumber]/invoice). Buttons/back-links on
+   those pages use Tailwind's built-in `print:hidden` utility instead of
+   a rule here. */
+@media print {
+  @page {
+    margin: 1.5cm;
+  }
+}
+
+/* Homepage final-polish pass — two named keyframes used only by the
+   homepage hero (referenced via Tailwind's arbitrary `animate-[name_...]`
+   utility, which needs the `@keyframes` declared somewhere real). Both
+   are covered by the blanket `prefers-reduced-motion` override just
+   below, same as every other transition/animation in the app. */
+@keyframes hero-glow-drift {
+  0%,
+  100% {
+    transform: translate(-50%, 0) scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-50%, 14px) scale(1.08);
+    opacity: 0.9;
+  }
+}
+@keyframes hero-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Phase 3.7 Part 7 (final visual direction) — the redesign added several
+   hover/transition touches (category-tile lift + icon rotation, product-
+   card lift + image zoom, hero glow blur). Rather than annotate every
+   individual utility class with `motion-safe:`, this single global rule
+   collapses all CSS transitions/animations to effectively instant for
+   anyone with `prefers-reduced-motion: reduce` set — the same broadly-used
+   pattern recommended by the WCAG/MDN reduced-motion guidance. Scroll
+   behavior is included so an anchor-link jump doesn't smooth-scroll either. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

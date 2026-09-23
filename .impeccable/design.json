@@ -1,0 +1,317 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-12T00:00:00Z",
+  "title": "Design System: Klasiq",
+  "extensions": {
+    "colorMeta": {
+      "klasiq-red": {
+        "role": "primary",
+        "displayName": "Klasiq Red",
+        "canonical": "oklch(0.47 0.19 25)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 25)",
+          "oklch(0.26 0.19 25)",
+          "oklch(0.38 0.19 25)",
+          "oklch(0.49 0.19 25)",
+          "oklch(0.61 0.19 25)",
+          "oklch(0.72 0.19 25)",
+          "oklch(0.84 0.19 25)",
+          "oklch(0.95 0.19 25)"
+        ]
+      },
+      "klasiq-red-ink": {
+        "role": "primary-foreground",
+        "displayName": "Klasiq Red Ink",
+        "canonical": "oklch(0.98 0.012 25)",
+        "tonalRamp": [
+          "oklch(0.15 0.012 25)",
+          "oklch(0.26 0.012 25)",
+          "oklch(0.38 0.012 25)",
+          "oklch(0.49 0.012 25)",
+          "oklch(0.61 0.012 25)",
+          "oklch(0.72 0.012 25)",
+          "oklch(0.84 0.012 25)",
+          "oklch(0.95 0.012 25)"
+        ]
+      },
+      "marquee-gold": {
+        "role": "secondary",
+        "displayName": "Marquee Gold",
+        "canonical": "oklch(0.8 0.15 85)",
+        "tonalRamp": [
+          "oklch(0.15 0.15 85)",
+          "oklch(0.26 0.15 85)",
+          "oklch(0.38 0.15 85)",
+          "oklch(0.49 0.15 85)",
+          "oklch(0.61 0.15 85)",
+          "oklch(0.72 0.15 85)",
+          "oklch(0.84 0.15 85)",
+          "oklch(0.95 0.15 85)"
+        ]
+      },
+      "marquee-gold-ink": {
+        "role": "secondary-foreground",
+        "displayName": "Marquee Gold Ink",
+        "canonical": "oklch(0.24 0.05 70)",
+        "tonalRamp": [
+          "oklch(0.15 0.05 70)",
+          "oklch(0.26 0.05 70)",
+          "oklch(0.38 0.05 70)",
+          "oklch(0.49 0.05 70)",
+          "oklch(0.61 0.05 70)",
+          "oklch(0.72 0.05 70)",
+          "oklch(0.84 0.05 70)",
+          "oklch(0.95 0.05 70)"
+        ]
+      },
+      "midnight-ink": {
+        "role": "neutral",
+        "displayName": "Midnight Ink",
+        "canonical": "oklch(0.16 0.02 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.02 260)",
+          "oklch(0.26 0.02 260)",
+          "oklch(0.38 0.02 260)",
+          "oklch(0.49 0.02 260)",
+          "oklch(0.61 0.02 260)",
+          "oklch(0.72 0.02 260)",
+          "oklch(0.84 0.02 260)",
+          "oklch(0.95 0.02 260)"
+        ]
+      },
+      "parchment": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "oklch(0.98 0.005 85)",
+        "tonalRamp": [
+          "oklch(0.15 0.005 85)",
+          "oklch(0.26 0.005 85)",
+          "oklch(0.38 0.005 85)",
+          "oklch(0.49 0.005 85)",
+          "oklch(0.61 0.005 85)",
+          "oklch(0.72 0.005 85)",
+          "oklch(0.84 0.005 85)",
+          "oklch(0.95 0.005 85)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.26 0 0)",
+          "oklch(0.38 0 0)",
+          "oklch(0.49 0 0)",
+          "oklch(0.61 0 0)",
+          "oklch(0.72 0 0)",
+          "oklch(0.84 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "quiet-slate": {
+        "role": "neutral",
+        "displayName": "Quiet Slate",
+        "canonical": "oklch(0.95 0.01 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 260)",
+          "oklch(0.26 0.01 260)",
+          "oklch(0.38 0.01 260)",
+          "oklch(0.49 0.01 260)",
+          "oklch(0.61 0.01 260)",
+          "oklch(0.72 0.01 260)",
+          "oklch(0.84 0.01 260)",
+          "oklch(0.95 0.01 260)"
+        ]
+      },
+      "quiet-slate-ink": {
+        "role": "neutral",
+        "displayName": "Quiet Slate Ink",
+        "canonical": "oklch(0.22 0.04 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.04 260)",
+          "oklch(0.26 0.04 260)",
+          "oklch(0.38 0.04 260)",
+          "oklch(0.49 0.04 260)",
+          "oklch(0.61 0.04 260)",
+          "oklch(0.72 0.04 260)",
+          "oklch(0.84 0.04 260)",
+          "oklch(0.95 0.04 260)"
+        ]
+      },
+      "soft-fog": {
+        "role": "neutral",
+        "displayName": "Soft Fog",
+        "canonical": "oklch(0.96 0.006 85)",
+        "tonalRamp": [
+          "oklch(0.15 0.006 85)",
+          "oklch(0.26 0.006 85)",
+          "oklch(0.38 0.006 85)",
+          "oklch(0.49 0.006 85)",
+          "oklch(0.61 0.006 85)",
+          "oklch(0.72 0.006 85)",
+          "oklch(0.84 0.006 85)",
+          "oklch(0.95 0.006 85)"
+        ]
+      },
+      "fog-ink": {
+        "role": "neutral",
+        "displayName": "Fog Ink",
+        "canonical": "oklch(0.46 0.02 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.02 260)",
+          "oklch(0.26 0.02 260)",
+          "oklch(0.38 0.02 260)",
+          "oklch(0.49 0.02 260)",
+          "oklch(0.61 0.02 260)",
+          "oklch(0.72 0.02 260)",
+          "oklch(0.84 0.02 260)",
+          "oklch(0.95 0.02 260)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.9 0.01 260)",
+        "tonalRamp": [
+          "oklch(0.15 0.01 260)",
+          "oklch(0.26 0.01 260)",
+          "oklch(0.38 0.01 260)",
+          "oklch(0.49 0.01 260)",
+          "oklch(0.61 0.01 260)",
+          "oklch(0.72 0.01 260)",
+          "oklch(0.84 0.01 260)",
+          "oklch(0.95 0.01 260)"
+        ]
+      },
+      "alert-red": {
+        "role": "destructive",
+        "displayName": "Alert Red",
+        "canonical": "oklch(0.5 0.2 20)",
+        "tonalRamp": [
+          "oklch(0.15 0.2 20)",
+          "oklch(0.26 0.2 20)",
+          "oklch(0.38 0.2 20)",
+          "oklch(0.49 0.2 20)",
+          "oklch(0.61 0.2 20)",
+          "oklch(0.72 0.2 20)",
+          "oklch(0.84 0.2 20)",
+          "oklch(0.95 0.2 20)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Homepage hero headline only." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings, e.g. \"Shop by category\"." },
+      "title": { "displayName": "Title", "purpose": "Store wordmark and comparably prominent short labels." },
+      "body": { "displayName": "Body", "purpose": "Default running copy; an 18px/28px lead variant is used for hero subcopy only." },
+      "label": { "displayName": "Label", "purpose": "Small uppercase tags, e.g. the hero eyebrow badge." }
+    },
+    "shadows": [
+      { "name": "hover-lift", "value": "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)", "purpose": "Product cards and category tiles on hover only — never at rest." },
+      { "name": "popover-shadow", "value": "0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1)", "purpose": "Select dropdowns and other transient overlays, paired with a 1px ring-foreground/10." }
+    ],
+    "motion": [
+      { "name": "transition-standard", "value": "150ms ease", "purpose": "Default color/background/border transitions across buttons, links, and pills." },
+      { "name": "transition-hover-lift", "value": "300ms cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Product card and category tile hover lift/scale/rotate." },
+      { "name": "reduced-motion", "value": "prefers-reduced-motion: reduce collapses all animation/transition durations to 0.01ms", "purpose": "Global accessibility override — respected everywhere, no exceptions." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The system's one confident CTA color — used for primary actions like Add, Place Order.",
+      "html": "<button class=\"ds-btn-primary\">Add to Bag</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 12px; border: 1px solid transparent; background: var(--primary); color: var(--primary-foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; white-space: nowrap; transition: background-color 150ms ease, transform 100ms ease; } .ds-btn-primary:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action button — Hairline border on Parchment, fills to Soft Fog on hover.",
+      "html": "<button class=\"ds-btn-outline\">Cancel</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 12px; border: 1px solid var(--border); background: var(--background); color: var(--foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; transition: background-color 150ms ease; } .ds-btn-outline:hover { background: var(--muted); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Default text input — transparent fill, Hairline border, Klasiq Red focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Search your school…\">",
+      "css": ".ds-input { height: 32px; width: 100%; border-radius: 12px; border: 1px solid var(--border); background: transparent; padding: 4px 10px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; color: var(--foreground); transition: border-color 150ms ease; } .ds-input::placeholder { color: var(--muted-foreground); } .ds-input:focus-visible { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px color-mix(in oklch, var(--ring) 50%, transparent); }"
+    },
+    {
+      "name": "Eyebrow Badge",
+      "kind": "chip",
+      "refersTo": "badge-pill",
+      "description": "The rare Marquee Gold spotlight pill — at most once or twice per screen (The Gold Is Rare Rule).",
+      "html": "<span class=\"ds-eyebrow-badge\">Trusted local retail</span>",
+      "css": ".ds-eyebrow-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 9999px; background: var(--accent); color: var(--accent-foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; }"
+    },
+    {
+      "name": "Fulfillment Pill Toggle",
+      "kind": "chip",
+      "refersTo": "button-secondary",
+      "description": "A pill-shaped tab group; the active pill switches to Klasiq Red, e.g. Store Pickup / Local Delivery.",
+      "html": "<div class=\"ds-pill-group\" role=\"tablist\"><button class=\"ds-pill ds-pill-active\" role=\"tab\" aria-selected=\"true\">Store Pickup</button><button class=\"ds-pill\" role=\"tab\" aria-selected=\"false\">Local Delivery</button></div>",
+      "css": ".ds-pill-group { display: inline-flex; border-radius: 9999px; border: 1px solid var(--border); background: var(--muted); padding: 4px; gap: 2px; } .ds-pill { border: none; background: none; border-radius: 9999px; padding: 8px 20px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; color: var(--muted-foreground); transition: background-color 150ms ease, color 150ms ease; } .ds-pill:not(.ds-pill-active):hover { color: var(--foreground); } .ds-pill-active { background: var(--primary); color: var(--primary-foreground); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }"
+    },
+    {
+      "name": "Homepage Category Rail Chip",
+      "kind": "chip",
+      "refersTo": "category-tile",
+      "description": "Replaces the earlier Category Tile card. A horizontally-scrolling pill chip (icon + label); the one signature chip (resolved by pickBrowseFallbackCategory) uses a solid fill, every other chip shares one neutral treatment. See DESIGN.md's Homepage Category Rail section.",
+      "html": "<a href=\"#\" class=\"ds-rail-chip ds-rail-chip-signature\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 4h16v4l-4 3v9H8v-9L4 8z\"/></svg><span>Uniforms</span></a>",
+      "css": ".ds-rail-chip { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; border-radius: 9999px; border: 1px solid var(--border); background: var(--card); color: var(--foreground); padding: 10px 16px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 500; text-decoration: none; transition: background-color 150ms ease, border-color 150ms ease; } .ds-rail-chip:hover { background: var(--muted); border-color: color-mix(in oklch, var(--primary) 25%, transparent); } .ds-rail-chip-signature { border-color: transparent; background: var(--primary); color: var(--primary-foreground); } .ds-rail-chip-signature:hover { background: var(--primary); border-color: transparent; }"
+    },
+    {
+      "name": "Product Card",
+      "kind": "custom",
+      "refersTo": "product-card",
+      "description": "Signature component: a compact shelf-tag card (image, name, price/stock, pill-shaped size Select, quantity stepper, Add) replacing the earlier detail-page-like card. See DESIGN.md's Product Card section.",
+      "html": "<div class=\"ds-product-card\"><div class=\"ds-product-thumb\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"28\" height=\"28\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 3h2l1.5 2h5L16 3h2l3.5 4-3 2v11a1 1 0 0 1-1 1H5.5a1 1 0 0 1-1-1V9l-3-2z\"/></svg></div><div class=\"ds-product-body\"><h3 class=\"ds-product-name\">Classic Fit Shirt</h3><p class=\"ds-product-price\">₹499 <span class=\"ds-stock-ok\">In stock</span></p><select class=\"ds-size-select\"><option>Size 32</option><option>Size 34</option></select><div class=\"ds-product-actions\"><div class=\"ds-qty-stepper\"><button type=\"button\" aria-label=\"Decrease quantity\">−</button><span>1</span><button type=\"button\" aria-label=\"Increase quantity\">+</button></div><button type=\"button\" class=\"ds-add-btn\">Add</button></div></div></div>",
+      "css": ".ds-product-card { display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; border: 1px solid var(--border); background: var(--card); transition: transform 300ms cubic-bezier(0.4,0,0.2,1), box-shadow 300ms cubic-bezier(0.4,0,0.2,1); } .ds-product-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); } .ds-product-thumb { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg, var(--muted) 0px, var(--muted) 10px, var(--secondary) 10px, var(--secondary) 20px); color: var(--muted-foreground); } .ds-product-body { display: flex; flex-direction: column; gap: 8px; padding: 10px; } .ds-product-name { margin: 0; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 600; color: var(--foreground); } .ds-product-price { margin: 0; display: flex; align-items: baseline; gap: 6px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; font-weight: 700; color: var(--foreground); } .ds-stock-ok { font-size: 11px; font-weight: 500; color: #0a7d3f; } .ds-size-select { height: 36px; width: 100%; border-radius: 9999px; border: 2px solid var(--border); background: var(--card); padding: 4px 12px; font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 14px; color: var(--foreground); } .ds-product-actions { display: flex; align-items: center; gap: 6px; } .ds-qty-stepper { display: flex; align-items: center; height: 36px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; } .ds-qty-stepper button { width: 32px; height: 100%; border: none; background: none; font-size: 16px; color: var(--foreground); cursor: pointer; } .ds-qty-stepper button:hover { background: var(--muted); } .ds-qty-stepper span { width: 24px; text-align: center; font-size: 14px; color: var(--foreground); } .ds-add-btn { flex: 1; height: 36px; border-radius: 12px; border: none; background: var(--primary); color: var(--primary-foreground); font-family: \"Plus Jakarta Sans\", ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 150ms ease; } .ds-add-btn:hover { background: color-mix(in oklch, var(--primary) 80%, transparent); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Classic, Modernized",
+    "overview": "Klasiq's storefront plays the Klasiq/\"classic\" wordplay straight: a decades-old, family-run uniform counter rendered in a bold, cinematic, contemporary visual language. Near-black navy ink on warm parchment gives every screen the confidence of an established institution, while a single controlled red (Klasiq Red) and a sparing gold highlight (Marquee Gold) carry the \"bold, energetic, cinematic\" energy the brand wants without borrowing anyone else's iconography. The system is deliberately not soft or pastel — it reads as assured and a little theatrical, the way a well-run family store that's been getting it right for thirty years can afford to be.\n\nDensity stays tight and retail-native: product cards behave like compact shelf tags, not mini detail pages, so more of the catalog is visible at once on every breakpoint. Surfaces are flat by default — depth is earned by interaction, not stacked on by default — which keeps the cinematic color work from tipping into visual noise. This is explicitly not a superhero-branded skin: no comic iconography, no character likenesses, no halftone/ben-day-dot styling. It is also not a generic SaaS-template look (soft blue gradients, rounded-everything, timid contrast) and not a childish \"back to school\" theme — the general-retail half of the catalog (footwear, bags, kurtis) has to feel just as at home here as uniforms.",
+    "keyCharacteristics": [
+      "Near-black navy text on warm parchment surfaces, punctuated by one controlled red and one sparing gold",
+      "Flat-by-default cards and tiles; shadow appears only as a response to hover/focus",
+      "Fully rounded pills for badges, tabs, and the compact size-picker; softer rounded rectangles for cards and tiles",
+      "Fraunces display serif for headings paired with Plus Jakarta Sans for everything functional",
+      "Product cards are deliberately compact — shelf-tag density, not detail-page sprawl"
+    ],
+    "rules": [
+      { "name": "The One Red Rule", "body": "Klasiq Red is the system's only color allowed to mean \"act here.\" If a screen has more than one element competing for that color, one of them is wrong.", "section": "colors" },
+      { "name": "The Gold Is Rare Rule", "body": "Marquee Gold appears at most once or twice per screen, always as a small badge or accent — never as a background fill, never repeated across a grid of items.", "section": "colors" },
+      { "name": "The Compact Display Rule", "body": "Display type never exceeds 48px, even in the hero. The brief explicitly rejected an oversized, all-whitespace hero headline; display type stays confident, not enormous.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Nothing casts a shadow at rest. If a surface needs to look \"raised\" while idle, that's a signal to use a tonal background step or a Hairline border instead, not a shadow.", "section": "elevation" },
+      { "name": "The Solid Signature Rule", "body": "On the homepage's dark variant, a \"selected/signature\" treatment (e.g. the one red category chip) must use a solid fill (bg-primary + primary-foreground), never a translucent tint with tinted text — a translucent red-on-dark measured under 4:1 text contrast in practice, failing AA.", "section": "colors" }
+    ],
+    "dos": [
+      "Do keep Klasiq Red as the only color that means \"act here\" — CTAs, prices, active states (see The One Red Rule).",
+      "Do keep Marquee Gold rare — one badge per screen, never a repeating or background color (see The Gold Is Rare Rule).",
+      "Do keep product cards compact — shelf-tag density (image, name, price/stock, compact size picker, Add) over a mini detail page.",
+      "Do use the pill shape (rounded-full) for anything selectable — tabs, the size picker, badges — and reserve softer rounded rectangles for containers.",
+      "Do let shadow appear only on hover or for true overlays; surfaces stay flat at rest (see The Flat-By-Default Rule).",
+      "Do keep display type at or below 48px, even in the hero (see The Compact Display Rule)."
+    ],
+    "donts": [
+      "Don't introduce comic/superhero iconography, halftone/ben-day-dot textures, or any likeness-based imagery — \"cinematic energy\" is a color-and-contrast metaphor here, not a licensed aesthetic.",
+      "Don't let general-retail categories (footwear, bags, kurtis) feel like an afterthought to the uniform/school framing, or vice versa — the palette and components are shared and neutral across both.",
+      "Don't widen the product card back toward a detail-page layout (full-width buy button, expanded size-button row, long description) to \"fix\" a spacing complaint — the fix is always inside the existing compact card.",
+      "Don't add a shadow to a surface just to make it feel important while at rest — use a Paper-on-Parchment background step or a Hairline border instead."
+    ]
+  }
+}

@@ -1,0 +1,2081 @@
+// Prisma schema for the school-uniform commerce platform.
+// See docs/PHASE_0_AUDIT.md for the architectural reasoning behind this model.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // Supabase (and other pooled Postgres providers) serve two distinct
+  // connection strings: a pgbouncer-fronted pooler for normal app traffic
+  // (DATABASE_URL, safe for many concurrent serverless invocations) and a
+  // direct, unpooled connection for schema changes (DIRECT_URL) — `prisma
+  // migrate`/`db push` need a real session, not a pooled transaction-mode
+  // one. Locally (docker-compose Postgres, no pooler in front of it),
+  // DIRECT_URL is simply set to the same value as DATABASE_URL.
+  directUrl = env("DIRECT_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum UniformGender {
+  BOYS
+  GIRLS
+  UNISEX
+}
+
+enum StockStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+}
+
+/// COUNTER_HANDOVER (Phase 3.2) is a distinct fulfillment method, not a
+/// synonym for STORE_PICKUP: pickup implies "comes back later for it",
+/// handover means the customer is standing at the counter and leaves with
+/// the goods immediately — see docs/PHASE_3_2_REPORT.md "Order status for
+/// counter sales". A counter sale that instead needs delivery-from-shop
+/// uses LOCAL_DELIVERY like any other order — nothing about that path is
+/// counter-specific, which is deliberate (see the same report section).
+enum FulfillmentType {
+  STORE_PICKUP
+  LOCAL_DELIVERY
+  COUNTER_HANDOVER
+}
+
+/// CASH/CARD (Phase 3.2) are how a counter sale actually got paid.
+/// CASH_ON_DELIVERY remains the online-checkout-only "how will you pay"
+/// promise (Phase 2); it is never used by a counter sale, which always
+/// records a payment method that was already collected.
+enum PaymentMethod {
+  CASH_ON_DELIVERY
+  UPI
+  CASH
+  CARD
+}
+
+/// How an order was initiated. Every current and future commerce surface —
+/// online checkout, in-store counter sales, and whatever channel comes
+/// later — writes to the SAME Order/OrderItem/Customer/ProductVariant
+/// tables; `source` is the one thing that actually differs, everything else
+/// (inventory, customer identity, reporting) is source-agnostic by design.
+/// See docs/PHASE_3_2_REPORT.md "Order source".
+enum OrderSource {
+  ONLINE
+  COUNTER
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+/// Independent from OrderStatus on purpose — "order confirmed" is not the
+/// same fact as "payment completed". COD/pay-at-store orders are created
+/// UNPAID and stay that way until staff collect payment. FAILED exists now
+/// (unused by the Phase 2 COD-only flow) so a future online-payment
+/// integration doesn't need another migration to add it.
+/// Phase 3.6.5 Part 3 adds PARTIALLY_PAID — reachable ONLY via
+/// `createCounterSale`'s own payment computation at order-creation time
+/// (see src/lib/payment.ts), never via the generic admin
+/// `updatePaymentStatus` mutation (src/server/commerce/update-order-status.ts)
+/// — that mutation's transition table deliberately has no path INTO or
+/// OUT OF this status. Phase 3.6.5 Part 5's `receivePayment`
+/// (src/server/commerce/receive-payment.ts) is the one and only OTHER
+/// code path that ever moves a PARTIALLY_PAID (or UNPAID-via-full-credit)
+/// order toward PAID — it writes `paymentStatus` directly, via the same
+/// `src/lib/payment.ts` derivation, bypassing this transition table
+/// entirely, exactly like `createCounterSale` itself already does. See
+/// docs/PHASE_3_6_5_REPORT.md Part 3 "Payment lifecycle" and Part 5
+/// "Payment status".
+enum PaymentStatus {
+  UNPAID
+  PAID
+  PARTIALLY_PAID
+  REFUNDED
+  FAILED
+}
+
+/// Phase 3.6.5 Part 2 — Counter Sale negotiated discount. Exactly one
+/// discount per order, never stacked (see Order.discountType's own doc
+/// comment) — there is deliberately no "both" combination to represent.
+enum DiscountType {
+  FLAT
+  PERCENTAGE
+}
+
+/// ACTIVE baskets behave like a normal cart. Once a basket has produced an
+/// order it flips to CONVERTED and is never mutated or checked out again —
+/// see Basket.convertedOrderId and docs/PHASE_2_REPORT.md ("Basket
+/// conversion strategy") for why this replaces deleting/clearing items.
+enum BasketStatus {
+  ACTIVE
+  CONVERTED
+}
+
+// ---------------------------------------------------------------------------
+// Schools
+// ---------------------------------------------------------------------------
+
+/// A participating school. Its public storefront lives at /school/[slug] and
+/// is the landing target for that school's printed QR code.
+model School {
+  id                String  @id @default(cuid())
+  slug              String  @unique
+  name              String
+  logoUrl           String?
+  city              String?
+  isActive          Boolean @default(true)
+  isDemo            Boolean @default(false)
+  /// Controls whether the public storefront may claim an "Official Uniform
+  /// Partner" relationship. A school existing in Klasiq does NOT by itself
+  /// mean Klasiq is its official/exclusive supplier — the storefront shows
+  /// neutral "School Uniform Collection" wording unless this is explicitly
+  /// set true for a verified partnership. See docs/PHASE_3_REPORT.md
+  /// "School partnership wording".
+  isVerifiedPartner Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classes         SchoolClass[]
+  uniformProducts Product[]                 @relation("SchoolSpecificProducts")
+  assignments     SchoolUniformAssignment[]
+  recommendedSets RecommendedUniformSet[]
+  orders          Order[]
+
+  @@map("schools")
+}
+
+/// A grade/class within a school (e.g. "Class 7"). Owned by the school
+/// because class naming and structure differs between institutions.
+model SchoolClass {
+  id        String @id @default(cuid())
+  schoolId  String
+  name      String
+  sortOrder Int    @default(0)
+
+  school      School                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  assignments SchoolUniformAssignment[]
+  sets        RecommendedUniformSet[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, name])
+  @@map("school_classes")
+}
+
+// ---------------------------------------------------------------------------
+// Catalogue
+// ---------------------------------------------------------------------------
+
+/// Top-level shopping categories that back the main nav & category routes:
+/// /uniforms, /shoes, /socks, /school-bags. Self-referencing parentId keeps
+/// this extensible (e.g. future "Belts & Ties" under a broader grouping)
+/// without a schema change.
+model Category {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  sortOrder   Int     @default(0)
+  parentId    String?
+
+  /// Phase 3.6.7 Part 1 — whether this category appears as a link in the
+  /// storefront header nav (desktop + mobile). Defaults false so a newly
+  /// created category never unexpectedly appears in the header — an
+  /// admin opts it in explicitly (see docs/PHASE_3_6_7_REPORT.md "Header
+  /// generation").
+  displayInHeader Boolean @default(false)
+  /// Phase 3.6.7 Part 1 — position among header-displayed categories
+  /// ONLY (ascending; ties broken by name). Deliberately a separate field
+  /// from `sortOrder` above (the admin category LIST's own ordering,
+  /// assigned automatically on creation) — the two orderings are allowed
+  /// to diverge, e.g. an admin-panel list ordered by creation date vs. a
+  /// deliberately curated header order. Meaningless (never read) while
+  /// `displayInHeader` is false.
+  headerOrder     Int     @default(0)
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+/// A sellable item. Most uniform products are generic (schoolId is null) and
+/// reused across many schools via SchoolUniformAssignment — e.g. "White
+/// Shirt". A product that only exists for one school (e.g. a school-crested
+/// blazer) sets schoolId directly instead of being reused.
+model Product {
+  id          String  @id @default(cuid())
+  slug        String  @unique
+  name        String
+  description String?
+  imageUrl    String?
+  categoryId  String
+  schoolId    String?
+  isDemo      Boolean @default(false)
+  isActive    Boolean @default(true)
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  school   School?  @relation("SchoolSpecificProducts", fields: [schoolId], references: [id], onDelete: Cascade)
+
+  variants    ProductVariant[]
+  assignments SchoolUniformAssignment[]
+  setItems    RecommendedUniformSetItem[]
+  /// Convenience reference from historical order items. Nullable + SetNull:
+  /// a deleted product must never block deleting the product itself, and
+  /// must never invalidate the order — productName/skuSnapshot on OrderItem
+  /// are what actually keep the historical order accurate.
+  orderItems  OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([schoolId])
+  @@map("products")
+}
+
+/// A purchasable size/price/stock combination of a Product. Price is
+/// intentionally per-variant (not per-product) because size can affect
+/// price. This is the unit referenced everywhere money or stock matters:
+/// basket items, order items.
+model ProductVariant {
+  id                String      @id @default(cuid())
+  productId         String
+  size              String
+  sku               String      @unique
+  priceInPaise      Int
+  stockQuantity     Int         @default(0)
+  lowStockThreshold Int         @default(5)
+  stockStatus       StockStatus @default(IN_STOCK)
+  sortOrder         Int         @default(0)
+  /// Lets admin retire a size (discontinued, mis-added, etc.) without
+  /// deleting it — deletion is blocked anyway once an OrderItem references
+  /// it (onDelete: Restrict below), so deactivation is the normal safe path.
+  /// Public queries only ever return isActive: true variants.
+  isActive          Boolean     @default(true)
+
+  product                Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  basketItems            BasketItem[]
+  orderItems             OrderItem[]
+  inventoryAdjustments   InventoryAdjustment[]
+  /// Every ReturnRequestItem this variant has ever been chosen as the
+  /// EXCHANGE replacement for — see ReturnRequestItem.replacementVariantId.
+  issuedAsReplacementFor ReturnRequestItem[]
+  /// Phase 4 Part 4 — see SupplierPurchaseReceiptItem above.
+  supplierPurchaseReceiptItems SupplierPurchaseReceiptItem[]
+  /// Phase 4 Part 5 — see SupplierPurchaseReturnItem above.
+  supplierPurchaseReturnItems  SupplierPurchaseReturnItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, size])
+  @@index([productId])
+  @@map("product_variants")
+}
+
+// ---------------------------------------------------------------------------
+// School <-> Product relationship
+// ---------------------------------------------------------------------------
+
+/// Marks a Product as part of a school's required/available uniform for a
+/// given class and gender group. classId/gender null = applies broadly
+/// (all classes / all genders) at that school. This is what the school
+/// storefront queries to build "the uniform collection relevant to that
+/// school" without duplicating Product rows per school.
+model SchoolUniformAssignment {
+  id         String        @id @default(cuid())
+  schoolId   String
+  classId    String?
+  gender     UniformGender @default(UNISEX)
+  productId  String
+  isRequired Boolean       @default(true)
+  sortOrder  Int           @default(0)
+
+  school  School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class   SchoolClass? @relation(fields: [classId], references: [id], onDelete: Cascade)
+  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([schoolId, classId, gender, productId])
+  @@index([schoolId])
+  @@map("school_uniform_assignments")
+}
+
+/// A named, curated bundle ("Class 7 Boys — Complete Uniform") that a parent
+/// can add to their basket in one action. Items reference a Product (not a
+/// specific size) because the correct size depends on the child; the parent
+/// picks sizes when the set is added to the basket.
+model RecommendedUniformSet {
+  id          String        @id @default(cuid())
+  schoolId    String
+  classId     String?
+  gender      UniformGender @default(UNISEX)
+  name        String
+  description String?
+  isActive    Boolean       @default(true)
+
+  school School                      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class  SchoolClass?                @relation(fields: [classId], references: [id], onDelete: Cascade)
+  items  RecommendedUniformSetItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@map("recommended_uniform_sets")
+}
+
+model RecommendedUniformSetItem {
+  id        String @id @default(cuid())
+  setId     String
+  productId String
+  quantity  Int    @default(1)
+  sortOrder Int    @default(0)
+
+  set     RecommendedUniformSet @relation(fields: [setId], references: [id], onDelete: Cascade)
+  product Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([setId, productId])
+  @@map("recommended_uniform_set_items")
+}
+
+// ---------------------------------------------------------------------------
+// Basket (guest cart, cookie-identified, server-persisted)
+// ---------------------------------------------------------------------------
+
+/// A guest basket identified by an opaque id stored in an httpOnly cookie.
+/// No authentication is required. Prices are always re-read from
+/// ProductVariant at render/order time — nothing price-related is trusted
+/// from the client.
+///
+/// Once a basket produces an order it flips to CONVERTED and
+/// convertedOrderId is set — see docs/PHASE_2_REPORT.md. A CONVERTED basket
+/// is treated as empty by every read/mutation helper; the cookie holder
+/// transparently gets a fresh ACTIVE basket on their next add-to-bag.
+model Basket {
+  id               String       @id @default(cuid())
+  status           BasketStatus @default(ACTIVE)
+  convertedOrderId String?      @unique
+  /// Phase 3.7 Part 4 — the unguessable, cryptographically-random bearer
+  /// token stored in the basket cookie, generated once via
+  /// `generateAccessToken()` (src/lib/access-token.ts) at basket
+  /// creation and never regenerated. Deliberately NEVER the same value
+  /// as `id`: this codebase's plain `cuid()` primary keys are not
+  /// high-entropy/unstructured enough (cuids encode a creation
+  /// timestamp) to be trusted as a bearer credential by themselves —
+  /// exactly the same reasoning already established for
+  /// `Order.accessToken` (see "Order lookup security" in
+  /// docs/PHASE_2_REPORT.md), applied here for the identical
+  /// "possess this opaque value = you own this basket, no login
+  /// required" boundary. Stored plaintext (never hashed, unlike
+  /// AdminSession/CustomerSession) because a Basket carries no PII and
+  /// is a bearer-capability like an Order's link, not a login session —
+  /// see docs/PHASE_3_7_REPORT.md Part 4 for the full reasoning.
+  accessToken      String       @unique
+  items            BasketItem[]
+  convertedOrder   Order?       @relation(fields: [convertedOrderId], references: [id])
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@map("baskets")
+}
+
+model BasketItem {
+  id                String @id @default(cuid())
+  basketId          String
+  productVariantId  String
+  quantity          Int    @default(1)
+  /// The variant's price at the moment this line was first added — never
+  /// used to compute totals (those always come from ProductVariant at
+  /// checkout time), only to detect and surface a "price changed since you
+  /// added this" message. Deliberately not updated when quantity changes on
+  /// an existing line, so it keeps reflecting what the parent originally saw.
+  priceInPaiseAtAdd Int
+
+  basket         Basket         @relation(fields: [basketId], references: [id], onDelete: Cascade)
+  productVariant ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([basketId, productVariantId])
+  @@map("basket_items")
+}
+
+// ---------------------------------------------------------------------------
+// Customers (Phase 3.1)
+// ---------------------------------------------------------------------------
+
+/// A permanent internal customer identity — see docs/PHASE_3_1_REPORT.md.
+/// Created automatically the first time it's needed (future checkout
+/// integration), never via admin, never requiring signup/login/passwords.
+/// Deliberately small: fields belonging to later modules (OTP verification
+/// status, purchase history, loyalty, CRM notes) are NOT here — adding them
+/// later is an additive migration, not a redesign.
+model Customer {
+  id String @id @default(cuid())
+
+  /// Permanent, public-facing identifier (e.g. KLQ-7A41K2) — see
+  /// src/lib/customer-id.ts. Never changes, never recycled. This is an
+  /// IDENTIFIER, not a credential: knowing it must never imply ownership
+  /// of this customer's data (see "Security" in the report).
+  customerId String @unique
+
+  displayName String?
+
+  /// As entered/last confirmed — display only, never used for lookups.
+  primaryPhone           String?
+  /// E.164-normalized (+91XXXXXXXXXX, see src/lib/phone.ts). THE
+  /// customer-identity dedup key — unique so two Customer rows can never
+  /// claim the same verified phone number. Nullable only because the
+  /// column must allow more than one NULL under a unique constraint in
+  /// Postgres, mirroring Order.idempotencyKey's existing precedent.
+  primaryPhoneNormalized String? @unique
+
+  whatsappPhone           String?
+  /// Deliberately NOT unique, unlike primaryPhoneNormalized — a WhatsApp
+  /// number can legitimately be shared across two different customers'
+  /// separate identities (e.g. a parent's number used for a grandparent's
+  /// order notifications too). See "Customer uniqueness" in the report.
+  whatsappPhoneNormalized String?
+
+  /// Phase 3.6.6 Part 1 — the customer's own SAVED postal address, set
+  /// ONLY at genuine customer-creation time (the Counter Sale inline
+  /// "create customer" form — see `createCustomerInline`,
+  /// src/server/commerce/customer.ts) and never touched again by
+  /// anything in this codebase — there is deliberately no "edit saved
+  /// address" mutation yet (that is an explicitly deferred, separate
+  /// future feature — see docs/PHASE_3_6_6_REPORT.md Part 1 "Address
+  /// strategy"). A one-time address entered for an EXISTING customer's
+  /// sale is NEVER written here — it only ever becomes an immutable
+  /// snapshot on that one Order (see Order.customerAddressLine below),
+  /// by construction: no code path exists that could overwrite these
+  /// fields from a one-time entry. All four nullable — every field is
+  /// genuinely optional, never required to create or use a customer.
+  addressLine    String?
+  addressCity    String?
+  addressState   String?
+  addressPincode String?
+
+  active      Boolean   @default(true)
+  lastOrderAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders          Order[]
+  /// Phase 3.5 Part 1 — see ReturnRequest below.
+  returnRequests  ReturnRequest[]
+  /// Phase 3.6.5 Part 5 — see PaymentReceipt below.
+  paymentReceipts PaymentReceipt[]
+
+  @@index([whatsappPhoneNormalized])
+  @@index([lastOrderAt])
+  @@map("customers")
+}
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+/// A real, placed order. Created exactly once per successful checkout —
+/// see src/server/commerce/place-order.ts for the transactional
+/// create-order + decrement-stock logic and docs/PHASE_2_REPORT.md for the
+/// concurrency/idempotency reasoning.
+model Order {
+  id             String  @id @default(cuid())
+  /// Human-friendly, customer/staff-facing identifier (e.g.
+  /// ORD-20260804-K7M3P). Never used for access control on its own.
+  orderNumber    String  @unique
+  /// Unguessable token required (alongside orderNumber) to view the public
+  /// confirmation page. See "Order lookup security" in PHASE_2_REPORT.md.
+  accessToken    String  @unique
+  /// Client-supplied idempotency key for the checkout submission that
+  /// created this order. A repeat submission with the same key returns
+  /// this same order instead of creating a duplicate. Nullable only because
+  /// the column must allow more than one NULL under a unique constraint in
+  /// Postgres (rows can't practically exist without one in application
+  /// code, but the type reflects the DB truth, not a real optionality).
+  idempotencyKey String? @unique
+
+  /// How this order was initiated — see docs/PHASE_3_2_REPORT.md "Order
+  /// source". Defaults ONLINE: every order from Phases 1-3 genuinely was
+  /// one (counter sales did not exist yet), so the migration backfill is a
+  /// true fact, not invented data.
+  source                 OrderSource @default(ONLINE)
+  schoolId               String?
+  /// Nullable (Phase 3.2): a guest counter sale may have neither. Online
+  /// checkout's own validation (checkoutInputSchema) still always requires
+  /// both, so this relaxation is additive — it does not change what a
+  /// successful online order looks like, only what the column allows.
+  customerName           String?
+  customerMobile         String?
+  /// The WhatsApp number given AT THIS CHECKOUT (Phase 3.3 Part 3) — same
+  /// point-in-time-snapshot pattern as customerName/customerMobile above,
+  /// deliberately separate from Customer.whatsappPhone (which reflects the
+  /// customer's CURRENT profile and can change after this order was
+  /// placed). Set to customerMobile when the checkout's "same as primary"
+  /// checkbox was checked, or to the distinct number the customer typed
+  /// otherwise. Null only for orders placed before this field existed
+  /// (Phase 1-3.3-Part-2) and for guest counter sales, which never collect
+  /// a WhatsApp number. See docs/PHASE_3_3_REPORT.md Part 3 "Customer
+  /// contact snapshot".
+  customerWhatsapp       String?
+  /// Phase 3.6.6 Part 1 — the customer's postal address AT THIS SALE,
+  /// for invoicing (section 5: "Invoice history must never depend on
+  /// live customer data"). Same point-in-time-snapshot convention as
+  /// customerName/customerMobile/customerWhatsapp above, and completely
+  /// distinct from deliveryAddressLine/deliveryArea/deliveryLandmark
+  /// below — those describe WHERE a LOCAL_DELIVERY online order physically
+  /// ships to (geocoded, used to price a delivery fee); these describe
+  /// the customer's own postal address for an invoice, optional,
+  /// Counter-Sale-only in practice (see docs/PHASE_3_6_6_REPORT.md Part 1
+  /// "Address strategy"). Populated either from Customer's own saved
+  /// address (`mode: "SAVED"`) or a one-time entry that is NEVER written
+  /// back to Customer (`mode: "ONE_TIME"`) — see
+  /// src/lib/counter-sale-address.ts. All four null when no address was
+  /// ever provided (`mode: "NONE"`) — the overwhelmingly common case,
+  /// and the only possibility for every order that predates this field.
+  customerAddressLine    String?
+  customerAddressCity    String?
+  customerAddressState   String?
+  customerAddressPincode String?
+  /// The permanent Customer this order belongs to. Nullable because every
+  /// order placed before Phase 3.1 predates Customer (never backfilled —
+  /// see docs/PHASE_3_1_REPORT.md "Existing orders"), because online
+  /// checkout still does not create/link a Customer (that integration
+  /// remains deferred — see docs/PHASE_3_2_REPORT.md "What remains"), and
+  /// because a guest counter sale legitimately has no Customer at all.
+  /// customerName/customerMobile above remain the point-in-time snapshot of
+  /// who placed THIS order (same pattern as OrderItem's product snapshot)
+  /// and are unaffected by this relation — a customer's display name or
+  /// phone can change later on the Customer row without altering historical
+  /// orders.
+  customerId             String?
+  /// Which staff member processed this sale — always null for ONLINE
+  /// orders (no admin is involved in a customer's own checkout), always set
+  /// for COUNTER orders (see docs/PHASE_3_2_REPORT.md "Auditability" —
+  /// same nullable-FK-with-SetNull pattern already used by
+  /// InventoryAdjustment.adminUserId; losing the admin account must never
+  /// invalidate the historical order). Purely an operational audit trail —
+  /// never used for authorization.
+  createdByAdminUserId   String?
+
+  fulfillmentType             FulfillmentType
+  /// Delivery DETAILS the delivery person needs (house/flat number, street,
+  /// floor, extra instructions) — free text, never used to calculate
+  /// distance. Deliberately separate from the geocoded fields below; see
+  /// docs/PHASE_3_3_REPORT.md Part 2 "Address details vs. geocoded
+  /// location".
+  deliveryAddressLine         String?
+  /// Optional since Phase 3.3 Part 2 — the Geoapify formatted address below
+  /// already carries locality/area/district/postcode authoritatively, so
+  /// re-typing it here would be redundant data entry.
+  deliveryArea                String?
+  deliveryLandmark            String?
+  /// The AUTHORITATIVE selected delivery destination and the route
+  /// distance actually used to price this order — a checkout-time
+  /// snapshot, not a live reference. Null for STORE_PICKUP and for any
+  /// order placed before this field existed (Phase 1-3.3-Part-1). Never
+  /// backfilled. See docs/PHASE_3_3_REPORT.md Part 2 "Order snapshot
+  /// design" for why this is persisted rather than re-derived from
+  /// Geoapify on demand.
+  deliveryLatitude            Float?
+  deliveryLongitude           Float?
+  /// Geoapify's own human-readable formatted string for the selected
+  /// location, shown back to the customer/admin so the confirmation
+  /// reflects exactly what was selected — distinct from
+  /// deliveryAddressLine/deliveryArea/deliveryLandmark above.
+  deliveryFormattedAddress    String?
+  /// Route distance (shop -> destination) in meters, at the moment this
+  /// order was placed — explains why the delivery fee below is what it is,
+  /// without needing another Geoapify call to reconstruct history.
+  deliveryRouteDistanceMeters Int?
+
+  paymentMethod PaymentMethod
+  paymentStatus PaymentStatus @default(UNPAID)
+  status        OrderStatus   @default(PENDING)
+
+  subtotalInPaise    Int
+  deliveryFeeInPaise Int @default(0)
+  /// The Grand Total — the customer's actual payable amount. Equals
+  /// subtotalInPaise + deliveryFeeInPaise - discountInPaise. For every
+  /// order before Phase 3.6.5 Part 2, and every ONLINE order after it,
+  /// discountInPaise is 0 and this is unchanged from before.
+  totalInPaise       Int
+
+  /// Phase 3.6.5 Part 2 — Counter Sale discount (negotiated at the
+  /// register). Deliberately Counter-only: Online Checkout never sets
+  /// these three fields, by construction (placeOrderForBasket never
+  /// reads or writes them) — see docs/PHASE_3_6_5_REPORT.md Part 2
+  /// "Online checkout scope" for the full reasoning. Null discountType
+  /// means no discount was applied/offered — the default, and the only
+  /// state any pre-existing order or ONLINE order is ever in.
+  discountType    DiscountType?
+  /// The raw admin-entered input: paise for FLAT, a whole percent
+  /// (1-100) for PERCENTAGE. Null exactly when discountType is null.
+  /// Never used directly for money math after creation — that's what
+  /// discountInPaise below is for; this is kept only so the ORIGINAL
+  /// negotiation ("10% off") can still be displayed/audited later.
+  discountValue   Int?
+  /// Optional reason (e.g. "Negotiation", "Festival", "Damaged Box",
+  /// "Owner Approval", "Other") — free text, admin-only context.
+  discountReason  String?
+  /// The COMPUTED discount actually applied, in paise — always present
+  /// (0 when discountType is null), independent of discountType/
+  /// discountValue's type-dependent meaning, so every downstream
+  /// consumer (line-item allocation, display, future analytics) reads
+  /// one plain, unambiguous number rather than re-deriving flat-vs-
+  /// percentage math itself. subtotalInPaise - discountInPaise +
+  /// deliveryFeeInPaise = totalInPaise, always, by construction.
+  discountInPaise Int           @default(0)
+
+  /// Phase 3.6.5 Part 3 — Partial Payments foundation ("Khata"). Counter
+  /// Sale-only in practice: every ONLINE order has amountReceivedInPaise
+  /// == totalInPaise and outstandingInPaise == 0, unconditionally, set at
+  /// creation — Online's own pre-existing paymentStatus (UNPAID until
+  /// COD collection) remains the sole source of truth for whether cash
+  /// has actually changed hands online; these two fields never represent
+  /// that lifecycle, only tracked Counter-Sale credit. See
+  /// docs/PHASE_3_6_5_REPORT.md Part 3 "Online checkout scope".
+  ///
+  /// IMMUTABLE at Counter Sale creation, and still never touched by
+  /// Returns/Exchanges (see that report's "Returns"/"Exchanges" sections
+  /// for why) — but Phase 3.6.5 Part 5's `receivePayment`
+  /// (src/server/commerce/receive-payment.ts) IS now the one narrow,
+  /// validated path allowed to increase amountReceivedInPaise / decrease
+  /// outstandingInPaise after creation, exactly as this comment
+  /// originally anticipated. See docs/PHASE_3_6_5_REPORT.md Part 5.
+  amountReceivedInPaise Int
+  /// Always totalInPaise - amountReceivedInPaise, by construction — NEVER
+  /// derived from subtotalInPaise or any catalog/original price (section
+  /// 3's own explicit instruction). See "Outstanding calculation" in
+  /// docs/PHASE_3_6_5_REPORT.md Part 3.
+  outstandingInPaise    Int
+
+  /// The moment this order's status actually transitioned INTO DELIVERED —
+  /// set once, by src/server/commerce/update-order-status.ts (for
+  /// ONLINE/COUNTER_HANDOVER orders reaching DELIVERED via a normal
+  /// transition) and by src/server/commerce/counter-sale.ts (a Counter
+  /// sale is created already DELIVERED, so it's stamped at creation time
+  /// instead). Deliberately NOT the same as `updatedAt`, which reflects
+  /// the row's last write for ANY reason (e.g. a later payment-status
+  /// change) — Phase 3.5's 7-day return window needs the actual delivery
+  /// moment specifically, never a value that could silently drift later.
+  /// Null for any order that has never been DELIVERED, and for orders
+  /// placed before this field existed (never backfilled). See
+  /// docs/PHASE_3_5_REPORT.md "Return window".
+  deliveredAt DateTime?
+
+  school               School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
+  customer             Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdByAdminUser   AdminUser?            @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  items                OrderItem[]
+  basket               Basket?
+  /// Populated only for ORDER_CANCELLATION_RESTORE adjustments — lets an
+  /// admin trace "why did this variant's stock go up" back to the specific
+  /// cancelled order. See docs/PHASE_3_REPORT.md "Inventory audit trail".
+  inventoryAdjustments InventoryAdjustment[]
+  /// Phase 3.5 Part 1 — see ReturnRequest below.
+  returnRequests       ReturnRequest[]
+  /// Phase 3.6.5 Part 5 — see PaymentReceipt below.
+  paymentReceipts      PaymentReceipt[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([schoolId])
+  @@index([customerId])
+  @@index([source])
+  @@index([createdByAdminUserId])
+  @@map("orders")
+}
+
+/// Snapshots product/variant identity, name, size, SKU and price at order
+/// time so a historical order stays accurate even if the underlying
+/// Product/ProductVariant is later renamed, repriced, or removed.
+model OrderItem {
+  id               String  @id @default(cuid())
+  orderId          String
+  /// Nullable + SetNull: losing this reference must never affect the
+  /// historical record, which lives entirely in the snapshot fields below.
+  productId        String?
+  productVariantId String
+
+  productName      String
+  size             String
+  skuSnapshot      String
+  unitPriceInPaise Int
+  quantity         Int
+  lineTotalInPaise Int
+
+  /// Phase 3.6.5 Part 2 — this line's post-discount, actually-paid total,
+  /// in paise: an immutable historical snapshot, exactly like
+  /// unitPriceInPaise/lineTotalInPaise above. Computed once, at order
+  /// creation, via the largest-remainder proportional allocation of the
+  /// order's discountInPaise across every line (see
+  /// docs/PHASE_3_6_5_REPORT.md Part 2 "Allocation algorithm") — never
+  /// recomputed later, never re-derived from a live Product price.
+  /// Equals lineTotalInPaise whenever the order had no discount — true
+  /// for every row created before this field existed (backfilled
+  /// accordingly) and for every ONLINE order going forward. Returns and
+  /// Exchange calculations must read THIS field (or the per-quantity
+  /// derivation in src/lib/discount.ts), never unitPriceInPaise/
+  /// lineTotalInPaise, for anything representing what the customer
+  /// actually paid — see that report section "Returns" for why.
+  effectiveLineTotalInPaise Int
+
+  /// Phase 3.5 Part 1 — how much of `quantity` is currently claimed by a
+  /// non-terminal-rejected/cancelled return or exchange request (i.e. the
+  /// parent ReturnRequest's status is REQUESTED, APPROVED, RECEIVED, or
+  /// COMPLETED — see `doesReturnStatusClaimQuantity` in
+  /// src/lib/return-lifecycle.ts). A maintained counter, not a live
+  /// aggregate — claimed via the exact same guarded-`updateMany` pattern
+  /// already used for inventory decrement
+  /// (src/server/commerce/order-core.ts's `resolveAndDecrementOrderLines`),
+  /// so two concurrent return requests for the same last-remaining
+  /// quantity can't both succeed. Part 1 never builds the reject/cancel
+  /// mutation that would DECREMENT this back — see
+  /// docs/PHASE_3_5_REPORT.md "Concurrency" for why the column and its
+  /// read-side query are still the forward-correct design today.
+  returnClaimedQuantity Int @default(0)
+
+  order              Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product            Product?            @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productVariant     ProductVariant      @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+  returnRequestItems ReturnRequestItem[]
+
+  @@map("order_items")
+}
+
+// ---------------------------------------------------------------------------
+// Admin (Phase 3)
+// ---------------------------------------------------------------------------
+
+/// A shop staff account. Deliberately minimal — no roles/permissions system
+/// (every admin user can do everything), no self-service signup. The first
+/// account is created via a bootstrap script (see docs/PHASE_3_REPORT.md),
+/// not through any public route.
+model AdminUser {
+  id           String  @id @default(cuid())
+  name         String
+  email        String  @unique
+  /// scrypt hash in `salt:hash` hex form — see src/lib/admin/password.ts.
+  /// Never a plaintext password, never a reversible encryption.
+  passwordHash String
+  isActive     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions                 AdminSession[]
+  inventoryAdjustments     InventoryAdjustment[]
+  createdOrders            Order[]
+  approvedReturnRequests   ReturnRequest[]       @relation("ReturnRequestApprovedBy")
+  rejectedReturnRequests   ReturnRequest[]       @relation("ReturnRequestRejectedBy")
+  receivedReturnRequests   ReturnRequest[]       @relation("ReturnRequestReceivedBy")
+  completedReturnRequests  ReturnRequest[]       @relation("ReturnRequestCompletedBy")
+  cancelledReturnRequests  ReturnRequest[]       @relation("ReturnRequestCancelledBy")
+  overriddenReturnRequests ReturnRequest[]       @relation("ReturnRequestOverriddenBy")
+  /// Phase 3.6.5 Part 5 — see PaymentReceipt below.
+  recordedPaymentReceipts  PaymentReceipt[]
+  /// Phase 4 Part 3 — see SupplierPayment below.
+  recordedSupplierPayments SupplierPayment[]
+  /// Phase 4 Part 4 — see SupplierPurchaseReceipt below.
+  recordedSupplierPurchaseReceipts SupplierPurchaseReceipt[]
+  /// Phase 4 Part 5 — see SupplierPurchaseReturn below.
+  createdSupplierPurchaseReturns   SupplierPurchaseReturn[] @relation("SupplierPurchaseReturnCreatedBy")
+  confirmedSupplierPurchaseReturns SupplierPurchaseReturn[] @relation("SupplierPurchaseReturnConfirmedBy")
+  /// Phase 4 Part 6 — see SupplierCredit/SupplierRefund below.
+  createdSupplierCredits SupplierCredit[]
+  createdSupplierRefunds SupplierRefund[]
+
+  @@map("admin_users")
+}
+
+/// A server-side session. The httpOnly cookie holds a random opaque token;
+/// only its SHA-256 hash is stored here, so a database read/backup leak
+/// cannot be replayed as a live session cookie. See src/lib/admin/session.ts.
+model AdminSession {
+  id          String   @id @default(cuid())
+  tokenHash   String   @unique
+  adminUserId String
+  expiresAt   DateTime
+
+  createdAt DateTime @default(now())
+
+  adminUser AdminUser @relation(fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  @@index([adminUserId])
+  @@map("admin_sessions")
+}
+
+/// Pre-deployment hardening (2026-08-10) — rate limiting for
+/// `adminLogin` (src/server/actions/admin/auth.ts). One row per login
+/// attempt (success or failure — every attempt costs a slot, not just
+/// failed ones, so a script that eventually guesses right still can't
+/// have made unlimited attempts to get there). `ipAddress` is the ONLY
+/// field: no email, no outcome — this table exists purely to answer "how
+/// many attempts from this IP in the last minute," never as an audit
+/// trail of who tried to log in as whom. Rows are short-lived by design
+/// (swept opportunistically — see `recordAdminLoginAttempt`, same
+/// "no cron, sweep on the next natural write" convention as
+/// `cleanupExpiredCustomerSessions`, src/lib/customer-portal/session.ts)
+/// — this is a rate-limit counter, never a permanent log.
+model AdminLoginAttempt {
+  id        String   @id @default(cuid())
+  ipAddress String
+  createdAt DateTime @default(now())
+
+  @@index([ipAddress, createdAt])
+  @@map("admin_login_attempts")
+}
+
+/// Why a variant's stock quantity changed. STOCK_RECEIVED and
+/// MANUAL_CORRECTION are staff-initiated from /admin/inventory;
+/// ORDER_CANCELLATION_RESTORE is written automatically when an admin
+/// cancels an order. Deliberately does NOT cover the customer-checkout
+/// decrement — that is already fully traceable via Order/OrderItem, and
+/// forcing it through this table too would mean touching the proven Phase 2
+/// checkout transaction for no added traceability. See "Inventory audit
+/// trail" in docs/PHASE_3_REPORT.md.
+/// RETURN_RESTORE/EXCHANGE_ISSUE added in Phase 3.5 Part 4 — see
+/// docs/PHASE_3_5_REPORT.md Part 4 "Inventory strategy" for why
+/// reconciliation happens exactly at RECEIVED, never earlier.
+enum InventoryAdjustmentReason {
+  STOCK_RECEIVED
+  MANUAL_CORRECTION
+  ORDER_CANCELLATION_RESTORE
+  /// The physically-returned item's stock being restored — set on the
+  /// ORIGINAL (returned) variant for both RETURN and EXCHANGE requests,
+  /// the moment an admin confirms physical receipt.
+  RETURN_RESTORE
+  /// The replacement item's stock being deducted for an EXCHANGE request
+  /// — set on the REPLACEMENT variant the admin selected, in the exact
+  /// same transaction as the corresponding RETURN_RESTORE.
+  EXCHANGE_ISSUE
+  /// Phase 4 Part 5 — stock leaving the shop because it was physically
+  /// sent back to a SUPPLIER (the opposite direction/domain from
+  /// RETURN_RESTORE, which is stock coming BACK from a CUSTOMER). Kept
+  /// as its own reason rather than reusing RETURN_RESTORE/
+  /// EXCHANGE_ISSUE — neither describes "we shipped this out to our
+  /// wholesaler," and conflating the two return domains in one shared
+  /// reason would blur exactly the audit trail Part 21 of this phase's
+  /// brief asks for ("InventoryAdjustment should clearly identify
+  /// reason: Supplier Return").
+  SUPPLIER_RETURN
+}
+
+model InventoryAdjustment {
+  id               String                    @id @default(cuid())
+  productVariantId String
+  previousQuantity Int
+  newQuantity      Int
+  delta            Int
+  reason           InventoryAdjustmentReason
+  note             String?
+  /// Null for system-restored stock where no admin session context applies
+  /// (kept nullable defensively; in practice every current write path sets
+  /// this because cancellation is itself an admin action).
+  adminUserId      String?
+  /// Set only for ORDER_CANCELLATION_RESTORE.
+  orderId          String?
+  /// Set only for RETURN_RESTORE/EXCHANGE_ISSUE (Phase 3.5 Part 4) — lets
+  /// the admin Return Detail page show exactly which stock movements a
+  /// given ReturnRequest caused, reusing this same table rather than a
+  /// second return-specific adjustment log (see docs/PHASE_3_5_REPORT.md
+  /// Part 4 "Inventory audit").
+  returnRequestId  String?
+  /// Set only for STOCK_RECEIVED rows created by Phase 4 Part 4's
+  /// explicit "Receive Inventory" action — the smallest safe additive
+  /// change needed so a stock increase from a supplier receipt can be
+  /// traced back to the exact SupplierPurchaseReceipt that caused it,
+  /// the same audit-trail precedent `orderId`/`returnRequestId` already
+  /// establish above. `STOCK_RECEIVED` itself already existed in
+  /// `InventoryAdjustmentReason` before this phase (used by the manual
+  /// "Receive stock" flow on /admin/inventory, which never sets this
+  /// column) — reused here rather than adding a redundant new reason.
+  supplierPurchaseReceiptId String?
+  /// Set only for SUPPLIER_RETURN rows created by Phase 4 Part 5's
+  /// explicit "Return to Supplier" action — same smallest-safe-additive
+  /// reasoning as `supplierPurchaseReceiptId` above, one FK per new
+  /// supplier-side inventory event this codebase learns to record.
+  supplierPurchaseReturnId String?
+
+  createdAt DateTime @default(now())
+
+  productVariant          ProductVariant           @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  adminUser               AdminUser?               @relation(fields: [adminUserId], references: [id], onDelete: SetNull)
+  order                   Order?                   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  returnRequest           ReturnRequest?           @relation(fields: [returnRequestId], references: [id], onDelete: SetNull)
+  supplierPurchaseReceipt SupplierPurchaseReceipt? @relation(fields: [supplierPurchaseReceiptId], references: [id], onDelete: SetNull)
+  supplierPurchaseReturn  SupplierPurchaseReturn?  @relation(fields: [supplierPurchaseReturnId], references: [id], onDelete: SetNull)
+
+  @@index([productVariantId])
+  @@index([orderId])
+  @@index([returnRequestId])
+  @@index([supplierPurchaseReturnId])
+  @@index([supplierPurchaseReceiptId])
+  @@map("inventory_adjustments")
+}
+
+// ---------------------------------------------------------------------------
+// Customer Portal (Phase 3.4 Part 1)
+// ---------------------------------------------------------------------------
+
+/// What an OTP challenge is FOR — kept as its own enum (rather than a bare
+/// boolean/string) so a future purpose (e.g. a Phase 3.5 return/exchange
+/// re-verification) can be added without mixing its challenges with portal
+/// login's, per docs/PHASE_3_4_REPORT.md "OTP challenge architecture".
+/// Deliberately not over-generalized beyond what's needed today — only one
+/// purpose exists right now.
+enum OtpPurpose {
+  CUSTOMER_PORTAL_LOGIN
+}
+
+/// A single OTP verification attempt window for one phone number. Never
+/// stores the plaintext code — only a scrypt digest (see
+/// src/lib/scrypt-hash.ts), specifically because a 6-digit code's tiny
+/// search space (1,000,000 possibilities) would be trivially brute-forced
+/// offline against a fast hash if this table ever leaked; scrypt's
+/// memory-hard cost meaningfully raises that bar. Not linked to Customer —
+/// a challenge can exist for a phone number with no Customer record at all
+/// (see docs/PHASE_3_4_REPORT.md "Customer resolution after OTP").
+///
+/// Requesting a new OTP for the same phone+purpose marks every prior
+/// unconsumed challenge `consumedAt` (superseded) — at most one challenge
+/// is ever valid per phone+purpose at a time, see "OTP replacement
+/// semantics" in the report.
+model OtpChallenge {
+  id              String     @id @default(cuid())
+  phoneNormalized String
+  purpose         OtpPurpose
+  codeHash        String
+  expiresAt       DateTime
+  /// Incremented on each incorrect verification attempt; verification is
+  /// refused once this reaches the centralized max (src/lib/otp-config.ts),
+  /// regardless of whether a later guess would have been correct.
+  attemptCount    Int        @default(0)
+  /// Set on successful verification OR when superseded by a newer request
+  /// for the same phone+purpose — either way, "no longer usable." A single
+  /// nullable timestamp is enough to answer "is this still active?"; the
+  /// distinction between the two reasons isn't needed anywhere and isn't
+  /// modeled, per the report's "do not over-generalize" guidance.
+  consumedAt      DateTime?
+
+  createdAt DateTime @default(now())
+
+  // Supports: "find the current active challenge for phone+purpose"
+  // (verify), "has a challenge been requested too recently" (resend
+  // cooldown), and "how many requests in the last N minutes" (abuse
+  // bound) — all three read this exact shape, ordered by createdAt.
+  @@index([phoneNormalized, purpose, createdAt])
+  @@map("otp_challenges")
+}
+
+/// A verified-phone customer-portal session — deliberately separate from
+/// AdminSession (distinct security domain, distinct cookie, distinct
+/// table) per docs/PHASE_3_4_REPORT.md "Session architecture". Same
+/// opaque-token-hashed-server-side shape as AdminSession: the httpOnly
+/// cookie holds the random raw token, only its SHA-256 hash lives here.
+///
+/// Deliberately has NO relation to Customer. The session's authority is a
+/// VERIFIED PHONE NUMBER, not a specific Customer row — resolved fresh
+/// (never cached here) on every use via `primaryPhoneNormalized`, so a
+/// customer verified before ever having an Order (no Customer row yet)
+/// still gets a working session, and one created afterward (e.g. a
+/// Counter sale in between) is picked up automatically without needing to
+/// re-verify. See "Customer resolution after OTP" and "No-orders/no-
+/// customer behavior" in the report.
+model CustomerSession {
+  id              String    @id @default(cuid())
+  tokenHash       String    @unique
+  phoneNormalized String
+  expiresAt       DateTime
+  createdAt       DateTime  @default(now())
+  lastUsedAt      DateTime?
+
+  @@map("customer_sessions")
+}
+
+// ---------------------------------------------------------------------------
+// Returns & Exchanges (Phase 3.5 Part 1 — domain foundation only)
+// ---------------------------------------------------------------------------
+
+/// One shared engine for both flows — see docs/PHASE_3_5_REPORT.md
+/// "Return + Exchange" for why two separate models were deliberately NOT
+/// built. A single request is always exactly one or the other; a request
+/// never mixes returned-for-refund and returned-for-replacement items
+/// (see ReturnRequestItem's own doc comment for why `type` is not
+/// duplicated at the item level).
+enum ReturnRequestType {
+  RETURN
+  EXCHANGE
+}
+
+/// Deliberately mirrors src/lib/order-lifecycle.ts's own shape (a
+/// transition table + pure validators in src/lib/return-lifecycle.ts) —
+/// same reasoning as that file's own doc comment: nothing in Part 1 calls
+/// this from a mutating admin/customer endpoint yet (that's Part 2/3's
+/// job), it exists now so those parts have a correct, tested rule to
+/// build on instead of improvising one later. REQUESTED/APPROVED/
+/// REJECTED/RECEIVED/COMPLETED/CANCELLED — audited against the brief's
+/// own suggestion and not expanded, since a richer lifecycle (e.g.
+/// separate "AWAITING_PICKUP" vs "IN_TRANSIT" states for a future
+/// reverse-logistics integration) has no demonstrated need yet.
+enum ReturnRequestStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  RECEIVED
+  COMPLETED
+  CANCELLED
+}
+
+/// Centralized so no page ever hard-codes this list inline, and so a
+/// future localization pass has exactly one place to translate — see
+/// RETURN_REASON_LABEL in src/lib/return-lifecycle.ts.
+enum ReturnReason {
+  WRONG_SIZE
+  DEFECTIVE
+  DAMAGED
+  WRONG_PRODUCT
+  QUALITY_ISSUE
+  CHANGED_MIND
+  OTHER
+}
+
+/// A customer's request to return or exchange one or more items from a
+/// single Order. Deliberately does NOT duplicate any Order-level commerce
+/// data (subtotal, fulfillment type, etc.) — see `order` below, and
+/// ReturnRequestItem for why item-level snapshots are similarly reused
+/// rather than copied.
+///
+/// `customerId` is REQUIRED (unlike Order.customerId, which is nullable
+/// for guest Counter sales) — Part 1 only supports customer-linked
+/// returns; see docs/PHASE_3_5_REPORT.md "Counter purchases" for why a
+/// guest sale can never produce a ReturnRequest at all, by construction,
+/// not by a separate check. A future guest/walk-in return path (Phase
+/// 3.5 Part 4) would need its own additive schema decision at that time,
+/// not a nullable column speculatively added now.
+model ReturnRequest {
+  id           String @id @default(cuid())
+  /// Human-friendly, customer-facing reference (e.g. RET-20260808-K7M3P)
+  /// — added in Phase 3.5 Part 2 specifically so the success screen and
+  /// return history never need to show the raw `id`. Same "identifier,
+  /// not a database key" convention as `Order.orderNumber`/
+  /// `Customer.customerId`; see src/lib/return-number.ts.
+  returnNumber String @unique
+  orderId      String
+  customerId   String
+
+  type   ReturnRequestType
+  status ReturnRequestStatus @default(REQUESTED)
+
+  /// Free-text context from the customer, distinct from each item's own
+  /// structured `reason` (ReturnRequestItem) — e.g. "please call before
+  /// picking up." Optional; never required to submit a request.
+  note String?
+
+  /// Phase 3.5 Part 3 — one pair of (timestamp, acting AdminUser) per
+  /// lifecycle transition, mirroring `Order.deliveredAt`'s own precedent
+  /// (a dedicated column per real event, never inferred from `updatedAt`).
+  /// Deliberately flat fields on this row rather than a separate
+  /// "ReturnRequestStatusEvent" audit table — the six-state lifecycle
+  /// (src/lib/return-lifecycle.ts) is strictly one-directional with two
+  /// terminal branches, so at most one of REJECTED/CANCELLED and at most
+  /// one each of APPROVED/RECEIVED/COMPLETED can ever be set per row; a
+  /// full event-log table would be the more scalable choice for a richer
+  /// lifecycle, but is speculative complexity this phase's actual shape
+  /// doesn't need. See docs/PHASE_3_5_REPORT.md Part 3 "Audit fields".
+  /// All nullable; the admin timeline UI only ever renders the ones that
+  /// are actually set, never fabricating a step that didn't happen.
+  approvedAt             DateTime?
+  approvedByAdminUserId  String?
+  /// Required by application logic (not a DB constraint, since it must
+  /// stay nullable for every non-rejected row) whenever status moves to
+  /// REJECTED — see `updateReturnRequestStatus`'s own validation.
+  /// Customer-visible (see ReturnHistory, customer portal) — never an
+  /// internal-only field.
+  rejectionReason        String?
+  rejectedAt             DateTime?
+  rejectedByAdminUserId  String?
+  receivedAt             DateTime?
+  receivedByAdminUserId  String?
+  completedAt            DateTime?
+  completedByAdminUserId String?
+  cancelledAt            DateTime?
+  cancelledByAdminUserId String?
+
+  /// Internal Admin-only context (e.g. "customer called to confirm pickup
+  /// time") — never rendered anywhere in the customer portal. See
+  /// docs/PHASE_3_5_REPORT.md Part 3 "Notes — visibility rules".
+  adminNote String?
+
+  /// Phase 3.5 Part 5 — Admin Override. Set ONLY when an admin
+  /// deliberately bypassed the time-based eligibility rules (order not
+  /// yet delivered / 7-day window expired) at CREATION time — see
+  /// `createReturnRequest`'s `override` parameter
+  /// (src/server/commerce/returns.ts) and
+  /// docs/PHASE_3_5_REPORT.md Part 5 "Admin Override architecture".
+  /// `overrideReason` is REQUIRED by application logic whenever an
+  /// override is used (never a DB constraint, since it must stay
+  /// nullable for the overwhelming majority of normal, non-overridden
+  /// requests). Deliberately does NOT bypass quantity-availability
+  /// validation — that remains a hard, non-overridable invariant (see
+  /// same report section for why). Never settable by the customer
+  /// portal's own creation path — only the admin walk-in path can supply
+  /// one, and only ever together with an admin identity + reason +
+  /// timestamp, mirroring every other audit field on this model exactly.
+  overrideReason          String?
+  overriddenAt            DateTime?
+  overriddenByAdminUserId String?
+
+  order                 Order                 @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  customer              Customer              @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  items                 ReturnRequestItem[]
+  approvedByAdminUser   AdminUser?            @relation("ReturnRequestApprovedBy", fields: [approvedByAdminUserId], references: [id], onDelete: SetNull)
+  rejectedByAdminUser   AdminUser?            @relation("ReturnRequestRejectedBy", fields: [rejectedByAdminUserId], references: [id], onDelete: SetNull)
+  receivedByAdminUser   AdminUser?            @relation("ReturnRequestReceivedBy", fields: [receivedByAdminUserId], references: [id], onDelete: SetNull)
+  completedByAdminUser  AdminUser?            @relation("ReturnRequestCompletedBy", fields: [completedByAdminUserId], references: [id], onDelete: SetNull)
+  cancelledByAdminUser  AdminUser?            @relation("ReturnRequestCancelledBy", fields: [cancelledByAdminUserId], references: [id], onDelete: SetNull)
+  overriddenByAdminUser AdminUser?            @relation("ReturnRequestOverriddenBy", fields: [overriddenByAdminUserId], references: [id], onDelete: SetNull)
+  inventoryAdjustments  InventoryAdjustment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([customerId])
+  @@map("return_requests")
+}
+
+/// One returned/exchanged line within a ReturnRequest — always a subset
+/// of a single OrderItem's purchased quantity, never the whole basket.
+/// Deliberately holds NO product name/size/SKU/price snapshot of its own:
+/// `orderItem` already has all of that (see OrderItem's own doc comment),
+/// and copying it again here would be exactly the redundant-data
+/// duplication the brief explicitly warned against ("the order already
+/// contains purchase snapshots — reuse them").
+///
+/// No `type` field here (RETURN vs EXCHANGE lives once, on the parent
+/// ReturnRequest) — a single request is always wholly one or the other
+/// (see ReturnRequestType's own doc comment); duplicating it per item
+/// would only matter if one request could mix both, which nothing in
+/// this phase's brief asks for. Re-audited in Phase 3.5 Part 5 (which
+/// explicitly asked whether this remains appropriate now that EXCHANGE
+/// items carry meaningfully different per-item data — a replacement
+/// variant and its own price snapshot — than RETURN items do): still
+/// correct, unchanged. See docs/PHASE_3_5_REPORT.md Part 5 "Mixed
+/// request review" for the full reasoning.
+///
+/// No `status` field here either — an item's "is this quantity still
+/// claimed" state is entirely a function of its PARENT request's status
+/// (`doesReturnStatusClaimQuantity`, src/lib/return-lifecycle.ts).
+/// Duplicating status at both levels would let the two drift out of
+/// sync; deriving it from one place (the parent) cannot.
+model ReturnRequestItem {
+  id              String @id @default(cuid())
+  returnRequestId String
+  orderItemId     String
+
+  /// How much of the OrderItem's purchased quantity this specific request
+  /// covers — never assumed to be the full purchased quantity.
+  quantity Int
+  reason   ReturnReason
+
+  /// Phase 3.5 Part 4 — the ProductVariant the admin chose to issue in
+  /// place of the returned item, set only when the parent request's
+  /// `type` is EXCHANGE and only once the admin has actually confirmed
+  /// receipt (see `receiveReturnRequest`,
+  /// src/server/commerce/return-fulfillment.ts). Deliberately unrestricted
+  /// to "same product" — the brief explicitly allows choosing a different
+  /// size OR a different product/color, so this can reference ANY real,
+  /// active variant, never a free-text value. `onDelete: Restrict` mirrors
+  /// `orderItem` below: a variant a real exchange already issued can never
+  /// be silently deleted out from under that historical record.
+  replacementVariantId String?
+
+  /// Phase 3.5 Part 5 — Price Difference Foundation. The replacement
+  /// variant's `priceInPaise` AT THE MOMENT it was issued (receive time),
+  /// snapshotted for the exact same reason `OrderItem.unitPriceInPaise`
+  /// snapshots the original purchase price (Phase 1) — a later price
+  /// change on the live `ProductVariant` must never retroactively alter a
+  /// historical exchange's recorded value. Paired with the ALREADY-
+  /// snapshotted `orderItem.unitPriceInPaise` (the original item's price),
+  /// this is everything `getExchangePriceDifference`
+  /// (src/lib/exchange-price.ts) needs — no separate "difference" or
+  /// "differenceType" column is persisted, since both are pure, cheap
+  /// derivations of these two snapshots plus `quantity`, computed at
+  /// display time rather than duplicated. Null until actually received;
+  /// null forever for a RETURN (which has no replacement at all).
+  replacementUnitPriceInPaiseSnapshot Int?
+
+  returnRequest      ReturnRequest   @relation(fields: [returnRequestId], references: [id], onDelete: Cascade)
+  orderItem          OrderItem       @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+  replacementVariant ProductVariant? @relation(fields: [replacementVariantId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([returnRequestId])
+  @@index([orderItemId])
+  @@index([replacementVariantId])
+  @@map("return_request_items")
+}
+
+// ---------------------------------------------------------------------------
+// Payment Ledger (Phase 3.6.5 Part 5 — KhataBook payment collection)
+// ---------------------------------------------------------------------------
+
+/// A permanent, immutable record of one payment collected against a
+/// Counter Sale's tracked Outstanding balance — the "Receive Payment"
+/// capability Phase 3.6.5 Part 3's own doc comment on
+/// Order.amountReceivedInPaise/outstandingInPaise promised a future phase
+/// would add. Never updated, never deleted, by any code in this
+/// codebase (section 12 — "do NOT allow editing ledger entries"); a
+/// mistaken entry is corrected by a future reversal/correction phase
+/// (explicitly out of scope here), never by mutating this row. See
+/// docs/PHASE_3_6_5_REPORT.md Part 5.
+model PaymentReceipt {
+  id String @id @default(cuid())
+
+  orderId    String
+  /// Denormalized from Order.customerId at creation time — lets the
+  /// KhataBook customer ledger query filter directly on this column
+  /// without joining through Order for every row. Always a real
+  /// Customer in practice: only a Counter Sale with a Customer attached
+  /// can ever have outstandingInPaise > 0 (Part 3 section 2), so there
+  /// is never a receipt to create against a GUEST or ONLINE order.
+  customerId String
+
+  amountInPaise Int
+  paymentMethod PaymentMethod
+
+  /// Free-text, admin-entered context (e.g. "paid at pickup"). Optional
+  /// — never required to record a payment.
+  note String?
+
+  /// Immutable snapshots of the ORDER's own outstandingInPaise
+  /// immediately before and after this receipt — lets the ledger always
+  /// "explain how the balance reached its current value" (section 4)
+  /// without ever needing to replay every prior receipt for that order.
+  outstandingBeforeInPaise Int
+  outstandingAfterInPaise  Int
+
+  /// The admin who recorded this payment — never client-supplied,
+  /// always the authenticated session's own admin id. Nullable +
+  /// SetNull mirrors every other admin-audit FK in this schema
+  /// (Order.createdByAdminUserId, InventoryAdjustment.adminUserId):
+  /// losing the admin account must never invalidate this historical
+  /// record.
+  createdByAdminUserId String?
+
+  /// Client-supplied idempotency key — a repeat submission (e.g. a
+  /// network retry) returns the SAME receipt instead of recording the
+  /// payment twice. Same nullable-unique convention as
+  /// Order.idempotencyKey (a unique column must allow more than one
+  /// NULL under Postgres).
+  idempotencyKey String? @unique
+
+  createdAt DateTime @default(now())
+
+  order              Order      @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  customer           Customer   @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdByAdminUser AdminUser? @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([orderId])
+  @@map("payment_receipts")
+}
+
+// ---------------------------------------------------------------------------
+// Suppliers (Phase 4 Part 1 — Supplier Foundation)
+// ---------------------------------------------------------------------------
+
+/// A wholesaler/supplier the store buys stock from — the foundation later
+/// Parts (Purchases, Purchase Bills, Supplier Payments) will attach to via
+/// their own `supplierId` foreign keys. This model deliberately owns NONE of
+/// those relations yet: Part 1 is directory-only (create/edit/list/
+/// activate-deactivate a supplier record), with zero connection to Product/
+/// ProductVariant/InventoryAdjustment — a Supplier existing or changing can
+/// never move stock. Using `id` (not `name`) as the join key every future
+/// relation will reference means renaming a supplier later is just an
+/// UPDATE on this row, never a cascading rewrite of historical
+/// purchase/payment references — the same "never key history off a mutable
+/// display field" precedent Customer.customerId/Order.orderNumber already
+/// establish for their own domains.
+///
+/// `phone` is deliberately NOT unique/normalized the way
+/// Customer.primaryPhoneNormalized is: a customer's phone is a verified
+/// identity/dedup key (OTP-backed); a supplier's phone is just contact
+/// info a staff member typed in, and two distinct suppliers (e.g. two
+/// representatives of the same wholesale business) could legitimately
+/// share one number.
+///
+/// `isActive` mirrors School.isActive's own meaning: deactivating a
+/// supplier must never delete it or its future purchase/payment history —
+/// it only stops the supplier from being offered as the default choice
+/// once Purchase creation exists (Part 2+). Hard delete is deliberately
+/// not modeled at all yet — see the admin action layer's own doc comment
+/// for why irreversible deletion is out of scope until purchase/payment
+/// relations exist to protect.
+model Supplier {
+  id String @id @default(cuid())
+
+  /// The contact/person name — always required, even when a
+  /// `businessName` also exists (e.g. "Rakesh" at "Mahesh Garments").
+  name String
+
+  /// The shop/business name, only when distinct from `name`. Left null
+  /// when the person and the business share one name, rather than
+  /// duplicating the same string into both columns.
+  businessName String?
+
+  /// Free-text, as given — never validated against a strict phone
+  /// pattern or normalized to E.164 (see this model's own doc comment
+  /// for why this is intentionally unlike Customer's phone handling).
+  phone String?
+
+  addressLine String?
+  city        String?
+
+  /// Optional; no strict format is enforced (see this model's own doc
+  /// comment for why — there is no existing project-wide GST validation
+  /// rule to reuse, and inventing a strict one risks rejecting real
+  /// supplier-provided values).
+  gstNumber String?
+
+  /// Free-text admin context — never customer/supplier-facing.
+  notes String?
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// Phase 4 Part 2 — see SupplierPurchase below.
+  purchases SupplierPurchase[]
+  /// Phase 4 Part 3 — see SupplierPayment below.
+  payments  SupplierPayment[]
+  /// Phase 4 Part 6 — see SupplierCredit/SupplierRefund below.
+  credits   SupplierCredit[]
+  refunds   SupplierRefund[]
+
+  @@map("suppliers")
+}
+
+// ---------------------------------------------------------------------------
+// Supplier Purchases & Bills (Phase 4 Part 2 — Purchases & Bills foundation)
+// ---------------------------------------------------------------------------
+
+/// One physical purchase/visit event with a supplier — the parent of
+/// however many bills that single visit produced (see
+/// SupplierPurchaseBill's own doc comment for why one purchase can have
+/// many bills, never a single "billNumber" field here). Deliberately a
+/// pure accounting/record-keeping event: creating one of these must NEVER
+/// touch Product/ProductVariant/InventoryAdjustment — there is
+/// intentionally no relation from this model to any of them anywhere in
+/// this schema. Inventory receiving (turning a purchase into actual stock
+/// on hand) is an explicitly separate, later phase — see this model's own
+/// admin-action-layer doc comment for why.
+///
+/// `totalInPaise` is DERIVED, never independently entered: it is always
+/// exactly the sum of this purchase's `bills[].amountInPaise`, computed
+/// and enforced transactionally by the admin action layer
+/// (src/server/actions/admin/supplier-purchases.ts) at both create and
+/// edit time — the same "never let two independently-editable numbers
+/// drift" concern Order.totalInPaise's own construction already
+/// establishes for commerce orders (see Order's doc comment above).
+/// Persisted (rather than recomputed via a live aggregate on every read)
+/// purely so the supplier purchase summary/history list can sort and sum
+/// without an extra join+aggregate per row — the same denormalization
+/// trade-off ReturnRequestItem/PaymentReceipt snapshots already make
+/// elsewhere in this schema.
+///
+/// `supplierId` uses `onDelete: Restrict` (not Cascade/SetNull) —
+/// deliberately unlike most FKs in this schema — because a Supplier has
+/// no hard-delete path at all (see Supplier's own doc comment); Restrict
+/// simply documents that invariant at the database level too, rather
+/// than silently allowing a future code path to orphan purchase history.
+model SupplierPurchase {
+  id           String    @id @default(cuid())
+  supplierId   String
+  purchaseDate DateTime
+
+  /// e.g. a supplier's own delivery-challan/reference number for this
+  /// visit, distinct from any individual bill's own `billNumber` — this
+  /// identifies the PURCHASE EVENT itself, not one of its invoices.
+  /// Optional: most purchases will only ever have per-bill numbers.
+  reference String?
+  notes     String?
+
+  totalInPaise Int
+
+  supplier Supplier               @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  bills    SupplierPurchaseBill[]
+  /// Phase 4 Part 3 — see PaymentAllocation above.
+  allocations PaymentAllocation[]
+  /// Phase 4 Part 4 — see SupplierPurchaseReceipt above.
+  receipts    SupplierPurchaseReceipt[]
+  /// Phase 4 Part 5 — see SupplierPurchaseReturn below.
+  returns     SupplierPurchaseReturn[]
+  /// Phase 4 Part 6 — see CreditAllocation above.
+  creditAllocations CreditAllocation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+  @@index([purchaseDate])
+  @@map("supplier_purchases")
+}
+
+/// One supplier-issued invoice within a SupplierPurchase. Modeled as its
+/// own table — never a single `billNumber`/`amountInPaise` pair of fields
+/// directly on SupplierPurchase — because one physical purchase/visit
+/// commonly produces MULTIPLE separate invoices from the same supplier
+/// (see the Phase 4 Part 2 brief's own example: one visit, two bills
+/// summing to the purchase total). `billNumber` is deliberately free text
+/// and NOT unique/normalized: two different suppliers can reuse the same
+/// invoice-numbering scheme, and nothing about this phase's business
+/// rules requires global uniqueness — inventing one risks rejecting a
+/// real supplier-issued number.
+model SupplierPurchaseBill {
+  id         String   @id @default(cuid())
+  purchaseId String
+  billNumber String?
+  billDate   DateTime
+
+  amountInPaise Int
+  notes         String?
+
+  purchase    SupplierPurchase                 @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  attachments SupplierPurchaseBillAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([purchaseId])
+  @@map("supplier_purchase_bills")
+}
+
+/// One image reference for a SupplierPurchaseBill. `url` is a plain,
+/// admin-pasted link to an already-hosted image — this codebase has no
+/// real binary file-upload/storage infrastructure anywhere yet (see
+/// Product.imageUrl/School.logoUrl's own identical "paste an
+/// already-hosted link" convention, product-form.tsx/school-form.tsx).
+/// Introducing an upload pipeline, or storing base64 image blobs in
+/// Postgres, would be exactly the kind of speculative infrastructure
+/// decision this phase's brief warns against making without a dedicated
+/// call — see the Part 2 final report's own note on this. `originalFilename`
+/// is optional, display-only context (never used for lookups or dedup)
+/// for when the pasted URL's own path isn't a meaningful name to show.
+model SupplierPurchaseBillAttachment {
+  id               String  @id @default(cuid())
+  billId           String
+  url              String
+  originalFilename String?
+
+  bill SupplierPurchaseBill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([billId])
+  @@map("supplier_purchase_bill_attachments")
+}
+
+// ---------------------------------------------------------------------------
+// Supplier Payments & Allocations (Phase 4 Part 3 — Payments & Outstanding)
+// ---------------------------------------------------------------------------
+
+/// Cash/UPI/Bank Transfer/Card/Cheque are how the payment actually moved;
+/// OTHER covers anything else (barter, adjustment, etc.) with the
+/// free-text `reference`/`notes` fields carrying the detail. Deliberately
+/// a NEW enum rather than reusing the existing `PaymentMethod`
+/// (CASH_ON_DELIVERY/UPI/CASH/CARD) — that enum is scoped to CUSTOMER
+/// commerce (Order/PaymentReceipt) and both lacks values this domain
+/// needs (BANK_TRANSFER, CHEQUE, OTHER) and carries one that makes no
+/// sense here (CASH_ON_DELIVERY, a checkout promise, not a supplier
+/// settlement). Same "don't force-fit an unrelated enum" precedent as
+/// `DiscountType`/`ReturnReason` each getting their own small enum.
+enum SupplierPaymentMethod {
+  CASH
+  UPI
+  BANK_TRANSFER
+  CARD
+  CHEQUE
+  OTHER
+}
+
+/// One payment collected FROM the shop's side and paid TO a supplier —
+/// belongs directly to `Supplier`, never to a single `SupplierPurchase`,
+/// because one real-world payment commonly settles parts of several
+/// purchases at once (see PaymentAllocation below, which is the only
+/// place a purchase-level link exists). Any portion of `amountInPaise`
+/// not covered by this payment's own `allocations` is left as
+/// unallocated supplier credit — see `getSupplierPaymentSummary`
+/// (src/server/queries/admin/supplier-payments.ts) for how that credit
+/// is computed and surfaced; it is a derived read, never stored as a
+/// column on this row.
+///
+/// `collectedByName` is the CRITICAL business field this model exists
+/// to capture: WHO on the supplier's side physically received this
+/// money — e.g. "Ramesh Kumar", the supplier's own delivery/collection
+/// person — which is almost never the same person as
+/// `createdByAdminUserId` (the shop STAFF member who typed this record
+/// into Klasiq, possibly hours or days after the money actually changed
+/// hands). Deliberately a plain required string, not a `SupplierContact`
+/// model — this phase's brief explicitly asks not to over-engineer a
+/// contacts system for a single name field.
+///
+/// `supplierId` uses `onDelete: Restrict`, matching `SupplierPurchase`'s
+/// own identical reasoning: a Supplier has no hard-delete path at all,
+/// so this just documents that invariant at the database level too.
+model SupplierPayment {
+  id              String                @id @default(cuid())
+  supplierId      String
+  paymentDate     DateTime
+  amountInPaise   Int
+  paymentMethod   SupplierPaymentMethod
+  collectedByName String
+
+  /// Transaction/cheque/UTR number where applicable — optional, and
+  /// deliberately never required for CASH (see this phase's own brief,
+  /// "do not make transaction reference mandatory for Cash").
+  reference String?
+  notes     String?
+
+  /// The shop STAFF member who entered this record — see this model's
+  /// own doc comment for why this is a completely different fact from
+  /// `collectedByName`. Nullable + SetNull mirrors every other
+  /// admin-audit FK in this schema (Order.createdByAdminUserId,
+  /// PaymentReceipt.createdByAdminUserId): losing the admin account must
+  /// never invalidate this historical financial record.
+  createdByAdminUserId String?
+
+  supplier           Supplier                    @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  createdByAdminUser AdminUser?                  @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  allocations        PaymentAllocation[]
+  attachments        SupplierPaymentAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+  @@index([paymentDate])
+  @@map("supplier_payments")
+}
+
+/// How much of one SupplierPayment was applied against one
+/// SupplierPurchase — the many-to-many join that lets a single payment
+/// settle multiple purchases, and a single purchase be settled by
+/// multiple payments over time (see SupplierPayment's own doc comment).
+/// A purchase's outstanding balance is deliberately NEVER stored as its
+/// own column anywhere — it is always
+/// `purchase.totalInPaise - sum(allocations for that purchase)`,
+/// computed on read (see `getPurchasePaymentInfo`,
+/// src/server/queries/admin/supplier-payments.ts) so it can never drift
+/// out of sync with the rows that actually justify it — the same
+/// "prefer derived over cached" rule this phase's own brief states
+/// explicitly (Part 12).
+///
+/// `purchaseId` uses `onDelete: Restrict` for the same reason
+/// `SupplierPurchase.supplierId` does: nothing in this codebase can
+/// delete a SupplierPurchase, so this only documents that invariant,
+/// never actually triggered. The admin action layer independently
+/// enforces the real accounting invariant this table exists to
+/// protect — that an allocation can never exceed its purchase's
+/// CURRENT outstanding balance, and can never reference a purchase
+/// belonging to a different supplier than the payment — since neither
+/// rule is expressible as a plain database constraint.
+model PaymentAllocation {
+  id            String @id @default(cuid())
+  paymentId     String
+  purchaseId    String
+  amountInPaise Int
+
+  payment  SupplierPayment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  purchase SupplierPurchase @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([purchaseId])
+  @@map("payment_allocations")
+}
+
+/// One proof/receipt image for a SupplierPayment — same "paste an
+/// already-hosted URL" convention as SupplierPurchaseBillAttachment
+/// (see that model's own doc comment for why: this codebase has no real
+/// binary file-upload/storage infrastructure anywhere, and inventing
+/// one now would be exactly the speculative infrastructure decision
+/// this phase's brief warns against making without a dedicated call).
+model SupplierPaymentAttachment {
+  id               String  @id @default(cuid())
+  paymentId        String
+  url              String
+  originalFilename String?
+
+  payment SupplierPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([paymentId])
+  @@map("supplier_payment_attachments")
+}
+
+// ---------------------------------------------------------------------------
+// Supplier Purchase Inventory Receiving (Phase 4 Part 4)
+// ---------------------------------------------------------------------------
+
+/// One physical receiving event against a SupplierPurchase — the ONLY
+/// thing this schema ever uses to increase ProductVariant stock for a
+/// supplier purchase. Creating a SupplierPurchase (Part 2) or a
+/// SupplierPayment (Part 3) NEVER touches inventory, by construction —
+/// see this model's own action-layer doc comment
+/// (src/server/actions/admin/supplier-purchase-receipts.ts) for the
+/// full reasoning. A single purchase can have many receipts (goods
+/// arriving in several shipments against the same financial purchase);
+/// a single receipt can cover many ProductVariants at once (see
+/// SupplierPurchaseReceiptItem below) — never modeled as one
+/// productVariantId/quantity pair directly on this row, for the exact
+/// same "one event can touch many lines" reason SupplierPurchaseBill
+/// (Part 2) isn't a single amount field on SupplierPurchase.
+///
+/// `purchaseId` uses `onDelete: Restrict`, matching every other FK onto
+/// SupplierPurchase in this schema (PaymentAllocation.purchaseId) —
+/// nothing in this codebase can delete a SupplierPurchase, so this only
+/// documents that invariant at the database level too.
+model SupplierPurchaseReceipt {
+  id         String   @id @default(cuid())
+  purchaseId String
+  receivedAt DateTime
+
+  /// e.g. a delivery challan/transporter reference for this specific
+  /// shipment — distinct from the purchase's own `reference` (Part 2),
+  /// which identifies the overall purchase event, not one delivery.
+  reference String?
+  notes     String?
+
+  /// The admin who recorded this receiving event — nullable + SetNull,
+  /// the same admin-audit convention as every other `createdBy...`
+  /// field in this schema (SupplierPayment.createdByAdminUserId,
+  /// Order.createdByAdminUserId): losing the admin account must never
+  /// invalidate this historical inventory record.
+  createdByAdminUserId String?
+
+  purchase             SupplierPurchase              @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+  createdByAdminUser   AdminUser?                     @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  items                SupplierPurchaseReceiptItem[]
+  /// Every InventoryAdjustment this receiving event produced — one per
+  /// distinct ProductVariant in `items` (see
+  /// InventoryAdjustment.supplierPurchaseReceiptId below), letting an
+  /// admin trace "why did this variant's stock go up" back to the exact
+  /// receipt, the same audit-trail precedent
+  /// InventoryAdjustment.orderId/returnRequestId already establish for
+  /// order cancellations and returns.
+  inventoryAdjustments InventoryAdjustment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([purchaseId])
+  @@index([receivedAt])
+  @@map("supplier_purchase_receipts")
+}
+
+/// One ProductVariant's received quantity within a
+/// SupplierPurchaseReceipt. `unitCostInPaise` is deliberately OPTIONAL
+/// and purely historical/display context for this one receiving event —
+/// ProductVariant has no cost-tracking/margin field anywhere in this
+/// schema (only `priceInPaise`, the SELLING price), and building a
+/// project-wide purchase-costing/valuation system is explicitly out of
+/// scope for this phase. This field exists only so a receipt can show
+/// what was actually paid per unit on THAT shipment; it is never read
+/// by, or written back to, ProductVariant.priceInPaise or any other
+/// calculation — the financial Purchase/Bill totals (Part 2) remain the
+/// only authoritative money figures for what was owed to the supplier.
+///
+/// `productVariantId` uses `onDelete: Restrict`, mirroring
+/// OrderItem.productVariantId's own identical reasoning: a variant that
+/// has ever been received against can never be silently deleted out
+/// from under this historical record — deactivating it
+/// (ProductVariant.isActive) remains the normal safe path.
+model SupplierPurchaseReceiptItem {
+  id               String @id @default(cuid())
+  receiptId        String
+  productVariantId String
+  quantity         Int
+  unitCostInPaise  Int?
+
+  receipt        SupplierPurchaseReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  productVariant ProductVariant          @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  /// Belt-and-suspenders alongside the admin action layer's own
+  /// merge-on-duplicate-selection UI behavior (Part 7 of the brief) —
+  /// the database itself can never end up with two lines for the same
+  /// variant within one receipt.
+  @@unique([receiptId, productVariantId])
+  @@index([receiptId])
+  @@index([productVariantId])
+  @@map("supplier_purchase_receipt_items")
+}
+
+// ---------------------------------------------------------------------------
+// Supplier Purchase Returns (Phase 4 Part 5)
+// ---------------------------------------------------------------------------
+
+/// Why stock is going back to the supplier — a NEW, purpose-built enum
+/// rather than reusing the customer-facing `ReturnReason`
+/// (WRONG_SIZE/DEFECTIVE/DAMAGED/WRONG_PRODUCT/QUALITY_ISSUE/
+/// CHANGED_MIND/OTHER): that enum's values describe why a CUSTOMER sent
+/// something back (e.g. CHANGED_MIND makes no sense for a wholesale
+/// goods return), and Part 20 of this phase's brief explicitly requires
+/// the two return domains stay uncoupled at the database level. Named
+/// to mirror that enum's own style where the concept overlaps
+/// (DAMAGED/DEFECTIVE/QUALITY_ISSUE/OTHER) without sharing the type.
+enum SupplierPurchaseReturnReason {
+  DAMAGED
+  WRONG_ITEM
+  WRONG_SIZE
+  DEFECTIVE
+  EXCESS_QUANTITY
+  QUALITY_ISSUE
+  SUPPLIER_REQUEST
+  OTHER
+}
+
+/// Deliberately just two values, not the richer
+/// DRAFT/CONFIRMED/CANCELLED lifecycle this phase's own brief offered
+/// as an alternative — there is no draft-saving UI/action anywhere in
+/// this codebase's admin actions for supplier returns (every return is
+/// created already complete, atomically, the same "one form, one
+/// submit, done" shape Part 4's Receive Inventory already established),
+/// so a DRAFT state would exist in the schema with no code path ever
+/// producing it. `CANCELLED` is kept as a modeled-but-unused reservation
+/// for a future reversal feature (see this model's own action-layer doc
+/// comment, src/server/actions/admin/supplier-purchase-returns.ts, for
+/// why reversal is explicitly deferred rather than built now) — no
+/// action in this phase ever sets it.
+enum SupplierPurchaseReturnStatus {
+  COMPLETED
+  CANCELLED
+}
+
+/// Physical stock sent back to a supplier against one SupplierPurchase.
+/// Deliberately scoped to `purchaseId` + each item's `productVariantId`
+/// — NOT to a specific SupplierPurchaseReceiptItem — because a purchase
+/// can have multiple receipts of the SAME variant (staged shipments,
+/// Part 4), and once merged into `ProductVariant.stockQuantity` a
+/// physical unit is no longer distinguishable by which receipt it
+/// arrived on. Forcing a single-receipt-item link would be actively
+/// misleading once returns span more than one receipt; the brief's own
+/// Part 19 explicitly allows exactly this simplification ("keep the
+/// return selection at purchase + variant level ... do not
+/// over-engineer this"). The returnable ceiling (received - already
+/// returned, capped by current stock) is always computed fresh from
+/// SupplierPurchaseReceiptItem/SupplierPurchaseReturnItem rows — see
+/// `getReturnableQuantity` (src/server/queries/admin/
+/// supplier-purchase-returns.ts) — never stored as its own mutable
+/// column, the same "prefer derived over cached" rule Part 3's
+/// purchase-outstanding calculation already established.
+///
+/// `returnNumber` mirrors `ReturnRequest.returnNumber`'s own
+/// identifier-not-a-database-key convention (see
+/// src/lib/return-number.ts) but is generated with its own distinct
+/// "RSUP-" prefix (src/lib/supplier-purchase-return-number.ts) — never
+/// the shared "RET-" customer-return generator — so a return number
+/// alone is never ambiguous about which of the two, deliberately
+/// separate, return domains (Part 20) it belongs to.
+///
+/// `idempotencyKey` guards the exact scenario Part 11 of the brief
+/// describes (a slow network causing a duplicate submission of the
+/// same confirm action): a repeat call with the same key returns the
+/// SAME return instead of reducing inventory a second time — identical
+/// nullable-unique convention to `Order.idempotencyKey`/
+/// `PaymentReceipt.idempotencyKey`.
+///
+/// `createdByAdminUserId`/`confirmedByAdminUserId`/`confirmedAt` are
+/// always identical/simultaneous today (creation IS confirmation, see
+/// `status`'s own doc comment) but modeled as distinct fields — like
+/// `status` — so a later draft-then-confirm-by-someone-else flow needs
+/// no further schema change, only new code paths.
+model SupplierPurchaseReturn {
+  id           String                       @id @default(cuid())
+  purchaseId   String
+  returnNumber String                       @unique
+  returnDate   DateTime
+  status       SupplierPurchaseReturnStatus @default(COMPLETED)
+  reason       SupplierPurchaseReturnReason
+  /// Free-text elaboration — expected mainly when `reason` is OTHER, but
+  /// not restricted to it (extra context is never harmful for any
+  /// reason).
+  reasonNote String?
+  reference  String?
+  notes      String?
+
+  createdByAdminUserId   String?
+  confirmedByAdminUserId String?
+  confirmedAt            DateTime?
+
+  idempotencyKey String? @unique
+
+  purchase             SupplierPurchase      @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+  createdByAdminUser   AdminUser?            @relation("SupplierPurchaseReturnCreatedBy", fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  confirmedByAdminUser AdminUser?            @relation("SupplierPurchaseReturnConfirmedBy", fields: [confirmedByAdminUserId], references: [id], onDelete: SetNull)
+  items                SupplierPurchaseReturnItem[]
+  inventoryAdjustments InventoryAdjustment[]
+  /// Phase 4 Part 6 — CONTEXT only, never causal. See SupplierCredit's
+  /// own doc comment above for why a return existing here never implies
+  /// one of these was created automatically.
+  credits              SupplierCredit[]
+  refunds              SupplierRefund[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([purchaseId])
+  @@index([returnDate])
+  @@map("supplier_purchase_returns")
+}
+
+/// One ProductVariant's returned quantity within a
+/// SupplierPurchaseReturn. `unitCostInPaise` is optional, informational
+/// display context ONLY (see Part 16 of the brief) — snapshotted at
+/// return time from whatever cost was recorded on the corresponding
+/// receipt item(s), if any; it is never subtracted from Purchase.total/
+/// outstanding/payment allocations anywhere in this codebase (Part 15's
+/// explicit "do not invent credit/refund accounting" rule).
+model SupplierPurchaseReturnItem {
+  id               String @id @default(cuid())
+  returnId         String
+  productVariantId String
+  quantity         Int
+  unitCostInPaise  Int?
+
+  return         SupplierPurchaseReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  productVariant ProductVariant         @relation(fields: [productVariantId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@unique([returnId, productVariantId])
+  @@index([returnId])
+  @@index([productVariantId])
+  @@map("supplier_purchase_return_items")
+}
+
+// ---------------------------------------------------------------------------
+// Supplier Credits & Refunds (Phase 4 Part 6)
+// ---------------------------------------------------------------------------
+
+/// Why a supplier owes us money back / gave us credit. Deliberately its
+/// own enum, not a reuse of `SupplierPurchaseReturnReason` (Part 5) —
+/// SUPPLIER_RETURN below is a CONSEQUENCE a credit can optionally be
+/// linked to (`SupplierCredit.sourceReturnId`), not the same concept as
+/// "why the return itself happened"; a credit can just as easily exist
+/// with no return behind it at all (OVERPAYMENT, a negotiated
+/// COMMERCIAL_ADJUSTMENT, etc).
+enum SupplierCreditReason {
+  SUPPLIER_RETURN
+  OVERPAYMENT
+  PRICE_ADJUSTMENT
+  QUALITY_ADJUSTMENT
+  COMMERCIAL_ADJUSTMENT
+  OTHER
+}
+
+/// An explicit financial credit a supplier owes back to the shop —
+/// belongs directly to `Supplier` (never only to one purchase), the
+/// exact same "payment belongs to the payer, allocation belongs to the
+/// purchase" shape `SupplierPayment`/`PaymentAllocation` (Part 3)
+/// already establish, reused here rather than inventing a different
+/// relationship style for what is structurally the identical problem:
+/// one credit can settle parts of several purchases, and one purchase
+/// can be settled by several credits over time.
+///
+/// CRITICAL — a SupplierCredit is NEVER created automatically. Nothing
+/// in `createSupplierPurchaseReturnAction` (Part 5) or anywhere else in
+/// this codebase creates one as a side effect; an admin must explicitly
+/// call `createSupplierCreditAction`
+/// (src/server/actions/admin/supplier-credits.ts) — seeing this row
+/// exist is proof someone deliberately recorded it, optionally
+/// referencing a return via `sourceReturnId` purely as CONTEXT ("this
+/// credit relates to that return"), never as a causal/automatic link.
+///
+/// No `remaining`/`balance` column — exactly like
+/// `SupplierPurchase.totalInPaise`'s own "outstanding is always
+/// derived" precedent, a credit's unallocated amount is always
+/// `amountInPaise - sum(CreditAllocation) - sum(SupplierRefund linked to
+/// this credit)`, computed on read (see `getSupplierCreditDetail`,
+/// src/server/queries/admin/supplier-credits.ts) so the two spending
+/// paths (allocate to a purchase, or hand back as a refund) can never
+/// double-count against each other or drift out of sync with the rows
+/// that actually justify them.
+///
+/// `creditNumber` mirrors `SupplierPurchaseReturn.returnNumber`'s own
+/// identifier-not-a-database-key convention, with its own "SC-" prefix
+/// (src/lib/supplier-credit-number.ts) distinct from every other
+/// generator in this schema.
+model SupplierCredit {
+  id           String               @id @default(cuid())
+  supplierId   String
+  creditNumber String               @unique
+  creditDate   DateTime
+  amountInPaise Int
+  reason       SupplierCreditReason
+  reference    String?
+  notes        String?
+
+  /// Optional CONTEXT only — see this model's own doc comment above for
+  /// why this is never treated as "the return caused this credit."
+  sourceReturnId String?
+
+  createdByAdminUserId String?
+
+  supplier           Supplier                @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  sourceReturn       SupplierPurchaseReturn? @relation(fields: [sourceReturnId], references: [id], onDelete: SetNull)
+  createdByAdminUser AdminUser?              @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  allocations        CreditAllocation[]
+  /// Refunds that drew down THIS credit's balance — see
+  /// SupplierRefund.sourceCreditId below.
+  refunds            SupplierRefund[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+  @@index([creditDate])
+  @@index([sourceReturnId])
+  @@map("supplier_credits")
+}
+
+/// How much of one SupplierCredit was applied against one
+/// SupplierPurchase — structurally identical to `PaymentAllocation`
+/// (Part 3), reusing the exact same many-to-many join shape rather than
+/// inventing a parallel one. A purchase's true outstanding balance is
+/// therefore `total - sum(PaymentAllocation) - sum(CreditAllocation)`
+/// (see `getPurchasePaymentInfo`, src/server/queries/admin/
+/// supplier-payments.ts, updated this phase to add the credit term —
+/// see that function's own doc comment for why extending it here rather
+/// than leaving Part 3's payment-allocation ceiling unaware of credits
+/// was necessary for correctness).
+///
+/// `purchaseId` uses `onDelete: Restrict`, matching
+/// `PaymentAllocation.purchaseId`'s identical reasoning.
+model CreditAllocation {
+  id            String @id @default(cuid())
+  creditId      String
+  purchaseId    String
+  amountInPaise Int
+
+  credit   SupplierCredit   @relation(fields: [creditId], references: [id], onDelete: Cascade)
+  purchase SupplierPurchase @relation(fields: [purchaseId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([creditId])
+  @@index([purchaseId])
+  @@map("credit_allocations")
+}
+
+/// Money the supplier ACTUALLY sent back (as opposed to a
+/// SupplierCredit, which only records that they owe/owed us — see this
+/// model's own "Credit vs Refund semantics" distinction in the Part 6
+/// brief). Belongs directly to `Supplier`; `sourceCreditId`/
+/// `sourceReturnId` are both optional and independent — a refund can
+/// exist with neither (the supplier simply wired money back with no
+/// prior credit/return on file), with only one, or with both, and
+/// nothing here forces a rigid one-to-one relationship.
+///
+/// `refundMethod` reuses `SupplierPaymentMethod` (Part 3) rather than a
+/// duplicate enum — a refund arriving by UPI/bank transfer/cash/cheque
+/// is the exact same set of real-world methods a payment leaving by
+/// those methods already models.
+///
+/// `receivedByName` is the CRITICAL business field this model exists to
+/// capture: WHO on the supplier's side actually handed/transferred the
+/// money back — deliberately distinct from `createdByAdminUserId` (the
+/// shop STAFF member who typed this record in), the exact same
+/// collected-by-vs-recorded-by distinction `SupplierPayment`
+/// (Part 3) already establishes for money flowing the other direction.
+model SupplierRefund {
+  id             String                @id @default(cuid())
+  supplierId     String
+  refundNumber   String                @unique
+  refundDate     DateTime
+  amountInPaise  Int
+  refundMethod   SupplierPaymentMethod
+  receivedByName String
+  reference      String?
+  notes          String?
+
+  /// Optional — see this model's own doc comment for why these are
+  /// independent, non-rigid links. When `sourceCreditId` is set, this
+  /// refund's amount is validated against that credit's OWN remaining
+  /// balance (amount - already allocated - already refunded) so the
+  /// same credit can never be spent twice — see
+  /// `createSupplierRefundAction`
+  /// (src/server/actions/admin/supplier-refunds.ts).
+  sourceCreditId String?
+  sourceReturnId String?
+
+  createdByAdminUserId String?
+
+  supplier           Supplier                     @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  sourceCredit       SupplierCredit?              @relation(fields: [sourceCreditId], references: [id], onDelete: SetNull)
+  sourceReturn       SupplierPurchaseReturn?      @relation(fields: [sourceReturnId], references: [id], onDelete: SetNull)
+  createdByAdminUser AdminUser?                    @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  attachments        SupplierRefundAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+  @@index([refundDate])
+  @@index([sourceCreditId])
+  @@index([sourceReturnId])
+  @@map("supplier_refunds")
+}
+
+/// One proof/receipt image for a SupplierRefund — same "paste an
+/// already-hosted URL" convention as SupplierPaymentAttachment/
+/// SupplierPurchaseBillAttachment (see those models' own doc comments
+/// for why: this codebase still has no real binary file-upload/storage
+/// infrastructure, and inventing one now would be exactly the
+/// speculative infrastructure decision every prior phase has already
+/// declined to make).
+model SupplierRefundAttachment {
+  id               String  @id @default(cuid())
+  refundId         String
+  url              String
+  originalFilename String?
+
+  refund SupplierRefund @relation(fields: [refundId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([refundId])
+  @@map("supplier_refund_attachments")
+}

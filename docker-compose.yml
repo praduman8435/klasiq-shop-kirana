@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      # Read from the project's own .env (Docker Compose auto-loads a
+      # .env file in the same directory for variable interpolation) —
+      # never a hardcoded literal here, even for local-only dev
+      # credentials. The `:-` fallback keeps `docker compose up` working
+      # with zero setup for a fresh clone; override in your own .env to
+      # use different local credentials.
+      POSTGRES_USER: ${POSTGRES_USER:-shop}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shop_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-shop}
+    ports:
+      # Pre-deployment hardening (2026-08-10) — bound to loopback only.
+      # The short "5433:5432" form binds to 0.0.0.0 (every network
+      # interface) by default; on a bare host with a public IP and no
+      # firewall, that would expose Postgres to the entire internet,
+      # protected only by its password. The app itself always connects
+      # via `localhost:5433` (see DATABASE_URL in .env/.env.example) and
+      # runs on the same host as this container, so nothing legitimate
+      # ever needs this port reachable from outside the host.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - shop_db_data:/var/lib/postgresql/data
+    healthcheck:
+      # $$ escapes to a literal $ so this is expanded by the CONTAINER's
+      # own shell at runtime (reading the POSTGRES_USER/POSTGRES_DB
+      # Compose already injected above), not hardcoded a second time here.
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-shop} -d $${POSTGRES_DB:-shop}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  shop_db_data:
