@@ -56,7 +56,7 @@ function getPromoSlides(firstAisleHref: string): PromoSlide[] {
 
 /**
  * Homepage, built to the quick-commerce standard (Blinkit/Zepto craft bar)
- * in Klasiq red and black: a one-line welcome, swipeable fact banners, a
+ * in Klasiq red and black: swipeable fact banners, a
  * shop-by-category tile grid, then one swipeable shelf per aisle. Search
  * lives in the sticky header, so the page opens straight onto products.
  */
@@ -74,12 +74,10 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-7 px-4 pb-10 pt-4 sm:gap-10 sm:px-6 sm:pt-6">
-      <div className="flex flex-col gap-4">
-        <h1 className="max-w-xl text-balance text-2xl font-extrabold leading-[1.1] sm:text-3xl">
-          {BRAND.heroHeadline}
-        </h1>
-        <PromoCarousel slides={getPromoSlides(firstAisleHref)} />
-      </div>
+      {/* The page's one heading, for screen readers and search engines —
+          visually the red header's wordmark already names the store. */}
+      <h1 className="sr-only">{BRAND.name} — groceries and daily essentials</h1>
+      <PromoCarousel slides={getPromoSlides(firstAisleHref)} />
 
       {categories.length > 0 && (
         <section aria-labelledby="categories-heading" className="scroll-mt-32">

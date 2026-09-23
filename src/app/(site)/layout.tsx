@@ -15,7 +15,7 @@ import { BRAND } from "@/lib/constants";
  *   colour (ADD/steppers, cart bar, primary buttons); near-black ink.
  * STORY: search or tap a category, add items straight from the tile with
  *   an in-place stepper, watch the floating bag bar total, check out.
- * FIRST VIEWPORT: red header + search, a one-line welcome, swipeable fact
+ * FIRST VIEWPORT: red header + search, then swipeable fact
  *   banners (from live config only), then the category tile grid.
  */
 

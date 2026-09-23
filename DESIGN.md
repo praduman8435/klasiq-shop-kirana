@@ -175,7 +175,7 @@ In Stock green, Low Stock amber and Error red are text colours only (stock label
 
 Archivo throughout (loaded as `--font-archivo`, mapped to `--font-sans`/`--font-heading` inside `.store-theme`), at default width.
 
-- **Headline** (800, 24px; 30px from 640px): the homepage lead line and page titles.
+- **Headline** (800, 24px; 30px from 640px): page titles (the homepage has no visible headline — its heading is screen-reader-only).
 - **Section** (800, 18px; 20px from 640px): "Shop by category", shelf titles.
 - **Banner** (800, 20px): banner titles.
 - **Body** (400, 14px) and **caption** (600, 12px): tile names are 14px/600, brand and pack size 12px.
@@ -186,7 +186,7 @@ Archivo throughout (loaded as `--font-archivo`, mapped to `--font-sans`/`--font-
 
 ## Layout
 
-A centred column capped at 72rem with 16px gutters (24px from 640px). The homepage stacks: lead line → banner carousel → category grid → one shelf per aisle, with 28px section gaps (40px from 640px).
+A centred column capped at 72rem with 16px gutters (24px from 640px). The homepage stacks: banner carousel → category grid → one shelf per aisle, with 28px section gaps (40px from 640px).
 
 - **Banner carousel**: 86%-wide slides with scroll-snap on phones (the next slide peeks), dots below that follow the visible slide; a static 3-column row from 640px.
 - **Category grid**: 4 columns on phones, 8 from 640px; square soft-red tiles with a 32–40px icon and a 2-line label.

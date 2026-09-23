@@ -14,9 +14,6 @@ export const BRAND = {
   /** Plays on the brand name itself (Klasiq/"classic") — deliberately
    * category-neutral, so it holds as the kirana catalog grows. */
   tagline: "Classic quality, modern shopping.",
-  /** The homepage's lead line — what the store sells and why it's
-   * different from an app warehouse: the shop down the road. */
-  heroHeadline: "All your daily essentials, from the store next door.",
   description:
     "Atta, dal, oil, masale, snacks and everyday household essentials from your neighbourhood store — order online for pickup or home delivery.",
   /** Deliberately vague on an exact founding year — see PHASE_3_REPORT.md

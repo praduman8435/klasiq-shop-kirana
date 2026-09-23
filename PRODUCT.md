@@ -48,7 +48,7 @@ The neighbourhood kirana store, online — not an anonymous quick-commerce app. 
 - Tagline: "Classic quality, modern shopping."
 - Typography (storefront): Archivo throughout. The admin panel keeps Fraunces + Plus Jakarta Sans.
 - **Visual standard (owner's explicit choice):** the storefront follows the quick-commerce category standard — Blinkit and Zepto are the craft bar — in **Klasiq red and black**: red app header with a sticky search, ADD buttons that turn into in-place steppers, swipeable shelves, a floating cart bar. Positioning stays "the neighbourhood store"; the look is deliberately the familiar app pattern customers already know.
-- Homepage lead line: "All your daily essentials, from the store next door." Banner copy is built only from live store config (delivery radius/threshold, pickup, payment) — never invented offers, discounts or delivery times.
+- Homepage has no visible headline (owner's choice) — it opens straight onto the banners. Banner copy is built only from live store config (delivery radius/threshold, pickup, payment) — never invented offers, discounts or delivery times.
 - **To confirm for this store** (carried over from the original Klasiq fork, not yet verified for the kirana store — do not treat as fact): the heritage line "Serving local families for around 30 years", the backing store names "Milan Readymade & General Store" and "Shubham Vashtralaya", and the store phone number / Maps link in `STORE_CONTACT`.
 
 ## Evidence on Hand
