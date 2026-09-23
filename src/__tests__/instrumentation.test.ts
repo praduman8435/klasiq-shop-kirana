@@ -37,16 +37,19 @@ describe("register — env var validation", () => {
     await expect(register()).resolves.toBeUndefined();
   });
 
-  it("throws listing every missing WhatsApp variable when NODE_ENV=production", async () => {
+  it("starts in production without WhatsApp, warning with every missing WhatsApp variable", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("DATABASE_URL", "postgresql://user:pass@prod-host:5432/db?sslmode=require");
     vi.stubEnv("WHATSAPP_API_TOKEN", "");
     vi.stubEnv("WHATSAPP_PHONE_NUMBER_ID", "");
     vi.stubEnv("WHATSAPP_OTP_TEMPLATE_NAME", "");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
-    await expect(register()).rejects.toThrow(
-      /WHATSAPP_API_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_OTP_TEMPLATE_NAME/,
+    await expect(register()).resolves.toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/WHATSAPP_API_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_OTP_TEMPLATE_NAME/),
     );
+    warn.mockRestore();
   });
 
   it("succeeds in production once every required variable is set", async () => {

@@ -5,6 +5,8 @@ import { normalizePhoneNumber } from "@/lib/phone";
 import { OTP_CONFIG } from "@/lib/otp-config";
 import { hashSecret, verifySecretHash } from "@/lib/scrypt-hash";
 import { getOtpProvider, type OtpProvider } from "@/server/otp/provider";
+import { isWhatsAppConfigured } from "@/server/whatsapp/config";
+import { STORE_CONTACT } from "@/lib/constants";
 
 const PURPOSE = "CUSTOMER_PORTAL_LOGIN" as const;
 
@@ -103,12 +105,17 @@ export async function requestOtp(rawPhone: string, provider?: OtpProvider): Prom
     await activeProvider.sendOtp({ phoneNormalized, code, purpose: PURPOSE });
   } catch {
     // Never forward the provider's raw error (which could name internal
-    // infrastructure) to the customer.
+    // infrastructure) to the customer. A store that hasn't set WhatsApp up
+    // at all gets a "call us" message rather than a "try again" that would
+    // never succeed.
+    const notSetUp = process.env.NODE_ENV === "production" && !isWhatsAppConfigured();
     return {
       success: false,
       error: {
         type: "PROVIDER_UNAVAILABLE",
-        message: "We couldn't send a verification code right now. Please try again shortly.",
+        message: notSetUp
+          ? `Order tracking by phone isn't available yet. Please call the store on ${STORE_CONTACT.phone} for an update on your order.`
+          : "We couldn't send a verification code right now. Please try again shortly.",
       },
     };
   }

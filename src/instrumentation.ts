@@ -32,10 +32,19 @@ export async function register() {
   // order/return/invoice WhatsApp notification would be unable to send at
   // all without these. Optional outside production, where the console
   // stand-ins cover local development with zero configuration.
+  // WhatsApp is optional: a store can go live before its WhatsApp
+  // Business API is set up. Without it, order messages are skipped and
+  // phone-OTP order tracking asks the customer to call the store instead.
   if (process.env.NODE_ENV === "production") {
-    if (!process.env.WHATSAPP_API_TOKEN) missing.push("WHATSAPP_API_TOKEN");
-    if (!process.env.WHATSAPP_PHONE_NUMBER_ID) missing.push("WHATSAPP_PHONE_NUMBER_ID");
-    if (!process.env.WHATSAPP_OTP_TEMPLATE_NAME) missing.push("WHATSAPP_OTP_TEMPLATE_NAME");
+    const whatsappMissing = ["WHATSAPP_API_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_OTP_TEMPLATE_NAME"].filter(
+      (name) => !process.env[name],
+    );
+    if (whatsappMissing.length > 0) {
+      console.warn(
+        `Klasiq startup notice: WhatsApp is not configured (missing ${whatsappMissing.join(", ")}). ` +
+          "Order messages are disabled and Track Orders will ask customers to call the store.",
+      );
+    }
   }
 
   if (missing.length > 0) {

@@ -14,6 +14,18 @@ import type { WhatsAppTransportConfig } from "@/server/whatsapp/client";
  * if anything required is missing, exactly like
  * `createWhatsAppOtpProviderFromEnv` did before this extraction.
  */
+/** Whether the WhatsApp Business API credentials are present at all. When
+ * they aren't (a store that hasn't set WhatsApp up yet), order messages
+ * are skipped and phone-OTP order tracking tells the customer to call the
+ * store — the rest of the storefront works normally. */
+export function isWhatsAppConfigured(): boolean {
+  return Boolean(
+    process.env.WHATSAPP_API_TOKEN &&
+      process.env.WHATSAPP_PHONE_NUMBER_ID &&
+      process.env.WHATSAPP_OTP_TEMPLATE_NAME,
+  );
+}
+
 export function getWhatsAppTransportConfig(): WhatsAppTransportConfig {
   const apiToken = process.env.WHATSAPP_API_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
