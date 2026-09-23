@@ -6,7 +6,8 @@ import { MobileNav } from "@/components/site/mobile-nav";
 import { SearchBar } from "@/components/site/search-bar";
 import { BagLink } from "@/components/site/bag-link";
 import { TrackOrdersLink } from "@/components/site/track-orders-link";
-import { BRAND } from "@/lib/constants";
+import { BRAND, STORE_CONTACT } from "@/lib/constants";
+import { basketItemCount, getBasket } from "@/lib/basket";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
 
 /** The one-line "how you get it" under the wordmark — only what config
@@ -26,12 +27,27 @@ function getFulfilmentLine(): string {
  * row; on phones it takes its own full-width row.
  */
 export async function SiteHeader({ storeName }: { storeName: string }) {
-  const [categories, suggestions] = await Promise.all([getHeaderCategories(), getSearchSuggestions()]);
+  const [categories, suggestions, basket] = await Promise.all([
+    getHeaderCategories(),
+    getSearchSuggestions(),
+    getBasket(),
+  ]);
 
   return (
     <header className="sticky top-0 z-30 bg-primary text-primary-foreground shadow-[0_1px_0_oklch(0.44_0.18_27)]">
       <div className="mx-auto flex max-w-6xl items-center gap-2 px-2 pb-2 pt-2 sm:gap-4 sm:px-6 md:pb-3 md:pt-3">
-        <MobileNav categories={categories} />
+        <MobileNav
+          categories={categories}
+          bagCount={basketItemCount(basket)}
+          wordmark={BRAND.wordmark}
+          store={{
+            fulfilmentLine: getFulfilmentLine(),
+            serviceableAreaNote: FULFILLMENT_CONFIG.serviceableAreaNote,
+            phone: STORE_CONTACT.phone,
+            phoneHref: STORE_CONTACT.phoneHref,
+            mapsUrl: STORE_CONTACT.mapsUrl,
+          }}
+        />
 
         <Link
           href="/"
