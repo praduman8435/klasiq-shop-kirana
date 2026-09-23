@@ -25,7 +25,7 @@ import type { ProductWithVariants } from "@/types/catalog";
 /**
  * The product as its own pack's declaration panel: brand in label caps,
  * the product name, then a ruled NET QTY | MRP table exactly as printed on
- * the back of the pack — with the shop's yellow price sticker slapped on
+ * the back of the pack — with the shop's red price sticker slapped on
  * the image. Same shared component behind every category page, /search,
  * and the homepage shelf.
  */
@@ -116,7 +116,7 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
         </h3>
 
         {selectedVariant && (
-          <dl className="mt-auto grid grid-cols-[3fr_2fr] border border-foreground [&>div]:min-w-0 [&>div]:px-1.5 [&>div]:py-1.5 [&>div+div]:border-l [&>div+div]:border-foreground">
+          <dl className="mt-auto grid grid-cols-[3fr_2fr] border border-foreground [&>div]:min-w-0 [&>div]:px-1.5 [&>div]:pb-1 [&>div]:pt-1.5 [&>div+div]:border-l [&>div+div]:border-foreground">
             <div>
               <dt className="decl-label">Net qty</dt>
               <dd className="mt-0.5">
@@ -125,7 +125,7 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
                     <SelectTrigger
                       size="sm"
                       aria-label={`Select pack size for ${product.name}`}
-                      className="-ml-1 h-6 w-full min-w-0 gap-0.5 rounded-sm border-0 bg-transparent px-1 text-sm font-semibold text-foreground shadow-none hover:bg-muted"
+                      className="-ml-1 h-8 w-[calc(100%+0.25rem)] min-w-0 gap-0.5 border-0 bg-transparent px-1 text-sm font-semibold text-foreground shadow-none hover:bg-muted"
                     >
                       <SelectValue>{selectedVariant.size}</SelectValue>
                     </SelectTrigger>
@@ -142,13 +142,13 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <span className="block text-sm font-semibold leading-tight [overflow-wrap:anywhere] py-0.5">{selectedVariant.size}</span>
+                  <span className="flex min-h-8 items-center text-sm font-semibold leading-tight [overflow-wrap:anywhere]">{selectedVariant.size}</span>
                 )}
               </dd>
             </div>
             <div>
               <dt className="decl-label">MRP</dt>
-              <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums leading-6">
+              <dd className="flex min-h-8 items-center truncate text-sm font-semibold tabular-nums">
                 {selectedVariant.mrpInPaise === null ? (
                   <span className="text-muted-foreground">—</span>
                 ) : (
@@ -176,7 +176,7 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
           disabled={!canOrder || isPending}
           onClick={addToBag}
           className={cn(
-            "mt-2 flex h-10 w-full items-center justify-center gap-1.5 rounded-sm text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring active:translate-y-px disabled:pointer-events-none",
+            "mt-2 flex h-11 w-full items-center justify-center gap-1.5 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring active:translate-y-px disabled:pointer-events-none",
             !canOrder
               ? "border border-dashed border-foreground/40 text-muted-foreground"
               : justAdded

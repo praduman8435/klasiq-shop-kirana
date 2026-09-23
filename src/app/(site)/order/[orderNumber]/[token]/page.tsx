@@ -47,8 +47,8 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
         </p>
       </div>
 
-      <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-accent/40 bg-accent/10 p-3.5">
-        <Bookmark className="mt-0.5 size-4 shrink-0 text-accent-foreground" aria-hidden />
+      <div className="mt-5 flex items-start gap-2.5 border border-foreground bg-card p-3.5">
+        <Bookmark className="mt-0.5 size-4 shrink-0 text-sticker" aria-hidden />
         <p className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">Save this page&apos;s link</span> — it&apos;s the
           only way to view this order again without verifying your mobile number.

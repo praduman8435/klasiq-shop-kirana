@@ -103,21 +103,21 @@
 }
 
 /**
- * Storefront world — "Pack Declaration Panel". Every product is shown the
- * way its own pack states it: brand, net quantity and a boxed MRP in
- * black declaration print on pack-white board, with the shop's
- * fluorescent price sticker slapped on top. Scoped to `.store-theme`
+ * Storefront world — "Pack Declaration Panel", in Klasiq red and black.
+ * Every product is shown the way its own pack states it: brand, net
+ * quantity and a boxed MRP in black declaration print on pack-white
+ * board, with the shop's red price sticker slapped on top. Scoped to `.store-theme`
  * (applied by the `(site)` layout and re-applied on the storefront's
  * portaled popups/toasts) so `:root`, `.admin-theme` and `.dark` — which
  * the admin panel depends on — are untouched.
  *
- *   --primary   declaration black: the one "act here" fill (buttons,
- *               selected pack size).
- *   --sticker   fluorescent price-sticker yellow: prices and the bag
- *               count ONLY, always with black text on it, never as text
- *               colour on white.
- *   --stamp     violet inkjet batch-stamp: savings vs MRP, order numbers,
- *               focus rings.
+ *   --primary   declaration black: structure and every action fill
+ *               (buttons, selected pack size, the header band).
+ *   --sticker   Klasiq red: the brand's voice, spent only on the price
+ *               sticker, the bag count and the "Added" confirmation — one
+ *               red mark per product, always with white text on it.
+ *   --stamp     black inkjet batch-stamp: savings vs MRP.
+ *   --ring      Klasiq red focus ring.
  *
  * Light only, by use scene: a neighbourhood customer reordering on a
  * budget Android phone, often in daylight.
@@ -135,16 +135,16 @@
   --secondary-foreground: oklch(0.19 0.004 270);
   --muted: oklch(0.945 0.004 250);
   --muted-foreground: oklch(0.42 0.012 275);
-  --accent: oklch(0.887 0.182 95.3);
-  --accent-foreground: oklch(0.19 0.004 270);
+  --accent: oklch(0.54 0.21 27);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.52 0.2 27);
   --border: oklch(0.84 0.005 260);
   --input: oklch(0.19 0.004 270 / 55%);
-  --ring: oklch(0.45 0.19 280 / 55%);
+  --ring: oklch(0.54 0.21 27 / 60%);
   --radius: 0;
-  --sticker: oklch(0.887 0.182 95.3);
-  --sticker-foreground: oklch(0.19 0.004 270);
-  --stamp: oklch(0.45 0.19 280);
+  --sticker: oklch(0.54 0.21 27);
+  --sticker-foreground: oklch(1 0 0);
+  --stamp: oklch(0.19 0.004 270);
 
   --font-sans: var(--font-archivo);
   --font-heading: var(--font-archivo);

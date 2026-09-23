@@ -1,3 +1,4 @@
+import { AisleRail } from "@/components/site/aisle-rail";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -61,6 +62,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
 
   return (
     <CategoryProductGrid
+      nav={<AisleRail currentSlug={category.slug} />}
       title={category.name}
       description={category.description ?? undefined}
       products={products}

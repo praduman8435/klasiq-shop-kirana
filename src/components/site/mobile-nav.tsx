@@ -30,7 +30,7 @@ export function MobileNav({ categories }: { categories: { slug: string; name: st
             type="button"
             variant="ghost"
             size="icon"
-            className="size-11 md:hidden [&_svg:not([class*='size-'])]:size-5"
+            className="size-11 text-background hover:bg-background/15 hover:text-background md:hidden [&_svg:not([class*='size-'])]:size-5"
             aria-label="Open menu"
           />
         }

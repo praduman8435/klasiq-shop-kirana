@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-23T10:45:28.753Z",
+  "generatedAt": "2026-09-23T11:13:11.786Z",
   "title": "Design System: Klasiq Storefront",
   "extensions": {
     "colorMeta": {
@@ -19,34 +19,19 @@
           "oklch(0.95 0.004 270)"
         ]
       },
-      "sticker-yellow": {
+      "klasiq-red": {
         "role": "secondary",
-        "displayName": "Sticker Yellow",
-        "canonical": "oklch(0.887 0.182 95.3)",
+        "displayName": "Klasiq Red",
+        "canonical": "oklch(0.54 0.21 27)",
         "tonalRamp": [
-          "oklch(0.15 0.182 95.3)",
-          "oklch(0.27 0.182 95.3)",
-          "oklch(0.39 0.182 95.3)",
-          "oklch(0.51 0.182 95.3)",
-          "oklch(0.63 0.182 95.3)",
-          "oklch(0.75 0.182 95.3)",
-          "oklch(0.87 0.182 95.3)",
-          "oklch(0.95 0.182 95.3)"
-        ]
-      },
-      "inkjet-violet": {
-        "role": "tertiary",
-        "displayName": "Inkjet Violet",
-        "canonical": "oklch(0.45 0.19 280)",
-        "tonalRamp": [
-          "oklch(0.15 0.19 280)",
-          "oklch(0.27 0.19 280)",
-          "oklch(0.39 0.19 280)",
-          "oklch(0.51 0.19 280)",
-          "oklch(0.63 0.19 280)",
-          "oklch(0.75 0.19 280)",
-          "oklch(0.87 0.19 280)",
-          "oklch(0.95 0.19 280)"
+          "oklch(0.15 0.21 27)",
+          "oklch(0.27 0.21 27)",
+          "oklch(0.39 0.21 27)",
+          "oklch(0.51 0.21 27)",
+          "oklch(0.63 0.21 27)",
+          "oklch(0.75 0.21 27)",
+          "oklch(0.87 0.21 27)",
+          "oklch(0.95 0.21 27)"
         ]
       },
       "pack-white": {
@@ -192,7 +177,7 @@
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Page titles (30-36px) and section titles (24-30px)."
+        "purpose": "Page titles (30-36px), section titles (24-30px), panel titles (20px)."
       },
       "title": {
         "displayName": "Title",
@@ -208,25 +193,30 @@
       },
       "wordmark": {
         "displayName": "Wordmark",
-        "purpose": "KLASIQ in header and footer."
+        "purpose": "KLASIQ with a red full stop; near-white on the header band, black in the footer."
       },
       "price": {
         "displayName": "Price",
-        "purpose": "Price sticker figures; 18px on panels, 30-36px on the product page."
+        "purpose": "Price sticker figures; 18px on panels and bars, 30-36px on the product page, 12px in the bag count."
       }
     },
     "shadows": [
       {
         "name": "sticker-lift",
         "value": "0 1px 1px oklch(0.19 0.004 270 / 18%), 0 3px 8px -2px oklch(0.19 0.004 270 / 22%)",
-        "purpose": "The price sticker only; everything else is flat."
+        "purpose": "Every price sticker, including the bag count and bar totals."
+      },
+      {
+        "name": "floating-bar-lift",
+        "value": "0 6px 20px -6px oklch(0.19 0.004 270 / 55%)",
+        "purpose": "The floating bag and checkout bars on phones only."
       }
     ],
     "motion": [
       {
         "name": "price-gun",
         "value": "price-gun 320ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "The one authored motion: the bag-count sticker stamps on when an item is added (rotate -9deg scale 1.35 → -2deg 0.94 → -3deg 1)."
+        "purpose": "The one authored motion: the bag-count sticker and the floating bar total stamp on when an item is added (rotate -9deg scale 1.35 → -2deg 0.94 → -3deg 1)."
       },
       {
         "name": "state-transition",
@@ -270,7 +260,7 @@
       "refersTo": "button-primary",
       "description": "The only action fill: Add to Bag, Search, Bag, Proceed to Checkout.",
       "html": "<button class=\"ds-btn-primary\">Add to Bag</button>",
-      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;height:40px;min-width:180px;padding:0 20px;background:oklch(0.19 0.004 270);color:#fff;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:700;border:0;border-radius:0;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;height:44px;min-width:180px;padding:0 20px;background:oklch(0.19 0.004 270);color:#fff;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:14px;font-weight:700;border:0;border-radius:0;cursor:pointer;transition:background-color .15s}.ds-btn-primary:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-btn-primary:active{transform:translateY(1px)}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     },
     {
       "name": "Outline Button",
@@ -278,7 +268,7 @@
       "refersTo": "button-outline",
       "description": "Secondary action (Buy Now, Track Orders, clear search): black rule on shelf grey.",
       "html": "<button class=\"ds-btn-outline\">Buy Now</button>",
-      "css": ".ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;height:48px;min-width:200px;padding:0 20px;background:oklch(0.965 0.003 250);color:oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:16px;font-weight:700;border:1px solid oklch(0.19 0.004 270);border-radius:0;cursor:pointer;transition:background-color .15s}.ds-btn-outline:hover{background:oklch(0.945 0.004 250)}.ds-btn-outline:active{transform:translateY(1px)}.ds-btn-outline:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+      "css": ".ds-btn-outline{display:inline-flex;align-items:center;justify-content:center;height:48px;min-width:200px;padding:0 20px;background:oklch(0.965 0.003 250);color:oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-size:16px;font-weight:700;border:1px solid oklch(0.19 0.004 270);border-radius:0;cursor:pointer;transition:background-color .15s}.ds-btn-outline:hover{background:oklch(0.945 0.004 250)}.ds-btn-outline:active{transform:translateY(1px)}.ds-btn-outline:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     },
     {
       "name": "Hero Search",
@@ -286,23 +276,23 @@
       "refersTo": "input-search-hero",
       "description": "Boxed search field butted into a black Search button.",
       "html": "<form class=\"ds-search\" role=\"search\" onsubmit=\"return false\"><span class=\"ds-search-field\"><svg class=\"ds-search-icon\" viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"11\" cy=\"11\" r=\"8\"/><path d=\"m21 21-4.3-4.3\"/></svg><input type=\"search\" aria-label=\"Search products\" placeholder=\"Search atta, dal, soap, brands...\"></span><button type=\"submit\">Search</button></form>",
-      "css": ".ds-search{display:flex;width:100%;max-width:560px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-search-field{position:relative;flex:1;min-width:0}.ds-search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:oklch(0.42 0.012 275);pointer-events:none}.ds-search input{width:100%;height:52px;padding:0 12px 0 44px;background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);border-right:0;border-radius:0;font:inherit;font-size:16px;outline:none}.ds-search input::placeholder{color:oklch(0.42 0.012 275)}.ds-search input:focus-visible{box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}.ds-search button{height:52px;padding:0 20px;background:oklch(0.19 0.004 270);color:#fff;border:0;border-radius:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:background-color .15s}.ds-search button:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-search button:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+      "css": ".ds-search{display:flex;width:100%;max-width:560px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-search-field{position:relative;flex:1;min-width:0}.ds-search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:oklch(0.42 0.012 275);pointer-events:none}.ds-search input{width:100%;height:52px;padding:0 12px 0 44px;background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);border-right:0;border-radius:0;font:inherit;font-size:16px;outline:none}.ds-search input::placeholder{color:oklch(0.42 0.012 275)}.ds-search input:focus-visible{box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}.ds-search button{height:52px;padding:0 20px;background:oklch(0.19 0.004 270);color:#fff;border:0;border-radius:0;font:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:background-color .15s}.ds-search button:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-search button:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     },
     {
       "name": "Price Sticker",
       "kind": "custom",
       "refersTo": "price-sticker",
-      "description": "The shop's fluorescent price sticker: one per product, -3deg, black text.",
+      "description": "The shop's Klasiq-red price sticker: one per product, -3deg, white text.",
       "html": "<span class=\"ds-sticker\"><span class=\"ds-sr\">Price </span>₹62</span> <span class=\"ds-sticker ds-sticker-lg\">₹135</span> <span class=\"ds-sticker ds-sticker-out\">Sold out</span>",
-      "css": ".ds-sticker{display:inline-flex;align-items:baseline;padding:6px 8px;margin:8px;background:oklch(0.887 0.182 95.3);color:oklch(0.19 0.004 270);border-radius:3px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;line-height:1;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%)}.ds-sticker-lg{padding:8px 12px;font-size:36px}.ds-sticker-out{background:#fff;border:1px solid oklch(0.19 0.004 270);font-size:12px;text-transform:uppercase;letter-spacing:.025em}.ds-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}"
+      "css": ".ds-sticker{display:inline-flex;align-items:baseline;padding:6px 8px;margin:8px;background:oklch(0.54 0.21 27);color:#fff;border-radius:3px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:18px;font-variant-numeric:tabular-nums;line-height:1;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%)}.ds-sticker-lg{padding:8px 12px;font-size:36px}.ds-sticker-out{background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);font-size:12px;text-transform:uppercase;letter-spacing:.025em}.ds-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}"
     },
     {
       "name": "Savings Stamp",
       "kind": "custom",
       "refersTo": "savings-stamp",
-      "description": "Violet inkjet SAVE stamp; only when price is under MRP.",
+      "description": "Black-outline batch-stamp SAVE mark; only when price is strictly under MRP.",
       "html": "<span class=\"ds-stamp\">Save ₹15</span>",
-      "css": ".ds-stamp{display:inline-block;padding:4px 6px;border:1px solid oklch(0.45 0.19 280);color:oklch(0.45 0.19 280);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase;font-variant-numeric:tabular-nums;transform:rotate(-2deg)}"
+      "css": ".ds-stamp{display:inline-block;padding:4px 6px;border:1px solid oklch(0.19 0.004 270);color:oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase;font-variant-numeric:tabular-nums;transform:rotate(-2deg)}"
     },
     {
       "name": "Pack Panel",
@@ -310,7 +300,7 @@
       "refersTo": "pack-panel",
       "description": "Product card as the pack's declaration panel: brand, name, NET QTY | MRP box, stamp, black CTA.",
       "html": "<article class=\"ds-panel\"><div class=\"ds-panel-img\"><svg viewBox=\"0 0 24 24\" width=\"44\" height=\"44\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M2 22 16 8\"/><path d=\"M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z\"/><path d=\"M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z\"/><path d=\"M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z\"/><path d=\"M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z\"/></svg><span class=\"ds-panel-sticker\">₹135</span></div><div class=\"ds-panel-body\"><p class=\"ds-panel-brand\">India Gate</p><h3 class=\"ds-panel-name\">Basmati Rice</h3><dl class=\"ds-panel-decl\"><div><dt>Net qty</dt><dd>1 kg</dd></div><div><dt>MRP</dt><dd>₹150</dd></div></dl><p class=\"ds-panel-meta\"><span class=\"ds-panel-stock\">In Stock</span><span class=\"ds-panel-stamp\">Save ₹15</span></p><button class=\"ds-panel-cta\">Add to Bag</button></div></article>",
-      "css": ".ds-panel{width:220px;background:#fff;border:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;color:oklch(0.19 0.004 270)}.ds-panel-img{position:relative;aspect-ratio:5/4;display:flex;align-items:center;justify-content:center;background:oklch(0.945 0.004 250);color:oklch(0.42 0.012 275 / 75%)}.ds-panel-sticker{position:absolute;right:8px;bottom:8px;padding:6px 8px;background:oklch(0.887 0.182 95.3);color:oklch(0.19 0.004 270);border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:18px;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%)}.ds-panel-body{padding:8px 12px 12px}.ds-panel-brand,.ds-panel-decl dt,.ds-panel-stamp{font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase}.ds-panel-brand{margin:0;color:oklch(0.42 0.012 275)}.ds-panel-name{margin:4px 0 8px;font-size:14px;font-weight:600;line-height:1.375;font-variation-settings:\"wdth\" 80}.ds-panel-decl{display:grid;grid-template-columns:3fr 2fr;margin:0;border:1px solid oklch(0.19 0.004 270)}.ds-panel-decl div{padding:6px}.ds-panel-decl div+div{border-left:1px solid oklch(0.19 0.004 270)}.ds-panel-decl dd{margin:2px 0 0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}.ds-panel-meta{display:flex;justify-content:space-between;align-items:center;margin:8px 0 0;font-size:12px;font-weight:600}.ds-panel-stock{color:oklch(0.508 0.118 165.612)}.ds-panel-stamp{padding:4px 6px;border:1px solid oklch(0.45 0.19 280);color:oklch(0.45 0.19 280);transform:rotate(-2deg)}.ds-panel-cta{margin-top:8px;width:100%;height:40px;background:oklch(0.19 0.004 270);color:#fff;border:0;border-radius:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background-color .15s}.ds-panel-cta:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-panel-cta:active{transform:translateY(1px)}.ds-panel-cta:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+      "css": ".ds-panel{width:220px;background:#fff;border:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;color:oklch(0.19 0.004 270)}.ds-panel-img{position:relative;aspect-ratio:5/4;display:flex;align-items:center;justify-content:center;background:oklch(0.945 0.004 250);color:oklch(0.42 0.012 275 / 75%)}.ds-panel-sticker{position:absolute;right:8px;bottom:8px;padding:6px 8px;background:oklch(0.54 0.21 27);color:#fff;border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:18px;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%)}.ds-panel-body{padding:8px 12px 12px}.ds-panel-brand,.ds-panel-decl dt,.ds-panel-stamp{font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;line-height:1;letter-spacing:.06em;text-transform:uppercase}.ds-panel-brand{margin:0;color:oklch(0.42 0.012 275)}.ds-panel-name{margin:4px 0 8px;font-size:14px;font-weight:600;line-height:1.375;font-variation-settings:\"wdth\" 80}.ds-panel-decl{display:grid;grid-template-columns:3fr 2fr;margin:0;border:1px solid oklch(0.19 0.004 270)}.ds-panel-decl div{padding:6px}.ds-panel-decl div+div{border-left:1px solid oklch(0.19 0.004 270)}.ds-panel-decl dd{margin:2px 0 0;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}.ds-panel-meta{display:flex;justify-content:space-between;align-items:center;margin:8px 0 0;font-size:12px;font-weight:600}.ds-panel-stock{color:oklch(0.508 0.118 165.612)}.ds-panel-stamp{padding:4px 6px;border:1px solid oklch(0.19 0.004 270);color:oklch(0.19 0.004 270);transform:rotate(-2deg)}.ds-panel-cta{margin-top:8px;width:100%;height:44px;background:oklch(0.19 0.004 270);color:#fff;border:0;border-radius:0;font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background-color .15s}.ds-panel-cta:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-panel-cta:active{transform:translateY(1px)}.ds-panel-cta:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     },
     {
       "name": "Pack Size Chips",
@@ -318,94 +308,112 @@
       "refersTo": "size-chip",
       "description": "Single-choice pack-size radio group on the product page.",
       "html": "<div class=\"ds-chips\" role=\"radiogroup\" aria-label=\"Pack size\"><button role=\"radio\" aria-checked=\"true\" class=\"ds-chip\">1 kg</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-chip\">5 kg</button><button role=\"radio\" aria-checked=\"false\" class=\"ds-chip ds-chip-off\">10 kg</button></div>",
-      "css": ".ds-chips{display:flex;gap:8px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-chip{min-height:48px;min-width:56px;padding:0 16px;background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);border-radius:0;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:background-color .15s}.ds-chip:hover{background:oklch(0.945 0.004 250)}.ds-chip[aria-checked=\"true\"]{background:oklch(0.19 0.004 270);color:#fff}.ds-chip-off{color:oklch(0.42 0.012 275);text-decoration:line-through;opacity:.5}.ds-chip:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+      "css": ".ds-chips{display:flex;gap:8px;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-chip{min-height:48px;min-width:56px;padding:0 16px;background:#fff;color:oklch(0.19 0.004 270);border:1px solid oklch(0.19 0.004 270);border-radius:0;font:inherit;font-size:16px;font-weight:600;cursor:pointer;transition:background-color .15s}.ds-chip:hover{background:oklch(0.945 0.004 250)}.ds-chip[aria-checked=\"true\"]{background:oklch(0.19 0.004 270);color:#fff}.ds-chip-off{color:oklch(0.42 0.012 275);text-decoration:line-through;opacity:.5}.ds-chip:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     },
     {
-      "name": "Header Navigation",
+      "name": "Header Band",
       "kind": "nav",
-      "refersTo": "nav-aisle-active",
-      "description": "White bar ruled off by one black line; Label-style aisle links; black Bag with sticker count.",
-      "html": "<header class=\"ds-nav\"><span class=\"ds-nav-mark\">KLASIQ</span><nav class=\"ds-nav-links\"><a href=\"#\" aria-current=\"page\">Atta, Rice &amp; Dal</a><a href=\"#\">Oil, Ghee &amp; Masale</a><a href=\"#\">Dairy, Bread &amp; Eggs</a></nav><a href=\"#\" class=\"ds-nav-bag\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 10a4 4 0 0 1-8 0\"/><path d=\"M3.103 6.034h17.794\"/><path d=\"M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z\"/></svg>Bag<span class=\"ds-nav-count\">3</span></a></header>",
-      "css": ".ds-nav{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:#fff;border-bottom:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif;color:oklch(0.19 0.004 270)}.ds-nav-mark{font-variation-settings:\"wdth\" 72;font-size:24px;font-weight:800;letter-spacing:.02em;line-height:1}.ds-nav-links{display:flex;gap:2px}.ds-nav-links a{padding:8px;color:oklch(0.19 0.004 270 / 75%);text-decoration:none;font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;transition:background-color .15s,color .15s}.ds-nav-links a:hover{background:oklch(0.945 0.004 250);color:oklch(0.19 0.004 270)}.ds-nav-links a[aria-current=\"page\"]{background:oklch(0.19 0.004 270);color:#fff}.ds-nav-links a:focus-visible,.ds-nav-bag:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}.ds-nav-bag{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;background:oklch(0.19 0.004 270);color:#fff;text-decoration:none;font-size:14px;font-weight:600;transition:background-color .15s}.ds-nav-bag:hover{background:oklch(0.19 0.004 270 / 85%)}.ds-nav-count{min-width:24px;justify-content:center;display:inline-flex;margin-right:-4px;padding:4px 6px;background:oklch(0.887 0.182 95.3);color:oklch(0.19 0.004 270);border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;font-size:12px;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%);animation:ds-price-gun 320ms cubic-bezier(0.16,1,0.3,1)}@keyframes ds-price-gun{0%{transform:rotate(-9deg) scale(1.35);opacity:0}55%{transform:rotate(-2deg) scale(.94);opacity:1}100%{transform:rotate(-3deg) scale(1)}}@media (prefers-reduced-motion:reduce){.ds-nav-count{animation:none}}"
+      "refersTo": "header-band",
+      "description": "Solid black brand band: white wordmark with red full stop, Label-style aisle links, shelf-grey bag tab with red count sticker.",
+      "html": "<header class=\"ds-nav\"><span class=\"ds-nav-mark\">KLASIQ<span class=\"ds-nav-dot\" aria-hidden=\"true\">.</span></span><nav class=\"ds-nav-links\"><a href=\"#\" aria-current=\"page\">Atta, Rice &amp; Dal</a><a href=\"#\">Oil, Ghee &amp; Masale</a><a href=\"#\">Dairy, Bread &amp; Eggs</a></nav><a href=\"#\" class=\"ds-nav-bag\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M16 10a4 4 0 0 1-8 0\"/><path d=\"M3.103 6.034h17.794\"/><path d=\"M3.4 5.467a2 2 0 0 0-.4 1.2V20a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6.667a2 2 0 0 0-.4-1.2l-2-2.667A2 2 0 0 0 17 2H7a2 2 0 0 0-1.6.8z\"/></svg>Bag<span class=\"ds-nav-count\">2</span></a></header>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;height:56px;padding:0 16px;background:oklch(0.19 0.004 270);color:oklch(0.965 0.003 250);font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-nav-mark{font-variation-settings:\"wdth\" 72;font-size:24px;font-weight:800;letter-spacing:.02em;line-height:1}.ds-nav-dot{color:oklch(0.54 0.21 27)}.ds-nav-links{display:flex;gap:2px}.ds-nav-links a{padding:10px 8px;color:oklch(0.965 0.003 250 / 70%);text-decoration:none;font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1;transition:color .15s}.ds-nav-links a:hover{color:oklch(0.965 0.003 250)}.ds-nav-links a[aria-current=\"page\"]{background:oklch(0.965 0.003 250);color:oklch(0.19 0.004 270)}.ds-nav-links a:focus-visible,.ds-nav-bag:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}.ds-nav-bag{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 12px;background:oklch(0.965 0.003 250);color:oklch(0.19 0.004 270);text-decoration:none;font-size:14px;font-weight:700;transition:background-color .15s}.ds-nav-bag:hover{background:oklch(0.965 0.003 250 / 85%)}.ds-nav-count{display:inline-flex;justify-content:center;min-width:24px;margin-right:-4px;padding:4px 6px;font-size:12px;background:oklch(0.54 0.21 27);color:#fff;border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%);animation:ds-price-gun 320ms cubic-bezier(0.16,1,0.3,1)}@keyframes ds-price-gun{0%{transform:rotate(-9deg) scale(1.35);opacity:0}55%{transform:rotate(-2deg) scale(.94);opacity:1}100%{transform:rotate(-3deg) scale(1)}}@media (prefers-reduced-motion:reduce){.ds-nav-count{animation:none}}"
+    },
+    {
+      "name": "Floating Bag Bar",
+      "kind": "custom",
+      "refersTo": "floating-bag-bar",
+      "description": "Phones only: black bar floating in the thumb zone once the bag has items; count, action, total on the red sticker.",
+      "html": "<a href=\"#\" class=\"ds-bagbar\"><span class=\"ds-bagbar-text\"><span class=\"ds-bagbar-count\">2 items</span><span class=\"ds-bagbar-action\">View bag</span></span><span class=\"ds-bagbar-total\"><span class=\"ds-sr\">Total </span>₹195</span><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a>",
+      "css": ".ds-bagbar{display:flex;align-items:center;gap:12px;width:340px;height:56px;padding:0 12px 0 16px;background:oklch(0.19 0.004 270);color:oklch(0.965 0.003 250);text-decoration:none;font-family:Archivo,ui-sans-serif,system-ui,sans-serif;box-shadow:0 6px 20px -6px oklch(0.19 0.004 270 / 55%)}.ds-bagbar:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}.ds-bagbar-text{flex:1;min-width:0}.ds-bagbar-count{display:block;color:oklch(0.965 0.003 250 / 70%);font-variation-settings:\"wdth\" 72;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;line-height:1}.ds-bagbar-action{display:block;margin-top:2px;font-size:16px;font-weight:700;line-height:1.25}.ds-bagbar-total{display:inline-flex;padding:6px 8px;font-size:18px;background:oklch(0.54 0.21 27);color:#fff;border-radius:3px;font-variation-settings:\"wdth\" 75;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;transform:rotate(-3deg);box-shadow:0 1px 1px oklch(0.19 0.004 270 / 18%),0 3px 8px -2px oklch(0.19 0.004 270 / 22%);animation:ds-price-gun 320ms cubic-bezier(0.16,1,0.3,1)}.ds-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}@keyframes ds-price-gun{0%{transform:rotate(-9deg) scale(1.35);opacity:0}55%{transform:rotate(-2deg) scale(.94);opacity:1}100%{transform:rotate(-3deg) scale(1)}}@media (prefers-reduced-motion:reduce){.ds-bagbar-total{animation:none}}"
+    },
+    {
+      "name": "Aisle Tabs",
+      "kind": "chip",
+      "refersTo": "aisle-tab",
+      "description": "Phones only, category pages: swipeable black-ruled aisle tabs; current aisle is the black tab.",
+      "html": "<ul class=\"ds-rail\"><li><a href=\"#\">Dairy, Bread &amp; Eggs</a></li><li><a href=\"#\" aria-current=\"page\">Snacks &amp; Packaged Food</a></li><li><a href=\"#\">Tea, Coffee &amp; Drinks</a></li></ul>",
+      "css": ".ds-rail{display:flex;gap:8px;max-width:360px;overflow-x:auto;margin:0;padding:0 0 4px;list-style:none;scrollbar-width:none;font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-rail a{display:flex;align-items:center;height:44px;padding:0 12px;white-space:nowrap;border:1px solid oklch(0.19 0.004 270);background:#fff;color:oklch(0.19 0.004 270);text-decoration:none;font-size:14px;font-weight:600;transition:background-color .15s}.ds-rail a:active{background:oklch(0.945 0.004 250)}.ds-rail a[aria-current=\"page\"]{background:oklch(0.19 0.004 270);color:oklch(0.965 0.003 250)}.ds-rail a:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     },
     {
       "name": "Aisles Contents Table",
       "kind": "custom",
       "description": "Homepage aisles as a ruled contents table with dotted leaders.",
       "html": "<ul class=\"ds-aisles\"><li><a href=\"#\"><span class=\"ds-aisle-name\">Atta, Rice &amp; Dal</span><span class=\"ds-aisle-leader\" aria-hidden=\"true\"></span><svg class=\"ds-aisle-arrow\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a></li><li><a href=\"#\"><span class=\"ds-aisle-name\">Pooja Samagri</span><span class=\"ds-aisle-leader\" aria-hidden=\"true\"></span><svg class=\"ds-aisle-arrow\" viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12h14\"/><path d=\"m12 5 7 7-7 7\"/></svg></a></li></ul>",
-      "css": ".ds-aisles{list-style:none;margin:0;padding:0 16px;width:360px;background:#fff;border:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-aisles li+li{border-top:1px solid oklch(0.19 0.004 270 / 20%)}.ds-aisles a{display:flex;align-items:center;gap:12px;min-height:52px;color:oklch(0.19 0.004 270);text-decoration:none}.ds-aisle-name{font-size:16px;font-weight:700;line-height:1.25}.ds-aisles a:hover .ds-aisle-name{text-decoration:underline;text-underline-offset:4px}.ds-aisle-leader{flex:1;min-width:16px;margin:0 4px;transform:translateY(4px);border-bottom:2px dotted oklch(0.19 0.004 270 / 35%)}.ds-aisle-arrow{transition:transform .15s}.ds-aisles a:hover .ds-aisle-arrow{transform:translateX(2px)}.ds-aisles a:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.45 0.19 280 / 55%)}"
+      "css": ".ds-aisles{list-style:none;margin:0;padding:0 16px;width:360px;background:#fff;border:1px solid oklch(0.19 0.004 270);font-family:Archivo,ui-sans-serif,system-ui,sans-serif}.ds-aisles li+li{border-top:1px solid oklch(0.19 0.004 270 / 20%)}.ds-aisles a{display:flex;align-items:center;gap:12px;min-height:52px;color:oklch(0.19 0.004 270);text-decoration:none}.ds-aisle-name{font-size:16px;font-weight:700;line-height:1.25}.ds-aisles a:hover .ds-aisle-name{text-decoration:underline;text-underline-offset:4px}.ds-aisle-leader{flex:1;min-width:16px;margin:0 4px;transform:translateY(4px);border-bottom:2px dotted oklch(0.19 0.004 270 / 35%)}.ds-aisle-arrow{transition:transform .15s}.ds-aisles a:hover .ds-aisle-arrow{transform:translateX(2px)}.ds-aisles a:focus-visible{outline:none;box-shadow:0 0 0 3px oklch(0.54 0.21 27 / 60%)}"
     }
   ],
   "narrative": {
     "northStar": "The Pack Declaration Panel",
-    "overview": "Every product is shown the way its own pack states it: brand in small condensed caps, the product name, and a ruled box of NET QTY and MRP in black declaration print, exactly as printed on the back of an Indian pack. On top of that the shop slaps its own fluorescent price sticker, a little crooked, the way a kirana owner's price gun leaves it. The page is a sheet of these pack panels: pack-white board laid on a cool shelf-grey ground, divided by 1px black rules into boxed fields, with square corners everywhere.\n\nThe system is dense, legible and literal. It borrows its whole vocabulary from things the customer already reads in the shop (the declaration table, the price sticker, the violet inkjet batch stamp, the customer-care box on the back panel) and adds nothing decorative on top. Hierarchy comes from rules, weight and the condensed width axis, not from colour, shadow or rounding. Black is the only colour that asks you to act; yellow only tells you a price; violet only tells you what you save.\n\nIt deliberately refuses two neighbours: the quick-commerce tile grid (floating rounded cards, pastel category bubbles, discount badges) and the cream-serif \"artisan grocer\" look. Light only, because the use scene is a budget Android phone, often in daylight.",
+    "overview": "Every product is shown the way its own pack states it: brand in small condensed caps, the product name, and a ruled box of NET QTY and MRP in black declaration print, exactly as printed on the back of an Indian pack. On top of that the shop slaps its own red price sticker, a little crooked, the way a kirana owner's price gun leaves it. The page is a sheet of these pack panels: pack-white board on a cool shelf-grey ground, divided by 1px black rules into boxed fields, square everywhere, under a solid black brand band.\n\nThe palette is pinned to the brand: Klasiq red and black. Black does the work, carrying structure, type and every action. Red is the brand's voice and is spent sparingly: on prices, on the bag's running count and total, on the momentary \"Added\" confirmation, on the wordmark's full stop, and on focus. Hierarchy comes from rules, weight and Archivo's condensed width axis, not from extra colours, shadows or rounding.\n\nThe storefront is built phone-first for a neighbourhood customer on a budget Android phone, often in daylight: thumb-reach controls, a floating bag bar once the bag has items, swipeable aisle tabs, and tap targets of 40px or more. It deliberately refuses two neighbours: the quick-commerce tile grid (floating rounded cards, pastel category bubbles, discount badges) and the cream-serif \"artisan grocer.\" Light only.",
     "keyCharacteristics": [
+      "A solid black header band with the white KLASIQ wordmark and a red full stop.",
       "Pack-white panels on shelf-grey ground, boxed by 1px declaration-black rules.",
       "Square corners throughout (radius 0); the price sticker alone has 3px.",
-      "One typeface, Archivo, with its width axis carrying condensed caps labels and headings.",
-      "One yellow price sticker per product, rotated -3deg, always black text.",
-      "A violet inkjet \"SAVE ₹X\" stamp, rotated -2deg, only when the price is genuinely under MRP.",
-      "Flat: no shadows except the sticker's own paper lift.",
-      "One authored motion: the price-gun stamp on the bag count."
+      "One typeface, Archivo, whose width axis carries condensed caps labels and headings.",
+      "One red price sticker per product, rotated -3deg, always with white text.",
+      "A black-outline \"SAVE ₹X\" stamp, rotated -2deg, only when the price is genuinely under MRP.",
+      "Phone-first: floating black bag bar, swipeable aisle tabs, 40px+ tap targets.",
+      "One authored motion: the price-gun stamp when an item lands in the bag."
     ],
     "rules": [
       {
         "name": "The One Action Colour Rule",
-        "body": "Declaration Black is the only fill that means \"press this.\" A yellow, violet or grey button does not exist.",
+        "body": "Declaration Black is the only fill that means \"press this.\" Red is never a button colour; the \"Added\" fill is a confirmation, not a control.",
         "section": "colors"
       },
       {
-        "name": "The Sticker Means Price Rule",
-        "body": "Sticker Yellow marks what the customer pays (and the bag count, which is the running tally of it). If a yellow surface is not a price, the count, or the momentary \"Added\" confirmation, it is wrong.",
+        "name": "The Red Is Spent Rule",
+        "body": "Klasiq Red appears only on prices, the bag's count and total, the \"Added\" confirmation, the wordmark's full stop and focus. Anything else in red is wrong, however small.",
         "section": "colors"
       },
       {
         "name": "The Stamp Means Saving Rule",
-        "body": "Inkjet Violet prints savings against MRP and focus. It never decorates, and a SAVE stamp renders only when price is strictly below MRP.",
+        "body": "The black-outline SAVE stamp renders only when price is strictly below MRP, and nothing takes its place otherwise.",
         "section": "colors"
       },
       {
         "name": "The Declaration Label Rule",
-        "body": "Every field name on a boxed field is a Label: condensed, bold, 11px, spaced caps. Field values sit under it in semibold at body size. Never sentence-case a field name; never use Label style for anything that is not a field name, brand, aisle link or stamp.",
+        "body": "Every field name in a boxed field is a Label: condensed, bold, 11px, spaced caps, with the value under it in semibold at body size. Never sentence-case a field name, and never use the Label style for anything other than field names, brands, aisle links, counts and the stamp.",
         "section": "typography"
       },
       {
         "name": "The Tabular Money Rule",
-        "body": "Every rupee amount (price, MRP, saving, total) uses tabular figures so columns of prices align like a printed table.",
+        "body": "Every rupee amount (price, MRP, saving, line total, total) uses tabular figures, so prices align like a printed table.",
         "section": "typography"
       },
       {
-        "name": "The Only Sticker Lifts Rule",
-        "body": "If something that is not the price sticker has a shadow, remove it. Separation comes from a rule or a surface change.",
+        "name": "The Only Stuck-on Things Lift Rule",
+        "body": "A shadow means \"this sits on top of the page\": the sticker or the floating bar. Anything else with a shadow loses it; separation comes from a rule or a change of surface.",
         "section": "elevation"
       },
       {
         "name": "The Black Rule Rule",
-        "body": "A box's edge is 1px Declaration Black, never Hairline Grey. Grey appears only as a lighter divider inside a box that already has a black edge.",
+        "body": "A box's edge is 1px Declaration Black, never Hairline Grey. Lighter rules appear only as dividers inside a box that already has a black edge.",
         "section": "shapes"
       },
       {
         "name": "The Dashed Absence Rule",
-        "body": "A dashed rule means \"nothing here / not available.\" Never use it for decoration or for an active control.",
+        "body": "A dashed rule means \"nothing here\" or \"not available.\" Never use it for decoration or for an active control.",
         "section": "shapes"
       }
     ],
     "dos": [
       "Do box every field group in 1px Declaration Black on Pack White, with Label-style field names over semibold values.",
-      "Do give each product exactly one price sticker: Sticker Yellow, black text, 3px corners, -3deg.",
-      "Do print \"SAVE ₹X\" in the violet stamp only when price is strictly below MRP.",
-      "Do keep every action Declaration Black with white text, and every focus ring Inkjet Violet at 55%.",
+      "Do give each product exactly one price sticker: Klasiq Red, white text, 3px corners, -3deg.",
+      "Do print \"SAVE ₹X\" in the black-outline stamp only when price is strictly below MRP.",
+      "Do keep every action Declaration Black with white text.",
       "Do set every rupee amount in tabular figures.",
-      "Do treat the no-photo placeholder as the main case: category mark on shelf grey, or the pack-front panel on the product page.",
-      "Do keep tap targets at 40px minimum, 48px for primary product-page controls.",
+      "Do keep phone tap targets at 40px or more (the 32px pack-size select on panels is the one exception) and keep the bag reachable from the thumb zone.",
+      "Do treat the no-photo placeholder as the main case: a category mark on shelf grey, or the pack-front panel on the product page.",
       "Do keep motion to colour transitions, a 1px press, and the price-gun stamp; everything collapses under reduced motion."
     ],
     "donts": [
+      "Don't use Klasiq Red for anything outside prices, the bag's count and total, the \"Added\" confirmation, the wordmark's full stop and focus: no red buttons, icons, headings, borders or section fills.",
+      "Don't introduce a third brand colour; the palette is Klasiq red and black on white and shelf grey.",
       "Don't round corners on anything but the price sticker.",
-      "Don't use Sticker Yellow as text, borders, section fills, or for anything that is not a price, the bag count, or the momentary \"Added\" confirmation.",
-      "Don't add shadows to panels, buttons, inputs or popups; only the sticker lifts.",
+      "Don't add shadows to panels, buttons, inputs or popups; only the sticker and the floating bar lift.",
       "Don't float products as separate rounded cards with gaps; they share one rule in the product sheet.",
-      "Don't introduce a second typeface or a serif; Archivo's width axis does the contrast.",
+      "Don't introduce a second typeface or a serif; Archivo's width axis carries the contrast.",
       "Don't rotate anything except the sticker (-3deg) and the stamp (-2deg).",
       "Don't add a second authored animation; the price-gun stamp is the one moment.",
       "Don't invent photography, testimonials or store facts to fill space."

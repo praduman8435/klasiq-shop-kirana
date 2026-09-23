@@ -2,7 +2,7 @@ import { formatPaise } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 /**
- * How much below the printed MRP the shop sells, as the violet inkjet
+ * How much below the printed MRP the shop sells, as the black inkjet
  * batch stamp packs carry — boxed, condensed caps, a touch off-square.
  * Renders nothing unless the price is genuinely under MRP.
  */

@@ -71,32 +71,25 @@ export default async function HomePage() {
           <h2 id="aisles-heading" className="text-2xl font-extrabold leading-none sm:text-3xl">
             Aisles
           </h2>
-          <ul className="mt-4 grid border border-foreground bg-card px-4 sm:grid-cols-2 sm:gap-x-10 sm:px-6">
+          <ul className="mt-4 grid grid-cols-2 gap-x-4 border border-foreground bg-card px-3 sm:gap-x-10 sm:px-6">
             {categories.map((category, index) => {
               const Icon = getCategoryIcon(category.slug || category.name);
               return (
-                <li
-                  key={category.slug}
-                  className={cn(
-                    "border-foreground/20",
-                    index > 0 && "border-t",
-                    index === 1 && "sm:border-t-0",
-                  )}
-                >
+                <li key={category.slug} className={cn("min-w-0 border-foreground/20", index > 1 && "border-t")}>
                   <Link
                     href={`/${category.slug}`}
-                    className="group flex min-h-13 items-center gap-3 py-2.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring"
+                    className="group flex min-h-14 items-center gap-2.5 py-2 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring sm:min-h-13 sm:gap-3"
                   >
                     <Icon className="size-5 shrink-0" strokeWidth={1.5} aria-hidden />
-                    <span className="text-base font-bold leading-tight group-hover:underline group-hover:underline-offset-4">
+                    <span className="min-w-0 text-sm font-bold leading-tight group-hover:underline group-hover:underline-offset-4 sm:text-base">
                       {category.name}
                     </span>
                     <span
                       aria-hidden
-                      className="mx-1 h-0 min-w-4 flex-1 translate-y-1 border-b-2 border-dotted border-foreground/35"
+                      className="mx-1 hidden h-0 min-w-4 flex-1 translate-y-1 border-b-2 border-dotted border-foreground/35 sm:block"
                     />
                     <ArrowRight
-                      className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                      className="hidden size-4 shrink-0 transition-transform group-hover:translate-x-0.5 sm:block"
                       aria-hidden
                     />
                   </Link>

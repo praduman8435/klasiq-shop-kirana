@@ -2,8 +2,8 @@ import { formatPaise } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 /**
- * The shop's own price, as the fluorescent sticker a kirana owner's price
- * gun puts on a pack — the one sticker-yellow mark per product. The
+ * The shop's own price, as the sticker a kirana owner's price gun puts on
+ * a pack — the one Klasiq-red mark per product. The
  * printed MRP lives separately in the declaration table; this is what the
  * customer actually pays. Sold out, the sticker goes blank-white with the
  * status instead of a price, the way an empty shelf tag reads.

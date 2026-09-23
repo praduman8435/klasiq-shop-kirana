@@ -18,7 +18,10 @@ export function SiteFooter({ storeName }: { storeName: string }) {
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
         <div className="grid border border-foreground sm:grid-cols-3 [&>div]:p-4 sm:[&>div]:p-5 [&>div+div]:border-t [&>div+div]:border-foreground sm:[&>div+div]:border-l sm:[&>div+div]:border-t-0">
           <div>
-            <p className="font-condensed text-2xl font-extrabold leading-none">{BRAND.wordmark}</p>
+            <p className="font-condensed text-2xl font-extrabold leading-none">
+              {BRAND.wordmark}
+              <span aria-hidden className="text-sticker">.</span>
+            </p>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">{BRAND.description}</p>
             <p className="mt-2 max-w-xs text-xs text-muted-foreground">{getBackedByLine()}</p>
           </div>
