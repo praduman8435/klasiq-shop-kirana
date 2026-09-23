@@ -79,17 +79,17 @@ export function MobileNav({
       <SheetContent
         side="left"
         showCloseButton={false}
-        className="store-theme w-[82vw] max-w-xs gap-0 overflow-y-auto overscroll-contain border-r-0 bg-card p-0"
+        className="store-theme gap-0 data-[side=left]:w-[88vw] data-[side=left]:max-w-xs overflow-y-auto overscroll-contain border-r-0 bg-card p-0"
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
+        <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-card px-4 pb-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
           <div className="min-w-0">
             <SheetTitle className="text-xl font-black leading-none tracking-[-0.01em] text-foreground">
               {wordmark}
               <span className="text-primary">.</span>
             </SheetTitle>
-            <p className="mt-1 flex items-center gap-1 truncate text-xs text-muted-foreground">
+            <p className="mt-1 flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
               <MapPin className="size-3 shrink-0" aria-hidden />
-              {store.fulfilmentLine}
+              <span className="truncate">{store.fulfilmentLine}</span>
             </p>
           </div>
           <SheetClose
@@ -162,10 +162,9 @@ export function MobileNav({
             </Link>
           </li>
           <li>
-            <a href={store.phoneHref} className={ROW_CLASS}>
+            <a href={store.phoneHref} aria-label={`Call the store, ${store.phone}`} className={ROW_CLASS}>
               <RowIcon icon={Phone} />
               <span className="flex-1">Call the store</span>
-              <span className="text-xs font-medium text-muted-foreground tabular-nums">{store.phone}</span>
             </a>
           </li>
           <li>
