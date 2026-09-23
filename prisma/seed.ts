@@ -24,6 +24,8 @@ type ProductSeed = {
   slug: string;
   name: string;
   brand?: string;
+  /** A photo in public/products/ (see public/products/CREDITS.md). */
+  imageUrl?: string;
   description: string;
   variants: VariantSeed[];
 };
@@ -49,6 +51,7 @@ const CATALOG: CategorySeed[] = [
     products: [
       {
         slug: "whole-wheat-atta",
+        imageUrl: "/products/whole-wheat-atta.webp",
         name: "Whole Wheat Atta",
         brand: "Aashirvaad",
         description: "Chakki-ground whole wheat flour for soft rotis.",
@@ -60,6 +63,7 @@ const CATALOG: CategorySeed[] = [
       },
       {
         slug: "basmati-rice",
+        imageUrl: "/products/basmati-rice.webp",
         name: "Basmati Rice",
         brand: "India Gate",
         description: "Long-grain aged basmati for pulao and biryani.",
@@ -70,6 +74,7 @@ const CATALOG: CategorySeed[] = [
       },
       {
         slug: "toor-dal",
+        imageUrl: "/products/toor-dal.webp",
         name: "Toor Dal",
         description: "Unpolished arhar dal, packed in-store.",
         variants: [
@@ -79,6 +84,7 @@ const CATALOG: CategorySeed[] = [
       },
       {
         slug: "chana-dal",
+        imageUrl: "/products/chana-dal.webp",
         name: "Chana Dal",
         description: "Split Bengal gram, packed in-store.",
         variants: [
@@ -300,6 +306,7 @@ async function upsertProduct(categoryId: string, params: ProductSeed) {
       name: params.name,
       brand: params.brand ?? null,
       description: params.description,
+      imageUrl: params.imageUrl ?? null,
       categoryId,
       isDemo: true,
     },
@@ -307,6 +314,7 @@ async function upsertProduct(categoryId: string, params: ProductSeed) {
       name: params.name,
       brand: params.brand ?? null,
       description: params.description,
+      imageUrl: params.imageUrl ?? null,
       categoryId,
     },
   });
