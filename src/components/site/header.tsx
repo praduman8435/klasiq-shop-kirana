@@ -52,7 +52,7 @@ export async function SiteHeader({ storeName }: { storeName: string }) {
         <Link
           href="/"
           aria-label={`${storeName} home`}
-          className="min-w-0 shrink-0 rounded-lg px-1 py-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/60"
+          className="min-w-0 shrink rounded-lg px-1 py-0.5 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-white/60"
         >
           <span className="block text-2xl font-black leading-none tracking-[-0.01em]">
             {BRAND.wordmark}
