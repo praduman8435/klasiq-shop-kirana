@@ -1,4 +1,5 @@
 import {
+  Backpack,
   Baby,
   Coffee,
   Cookie,
@@ -6,6 +7,7 @@ import {
   Egg,
   Flame,
   Milk,
+  Shirt,
   ShoppingBag,
   Soup,
   Sparkles,
@@ -37,6 +39,8 @@ const CATEGORY_ICON_KEYWORDS: [pattern: RegExp, icon: LucideIcon][] = [
   [/clean|household|detergent|home/, SprayCan],
   [/pooja|puja|agarbatti|diya/, Flame],
   [/baby/, Baby],
+  [/undergarment|innerwear|vest|sock|clothing|garment/, Shirt],
+  [/bag|luggage/, Backpack],
 ];
 
 /** Falls back to a generic shopping-bag icon for a category this list
