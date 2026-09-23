@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 
 // Foundation for /admin/counter-sale's product search — optimized for a
-// single fast type-ahead: matches by product name OR variant SKU and
+// single fast type-ahead: matches by product name, brand, OR variant SKU and
 // returns one flattened row per sellable variant (size/price/stock inline)
 // so staff can search and add in one step, never navigating to a
 // per-product page. See docs/PHASE_3_2_REPORT.md "Product search".
@@ -17,6 +17,7 @@ export async function searchSellableVariants(query: string, limit = COUNTER_SALE
       product: { isActive: true },
       OR: [
         { product: { name: { contains: trimmed, mode: "insensitive" } } },
+        { product: { brand: { contains: trimmed, mode: "insensitive" } } },
         { sku: { contains: trimmed, mode: "insensitive" } },
       ],
     },
@@ -25,8 +26,8 @@ export async function searchSellableVariants(query: string, limit = COUNTER_SALE
         select: {
           id: true,
           name: true,
+          brand: true,
           category: { select: { name: true } },
-          school: { select: { id: true, name: true } },
         },
       },
     },
@@ -39,8 +40,7 @@ export async function searchSellableVariants(query: string, limit = COUNTER_SALE
     productId: variant.product.id,
     productName: variant.product.name,
     categoryName: variant.product.category.name,
-    schoolId: variant.product.school?.id ?? null,
-    schoolName: variant.product.school?.name ?? null,
+    brand: variant.product.brand,
     size: variant.size,
     sku: variant.sku,
     priceInPaise: variant.priceInPaise,

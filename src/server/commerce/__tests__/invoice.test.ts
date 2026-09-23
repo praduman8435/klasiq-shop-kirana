@@ -79,7 +79,6 @@ describe("getInvoiceForOrder", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "UPI",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -130,7 +129,6 @@ describe("getInvoiceForOrder", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -166,7 +164,6 @@ describe("getInvoiceForOrder", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -213,7 +210,6 @@ describe("getInvoiceForOrder", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 2 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

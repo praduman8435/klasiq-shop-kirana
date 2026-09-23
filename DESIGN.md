@@ -1,6 +1,6 @@
 ---
 name: Klasiq
-description: Classic quality, modern shopping — a bold, cinematic retail storefront built on an exact school-fit guarantee and decades of local trust.
+description: Classic quality, modern shopping — a neighbourhood kirana storefront (currently still wearing the bold, cinematic visual language inherited from the original Klasiq uniform store; see PRODUCT.md).
 colors:
   klasiq-red: "oklch(0.47 0.19 25)"
   klasiq-red-ink: "oklch(0.98 0.012 25)"
@@ -120,9 +120,9 @@ components:
 
 **Creative North Star: "Classic, Modernized"**
 
-Klasiq's storefront plays the Klasiq/"classic" wordplay straight: a decades-old, family-run uniform counter rendered in a bold, cinematic, contemporary visual language. Near-black navy ink on warm parchment gives every screen the confidence of an established institution, while a single controlled red (Klasiq Red) and a sparing gold highlight (Marquee Gold) carry the "bold, energetic, cinematic" energy the brand wants without borrowing anyone else's iconography. The system is deliberately not soft or pastel — it reads as assured and a little theatrical, the way a well-run family store that's been getting it right for thirty years can afford to be.
+Klasiq's storefront plays the Klasiq/"classic" wordplay straight: a family-run neighbourhood store rendered in a bold, cinematic, contemporary visual language. Near-black navy ink on warm parchment gives every screen the confidence of an established institution, while a single controlled red (Klasiq Red) and a sparing gold highlight (Marquee Gold) carry the "bold, energetic, cinematic" energy the brand wants without borrowing anyone else's iconography. The system is deliberately not soft or pastel — it reads as assured and a little theatrical, the way a well-run family store that's been getting it right for thirty years can afford to be.
 
-Density stays tight and retail-native: product cards behave like compact shelf tags, not mini detail pages, so more of the catalog is visible at once on every breakpoint. Surfaces are flat by default — depth is earned by interaction, not stacked on by default — which keeps the cinematic color work from tipping into visual noise. This is explicitly not a superhero-branded skin: no comic iconography, no character likenesses, no halftone/ben-day-dot styling. It is also not a generic SaaS-template look (soft blue gradients, rounded-everything, timid contrast) and not a childish "back to school" theme — the general-retail half of the catalog (footwear, bags, kurtis) has to feel just as at home here as uniforms.
+Density stays tight and retail-native: product cards behave like compact shelf tags, not mini detail pages, so more of the catalog is visible at once on every breakpoint. Surfaces are flat by default — depth is earned by interaction, not stacked on by default — which keeps the cinematic color work from tipping into visual noise. This is explicitly not a superhero-branded skin: no comic iconography, no character likenesses, no halftone/ben-day-dot styling. It is also not a generic SaaS-template look (soft blue gradients, rounded-everything, timid contrast), and not a generic quick-commerce clone.
 
 **Key Characteristics:**
 - Near-black navy text on warm parchment surfaces, punctuated by one controlled red and one sparing gold
@@ -232,7 +232,7 @@ Two families of corner language, used deliberately: fully rounded pills (`rounde
 - **Error / Disabled:** invalid fields get an Alert Red border and ring; disabled fields drop to 50% opacity with a faint Hairline fill.
 
 ### Navigation
-- **Style:** the header wordmark uses Title-scale Fraunces; category links are Body-scale, medium-weight, pill-shaped on hover/active (`rounded-full` + Soft Fog fill). "Track Orders" is a Hairline-bordered pill with an icon. Mobile collapses the category nav and school search into a left-side sheet (`Menu` icon trigger), keeping "Search Products" and "Track Orders" as plain list rows below the categories.
+- **Style:** the header wordmark uses Title-scale Fraunces; category links are Body-scale, medium-weight, pill-shaped on hover/active (`rounded-full` + Soft Fog fill). "Track Orders" is a Hairline-bordered pill with an icon. Mobile collapses the category nav and product search into a left-side sheet (`Menu` icon trigger), keeping "Search Products" and "Track Orders" as plain list rows below the categories.
 
 ### Product Card (signature)
 The system's most distinctive component and the one the brief most explicitly redesigned: a compact shelf-tag card, not a mini detail page. Square-to-portrait thumbnail on top, then name, price + stock status, a single pill-shaped `Select` for size (replacing a row of size buttons), a 36px quantity stepper, and an "Add" button — all inside 16px-radius Paper card with a 10px internal padding. The whole card lifts 2px with a shadow on hover; nothing else about it animates. The Add button's label stays literally "Add" (never "Add to Bag") to survive 2-column mobile grids without truncating; the full action is still exposed to assistive tech via `aria-label`.
@@ -265,6 +265,6 @@ A short, compact list of real fulfillment/payment facts sourced from `FULFILLMEN
 
 ### Don't:
 - **Don't** introduce comic/superhero iconography, halftone/ben-day-dot textures, or any likeness-based imagery — "cinematic energy" is a color-and-contrast metaphor here, not a licensed aesthetic.
-- **Don't** let general-retail categories (footwear, bags, kurtis) feel like an afterthought to the uniform/school framing, or vice versa — the palette and components are shared and neutral across both.
+- **Don't** give any one aisle (staples, snacks, personal care…) its own visual treatment — the palette and components are shared and neutral across every category.
 - **Don't** widen the product card back toward a detail-page layout (full-width buy button, expanded size-button row, long description) to "fix" a spacing complaint — the fix is always inside the existing compact card.
 - **Don't** add a shadow to a surface just to make it feel important while at rest — use a Paper-on-Parchment background step or a Hairline border instead.

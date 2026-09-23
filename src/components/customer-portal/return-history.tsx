@@ -65,13 +65,13 @@ export function ReturnHistory({ requests }: { requests: ReturnHistoryEntry[] }) 
                 <li key={index} className="text-xs text-muted-foreground">
                   <div className="flex items-center justify-between gap-3">
                     <span>
-                      {item.orderItem.productName} &middot; Size {item.orderItem.size} &middot; Qty {item.quantity}
+                      {item.orderItem.productName} &middot; {item.orderItem.size} &middot; Qty {item.quantity}
                     </span>
                     <span>{RETURN_REASON_LABEL[item.reason as keyof typeof RETURN_REASON_LABEL]}</span>
                   </div>
                   {item.replacementVariant && (
                     <p className="mt-0.5 text-foreground">
-                      Replacement: {item.replacementVariant.product.name} &middot; Size{" "}
+                      Replacement: {item.replacementVariant.product.name} &middot;{" "}
                       {item.replacementVariant.size}
                     </p>
                   )}

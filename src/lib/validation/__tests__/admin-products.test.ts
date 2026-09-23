@@ -1,44 +1,48 @@
 import { describe, expect, it } from "vitest";
-import { productFormSchema, variantFormSchema } from "@/lib/validation/admin-products";
+import { checkPriceAgainstMrp, productFormSchema, variantFormSchema } from "@/lib/validation/admin-products";
 
 describe("productFormSchema", () => {
   function base(overrides: Partial<Record<string, unknown>> = {}) {
     return {
-      name: "White Shirt",
-      slug: "white-shirt",
+      name: "Toor Dal",
+      slug: "toor-dal",
       categoryId: "cat_123",
-      schoolId: null,
       isActive: true,
       ...overrides,
     };
   }
 
-  it("accepts a valid generic product", () => {
+  it("accepts a valid product with no brand (loose/unbranded goods)", () => {
     expect(productFormSchema.safeParse(base()).success).toBe(true);
   });
 
   it("rejects an uppercase slug", () => {
-    expect(productFormSchema.safeParse(base({ slug: "White-Shirt" })).success).toBe(false);
+    expect(productFormSchema.safeParse(base({ slug: "Toor-Dal" })).success).toBe(false);
   });
 
   it("rejects a slug with spaces", () => {
-    expect(productFormSchema.safeParse(base({ slug: "white shirt" })).success).toBe(false);
+    expect(productFormSchema.safeParse(base({ slug: "toor dal" })).success).toBe(false);
   });
 
   it("rejects a missing category", () => {
     expect(productFormSchema.safeParse(base({ categoryId: "" })).success).toBe(false);
   });
 
-  it("accepts a school-specific product (schoolId set)", () => {
-    expect(productFormSchema.safeParse(base({ schoolId: "school_1" })).success).toBe(true);
+  it("accepts and trims a brand", () => {
+    const result = productFormSchema.safeParse(base({ brand: "  Tata  " }));
+    expect(result.success && result.data.brand).toBe("Tata");
+  });
+
+  it("rejects an over-long brand", () => {
+    expect(productFormSchema.safeParse(base({ brand: "x".repeat(61) })).success).toBe(false);
   });
 });
 
 describe("variantFormSchema", () => {
   function base(overrides: Partial<Record<string, unknown>> = {}) {
     return {
-      size: "28",
-      sku: "WS-28",
+      size: "1 kg",
+      sku: "TD-1KG",
       priceInRupees: 350,
       stockQuantity: 10,
       ...overrides,
@@ -70,5 +74,32 @@ describe("variantFormSchema", () => {
 
   it("rejects a missing SKU", () => {
     expect(variantFormSchema.safeParse(base({ sku: "" })).success).toBe(false);
+  });
+
+  it("accepts an MRP, a null MRP (clear it), or no MRP at all", () => {
+    expect(variantFormSchema.safeParse(base({ mrpInRupees: 380 })).success).toBe(true);
+    expect(variantFormSchema.safeParse(base({ mrpInRupees: null })).success).toBe(true);
+    const omitted = variantFormSchema.safeParse(base());
+    expect(omitted.success && omitted.data.mrpInRupees).toBeUndefined();
+  });
+
+  it("rejects a zero or negative MRP", () => {
+    expect(variantFormSchema.safeParse(base({ mrpInRupees: 0 })).success).toBe(false);
+    expect(variantFormSchema.safeParse(base({ mrpInRupees: -10 })).success).toBe(false);
+  });
+});
+
+describe("checkPriceAgainstMrp", () => {
+  it("allows a price below or equal to MRP", () => {
+    expect(checkPriceAgainstMrp(35000, 38000)).toBeNull();
+    expect(checkPriceAgainstMrp(38000, 38000)).toBeNull();
+  });
+
+  it("rejects a price above MRP, even by one paisa", () => {
+    expect(checkPriceAgainstMrp(38001, 38000)).toMatch(/MRP/);
+  });
+
+  it("allows any price when there is no MRP (loose goods)", () => {
+    expect(checkPriceAgainstMrp(999999, null)).toBeNull();
   });
 });

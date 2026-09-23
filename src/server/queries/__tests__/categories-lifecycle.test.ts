@@ -2,13 +2,13 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import { createCounterSale } from "@/server/commerce/counter-sale";
-import { getCategoryBySlug, getGenericCategoryProducts, getHeaderCategories } from "@/server/queries/categories";
+import { getCategoryBySlug, getCategoryProducts, getHeaderCategories } from "@/server/queries/categories";
 
 // Phase 3.6.7 Part 2 — the complete lifecycle audit (sections 2-4, 6, 14):
 // create -> assign products -> enable header -> reorder -> rename ->
 // hide/show -> empty category -> data-integrity, each proven directly
 // against the real query layer every storefront surface actually calls
-// (getHeaderCategories/getCategoryBySlug/getGenericCategoryProducts),
+// (getHeaderCategories/getCategoryBySlug/getCategoryProducts),
 // not re-asserted at the admin-action layer again (already fully covered
 // by categories.test.ts, Part 1).
 
@@ -64,7 +64,7 @@ describe("Complete category lifecycle (section 2)", () => {
     const headerCategories = await getHeaderCategories();
     expect(headerCategories.some((c) => c.slug === category.slug)).toBe(true);
 
-    const productsOnPage = await getGenericCategoryProducts(category.slug);
+    const productsOnPage = await getCategoryProducts(category.slug);
     expect(productsOnPage.map((p) => p.id)).toContain(product.id);
   });
 
@@ -88,7 +88,7 @@ describe("Complete category lifecycle (section 2)", () => {
     const byOldSlug = await getCategoryBySlug(category.slug);
     expect(byOldSlug?.name).toBe(`Dress ${suffix}`);
 
-    const productsOnPage = await getGenericCategoryProducts(category.slug);
+    const productsOnPage = await getCategoryProducts(category.slug);
     expect(productsOnPage.map((p) => p.id)).toContain(product.id);
   });
 });
@@ -109,7 +109,7 @@ describe("Hide / show (section 3)", () => {
     expect(stillExists).not.toBeNull();
     expect(stillExists?.id).toBe(category.id);
 
-    const productsOnPage = await getGenericCategoryProducts(category.slug);
+    const productsOnPage = await getCategoryProducts(category.slug);
     expect(productsOnPage.map((p) => p.id)).toContain(product.id);
 
     await db.category.update({ where: { id: category.id }, data: { displayInHeader: true } });
@@ -160,7 +160,7 @@ describe("Empty category (section 6)", () => {
     const headerCategories = await getHeaderCategories();
     expect(headerCategories.some((c) => c.slug === category.slug)).toBe(true);
 
-    const products = await getGenericCategoryProducts(category.slug);
+    const products = await getCategoryProducts(category.slug);
     expect(products).toEqual([]);
   });
 });
@@ -184,7 +184,6 @@ describe("Data integrity (section 14) — category management never touches comm
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

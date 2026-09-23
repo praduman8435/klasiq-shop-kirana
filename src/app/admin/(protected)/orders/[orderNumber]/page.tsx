@@ -90,7 +90,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                     <div className="min-w-0">
                       <p className="font-medium">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
-                        Size {item.size} &middot; SKU {item.skuSnapshot} &middot; Qty {item.quantity} &middot;{" "}
+                        {item.size} &middot; SKU {item.skuSnapshot} &middot; Qty {item.quantity} &middot;{" "}
                         {formatPaise(item.unitPriceInPaise)} each
                       </p>
                     </div>
@@ -266,9 +266,6 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 {order.customer.customerId}
                 {order.customer.displayName ? ` · ${order.customer.displayName}` : ""}
               </p>
-            )}
-            {order.school && (
-              <p className="mt-1 text-xs text-muted-foreground">School: {order.school.name}</p>
             )}
             {/* Phase 3.6.6 Part 1 — the customer's postal address snapshot
                 for invoicing, shown only when at least one field was

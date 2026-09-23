@@ -1,12 +1,9 @@
 import type { Metadata } from "next";
 import { CounterSaleForm } from "@/components/admin/counter-sale-form";
-import { getAllSchoolsForPicker } from "@/server/queries/admin/products";
 
 export const metadata: Metadata = { title: "Counter Sale" };
 
-export default async function CounterSalePage() {
-  const schools = await getAllSchoolsForPicker();
-
+export default function CounterSalePage() {
   return (
     // AdminShell establishes the dark scope + background for the whole
     // admin application; this page just renders directly into it.
@@ -15,7 +12,7 @@ export default async function CounterSalePage() {
         <h1 className="font-heading text-xl font-semibold tracking-tight">Counter Sale</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">Record a walk-in sale</p>
       </div>
-      <CounterSaleForm schools={schools} />
+      <CounterSaleForm />
     </div>
   );
 }

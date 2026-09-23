@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, CheckCircle2, Minus, Plus, Trash2, X } from "lucide-react";
@@ -38,13 +38,11 @@ import { formatPaise, rupeesToPaise } from "@/lib/money";
 import { computePaymentOutcome, type PaymentInput } from "@/lib/payment";
 import {
   addLineToCart,
-  addRecentSchool,
   computeCartTotals,
   getCounterSaleSubmitGate,
   removeLineFromCart,
   updateLineQuantity,
   type CounterSaleCartLine,
-  type RecentSchool,
 } from "@/lib/counter-sale-form";
 import { cn } from "@/lib/utils";
 import { COUNTER_SALE_PAYMENT_METHOD_VALUES } from "@/lib/validation/admin-counter-sale";
@@ -114,34 +112,6 @@ const PAYMENT_METHOD_LABEL: Record<PaymentMethodValue, string> = {
   CARD: "Card",
 };
 
-const RECENT_SCHOOLS_KEY = "klasiq-counter-sale-recent-schools";
-
-function loadRecentSchools(): RecentSchool[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(RECENT_SCHOOLS_KEY);
-    if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (entry): entry is RecentSchool =>
-        Boolean(entry) && typeof entry.id === "string" && typeof entry.name === "string",
-    );
-  } catch {
-    return [];
-  }
-}
-
-function saveRecentSchools(recents: RecentSchool[]) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(RECENT_SCHOOLS_KEY, JSON.stringify(recents));
-  } catch {
-    // Convenience feature only — a full/unavailable localStorage (private
-    // browsing) must never block a sale.
-  }
-}
-
 function generateIdempotencyKey(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -164,7 +134,6 @@ type CompletedSale = {
   orderNumber: string;
   lines: CounterSaleCartLine[];
   customerLabel: string;
-  schoolName: string | null;
   paymentMethod: PaymentMethodValue;
   subtotalInPaise: number;
   discountInPaise: number;
@@ -177,11 +146,7 @@ type CompletedSale = {
   isPartialPayment: boolean;
 };
 
-export function CounterSaleForm({
-  schools,
-}: {
-  schools: Array<{ id: string; name: string }>;
-}) {
+export function CounterSaleForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -226,17 +191,6 @@ export function CounterSaleForm({
     );
   }
 
-  const [schoolId, setSchoolId] = useState("");
-  const [recentSchools, setRecentSchools] = useState<RecentSchool[]>([]);
-  useEffect(() => {
-    // Deferred to a callback (not called synchronously in the effect body)
-    // so the very first client render matches the server-rendered markup
-    // exactly — recent schools then appear a moment after mount, not a
-    // hydration mismatch.
-    const id = setTimeout(() => setRecentSchools(loadRecentSchools()), 0);
-    return () => clearTimeout(id);
-  }, []);
-
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodValue>("CASH");
 
   const [idempotencyKey, setIdempotencyKey] = useState(generateIdempotencyKey);
@@ -249,7 +203,6 @@ export function CounterSaleForm({
   const startNewSaleHeadingId = useId();
 
   const totals = computeCartTotals(lines);
-  const selectedSchoolName = schools.find((school) => school.id === schoolId)?.name ?? null;
 
   // Phase 3.6.5 Part 2 — live preview only, via the SAME function the
   // server independently re-runs at submit time (see "Security" in
@@ -315,7 +268,6 @@ export function CounterSaleForm({
     setDiscountFormState(initialDiscountFormState());
     setPaymentFormState(initialPaymentFormState());
     setAddressFormState(initialAddressFormState());
-    setSchoolId("");
     setPaymentMethod("CASH");
     setIdempotencyKey(generateIdempotencyKey());
     setFormError(null);
@@ -383,7 +335,6 @@ export function CounterSaleForm({
     const summarySnapshot: Omit<CompletedSale, "orderNumber"> = {
       lines,
       customerLabel: customerLabelForSummary({ mode: customerMode, selectedCustomer }),
-      schoolName: selectedSchoolName,
       paymentMethod,
       subtotalInPaise: totals.subtotalInPaise,
       discountInPaise: previewDiscountInPaise ?? 0,
@@ -413,7 +364,6 @@ export function CounterSaleForm({
         result = await createCounterSaleAction({
           lines: lines.map((line) => ({ productVariantId: line.variantId, quantity: line.quantity })),
           customer,
-          schoolId: schoolId || null,
           paymentMethod,
           idempotencyKey,
           discount: discountInput ? { ...discountInput, reason: resolveDiscountReason(discountFormState) } : null,
@@ -429,13 +379,6 @@ export function CounterSaleForm({
       }
 
       if (result.success) {
-        if (schoolId && selectedSchoolName) {
-          setRecentSchools((prev) => {
-            const next = addRecentSchool(prev, { id: schoolId, name: selectedSchoolName });
-            saveRecentSchools(next);
-            return next;
-          });
-        }
         setCompletedSale({ orderNumber: result.orderNumber, ...summarySnapshot });
         router.refresh();
         return;
@@ -479,12 +422,6 @@ export function CounterSaleForm({
             <span className="text-muted-foreground">Customer</span>
             <span className="font-medium">{completedSale.customerLabel}</span>
           </div>
-          {completedSale.schoolName && (
-            <div className="mt-1 flex justify-between gap-2">
-              <span className="text-muted-foreground">School</span>
-              <span className="font-medium">{completedSale.schoolName}</span>
-            </div>
-          )}
           <div className="mt-1 flex justify-between gap-2">
             <span className="text-muted-foreground">Payment</span>
             <span className="font-medium">{PAYMENT_METHOD_LABEL[completedSale.paymentMethod]}</span>
@@ -566,7 +503,7 @@ export function CounterSaleForm({
               <ul className="mt-2 space-y-1">
                 {stockIssues.map((issue) => (
                   <li key={`${issue.productName}-${issue.size}`}>
-                    {issue.productName} (Size {issue.size}): only {issue.availableQuantity} available,
+                    {issue.productName} ({issue.size}): only {issue.availableQuantity} available,
                     requested {issue.requestedQuantity}.
                   </li>
                 ))}
@@ -620,7 +557,7 @@ export function CounterSaleForm({
                     <li key={line.variantId} className="flex items-center justify-between gap-3 py-2.5">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
-                          {line.productName} &middot; Size {line.size}
+                          {line.productName} &middot; {line.size}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           SKU {line.sku} &middot; {formatPaise(line.priceInPaise)} each
@@ -633,7 +570,7 @@ export function CounterSaleForm({
                         <div className="flex h-8 items-center rounded-md border border-border">
                           <button
                             type="button"
-                            aria-label={`Decrease quantity for ${line.productName} size ${line.size}`}
+                            aria-label={`Decrease quantity for ${line.productName} ${line.size}`}
                             onClick={() => setLines((prev) => updateLineQuantity(prev, line.variantId, -1))}
                             className="flex h-full w-7 items-center justify-center text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           >
@@ -644,7 +581,7 @@ export function CounterSaleForm({
                           </span>
                           <button
                             type="button"
-                            aria-label={`Increase quantity for ${line.productName} size ${line.size}`}
+                            aria-label={`Increase quantity for ${line.productName} ${line.size}`}
                             disabled={line.quantity >= line.stockQuantity}
                             onClick={() => setLines((prev) => updateLineQuantity(prev, line.variantId, 1))}
                             className="flex h-full w-7 items-center justify-center text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
@@ -657,7 +594,7 @@ export function CounterSaleForm({
                         </p>
                         <button
                           type="button"
-                          aria-label={`Remove ${line.productName} size ${line.size}`}
+                          aria-label={`Remove ${line.productName} ${line.size}`}
                           onClick={() => setLines((prev) => removeLineFromCart(prev, line.variantId))}
                           className="flex size-7 items-center justify-center text-muted-foreground hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
@@ -725,61 +662,10 @@ export function CounterSaleForm({
             </div>
           </section>
 
-          <div className="border-t border-border" />
-
-          <section>
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold">
-                School <span className="font-normal text-muted-foreground">(optional)</span>
-              </h2>
-              {schoolId && (
-                <button
-                  type="button"
-                  onClick={() => setSchoolId("")}
-                  className="text-xs font-medium text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-            <p className="mt-0.5 text-xs text-muted-foreground">Associate this sale with a school</p>
-            {recentSchools.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {recentSchools.map((recent) => (
-                  <button
-                    key={recent.id}
-                    type="button"
-                    onClick={() => setSchoolId(recent.id)}
-                    className={cn(
-                      "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      schoolId === recent.id
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:text-foreground",
-                    )}
-                  >
-                    {recent.name}
-                  </button>
-                ))}
-              </div>
-            )}
-            <select
-              aria-label="School"
-              value={schoolId}
-              onChange={(e) => setSchoolId(e.target.value)}
-              className="mt-2 h-10 w-full rounded-md border border-border bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <option value="">No school — general item</option>
-              {schools.map((school) => (
-                <option key={school.id} value={school.id}>
-                  {school.name}
-                </option>
-              ))}
-            </select>
-          </section>
         </div>
 
         {/* Transaction/Payment panel — inline in document flow on mobile
-            (falls naturally after School above), sticky right rail on
+            (falls naturally after Discount above), sticky right rail on
             desktop. The Complete Sale button here is desktop-only
             (`hidden lg:block`); the mobile-only fixed bottom bar below is
             the sole submit control below `lg`, identical in spirit to
@@ -857,8 +743,7 @@ export function CounterSaleForm({
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-4 pt-2 backdrop-blur supports-backdrop-filter:bg-background/80 lg:hidden">
         <div className="pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
           <p className="truncate text-xs text-muted-foreground">
-            {customerSummaryLabel}
-            {selectedSchoolName && <> &middot; {selectedSchoolName}</>} &middot; {PAYMENT_METHOD_LABEL[paymentMethod]}
+            {customerSummaryLabel} &middot; {PAYMENT_METHOD_LABEL[paymentMethod]}
           </p>
           <div className="mt-1 flex items-center justify-between gap-3">
             <div>

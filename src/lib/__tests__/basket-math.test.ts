@@ -3,7 +3,6 @@ import {
   clampAddQuantity,
   clampSetQuantity,
   computeCheckoutBlockingIssues,
-  pickDefaultOrderableVariant,
 } from "@/lib/basket-math";
 
 describe("clampAddQuantity", () => {
@@ -83,47 +82,6 @@ describe("clampSetQuantity", () => {
   });
 });
 
-describe("pickDefaultOrderableVariant", () => {
-  const variant = (overrides: Partial<Parameters<typeof pickDefaultOrderableVariant>[0][number]>) => ({
-    id: "v",
-    sortOrder: 0,
-    stockQuantity: 10,
-    stockStatus: "IN_STOCK" as const,
-    ...overrides,
-  });
-
-  it("picks the lowest sortOrder orderable variant", () => {
-    const variants = [
-      variant({ id: "b", sortOrder: 1 }),
-      variant({ id: "a", sortOrder: 0 }),
-    ];
-    expect(pickDefaultOrderableVariant(variants)?.id).toBe("a");
-  });
-
-  it("skips out-of-stock variants even if they sort first", () => {
-    const variants = [
-      variant({ id: "a", sortOrder: 0, stockStatus: "OUT_OF_STOCK", stockQuantity: 0 }),
-      variant({ id: "b", sortOrder: 1 }),
-    ];
-    expect(pickDefaultOrderableVariant(variants)?.id).toBe("b");
-  });
-
-  it("returns undefined when every variant is out of stock", () => {
-    const variants = [
-      variant({ id: "a", stockStatus: "OUT_OF_STOCK", stockQuantity: 0 }),
-      variant({ id: "b", stockStatus: "OUT_OF_STOCK", stockQuantity: 0 }),
-    ];
-    expect(pickDefaultOrderableVariant(variants)).toBeUndefined();
-  });
-
-  it("does not mutate the input array", () => {
-    const variants = [variant({ id: "b", sortOrder: 1 }), variant({ id: "a", sortOrder: 0 })];
-    const copy = [...variants];
-    pickDefaultOrderableVariant(variants);
-    expect(variants).toEqual(copy);
-  });
-});
-
 describe("computeCheckoutBlockingIssues", () => {
   const line = (
     overrides: Partial<Parameters<typeof computeCheckoutBlockingIssues>[0][number]> = {},
@@ -149,7 +107,7 @@ describe("computeCheckoutBlockingIssues", () => {
       line({ productVariant: { ...line().productVariant, isActive: false } }),
     ]);
     expect(issues).toEqual([
-      { id: "item-1", label: "Shirt (size M)", reason: "no longer available" },
+      { id: "item-1", label: "Shirt (M)", reason: "no longer available" },
     ]);
   });
 
@@ -163,7 +121,7 @@ describe("computeCheckoutBlockingIssues", () => {
       }),
     ]);
     expect(issues).toEqual([
-      { id: "item-1", label: "Shirt (size M)", reason: "no longer available" },
+      { id: "item-1", label: "Shirt (M)", reason: "no longer available" },
     ]);
   });
 
@@ -178,7 +136,7 @@ describe("computeCheckoutBlockingIssues", () => {
       }),
     ]);
     expect(issues).toEqual([
-      { id: "item-1", label: "Shirt (size M)", reason: "no longer available" },
+      { id: "item-1", label: "Shirt (M)", reason: "no longer available" },
     ]);
   });
 
@@ -189,7 +147,7 @@ describe("computeCheckoutBlockingIssues", () => {
     expect(issues).toEqual([
       {
         id: "item-1",
-        label: "Shirt (size M)",
+        label: "Shirt (M)",
         reason: "only 3 left in stock, but 5 are in your bag",
       },
     ]);
@@ -215,7 +173,7 @@ describe("computeCheckoutBlockingIssues", () => {
       line({ id: "bad", productVariant: { ...line().productVariant, isActive: false } }),
     ]);
     expect(issues).toEqual([
-      { id: "bad", label: "Shirt (size M)", reason: "no longer available" },
+      { id: "bad", label: "Shirt (M)", reason: "no longer available" },
     ]);
   });
 });

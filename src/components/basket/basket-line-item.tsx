@@ -29,13 +29,8 @@ export type BasketLineItemData = {
       imageUrl: string | null;
       categorySlugForPlaceholder: string;
       isActive: boolean;
-      // Only ever set for a school-exclusive product (`getBasket()`
-      // already queries it) — never fabricated for a generic item, and
-      // never a class/gender guess: a `BasketItem` has no class/gender
-      // field of its own (a product can be assigned to several classes
-      // and both genders), so there's no single correct value to show
-      // for either here.
-      school: { name: string } | null;
+      // Null for loose/unbranded goods — the line simply omits it.
+      brand: string | null;
     };
   };
 };
@@ -90,7 +85,7 @@ export function BasketLineItem({ item }: { item: BasketLineItemData }) {
       // — re-adding via the same `addToBasket` action a customer already
       // used to put it there re-validates price/stock fresh, exactly as
       // it would for a brand-new add.
-      toast(`Removed ${productVariant.product.name} (Size ${productVariant.size}).`, {
+      toast(`Removed ${productVariant.product.name} (${productVariant.size}).`, {
         action: {
           label: "Undo",
           onClick: () => {
@@ -139,13 +134,13 @@ export function BasketLineItem({ item }: { item: BasketLineItemData }) {
             <p className="font-medium leading-tight">
               {productVariant.product.name}
             </p>
-            {productVariant.product.school && (
+            {productVariant.product.brand && (
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {productVariant.product.school.name}
+                {productVariant.product.brand}
               </p>
             )}
             <p className="text-sm text-muted-foreground">
-              Size {productVariant.size}
+              {productVariant.size}
             </p>
             {isUnavailable ? (
               <p className="mt-0.5 text-xs font-medium text-destructive">
@@ -171,7 +166,7 @@ export function BasketLineItem({ item }: { item: BasketLineItemData }) {
           </div>
           <button
             type="button"
-            aria-label={`Remove ${productVariant.product.name}, size ${productVariant.size}, from bag`}
+            aria-label={`Remove ${productVariant.product.name} ${productVariant.size} from bag`}
             disabled={isPending}
             onClick={remove}
             className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground outline-none transition-colors hover:bg-muted hover:text-destructive focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-40"

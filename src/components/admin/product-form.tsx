@@ -15,7 +15,7 @@ type ProductFormValues = {
   slug: string;
   description: string;
   categoryId: string;
-  schoolId: string | null;
+  brand: string;
   imageUrl: string;
   isActive: boolean;
 };
@@ -23,11 +23,9 @@ type ProductFormValues = {
 export function ProductForm({
   initial,
   categories,
-  schools,
 }: {
   initial?: ProductFormValues;
   categories: Array<{ id: string; name: string }>;
-  schools: Array<{ id: string; name: string }>;
 }) {
   const router = useRouter();
   const isEditing = Boolean(initial?.id);
@@ -35,13 +33,14 @@ export function ProductForm({
   const slugId = useId();
   const descriptionId = useId();
   const imageId = useId();
+  const brandId = useId();
 
   const [name, setName] = useState(initial?.name ?? "");
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(isEditing);
   const [description, setDescription] = useState(initial?.description ?? "");
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? categories[0]?.id ?? "");
-  const [schoolId, setSchoolId] = useState<string>(initial?.schoolId ?? "");
+  const [brand, setBrand] = useState(initial?.brand ?? "");
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +62,7 @@ export function ProductForm({
         slug,
         description,
         categoryId,
-        schoolId: schoolId || null,
+        brand,
         imageUrl,
         isActive,
       };
@@ -84,7 +83,7 @@ export function ProductForm({
         setError(result.error.message);
         return;
       }
-      toast.success("Product created — add sizes below.");
+      toast.success("Product created — add pack sizes below.");
       router.push(`/admin/products/${result.id}`);
     });
   }
@@ -143,18 +142,17 @@ export function ProductForm({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label>School</Label>
-          <select value={schoolId} onChange={(e) => setSchoolId(e.target.value)} className={selectClass}>
-            <option value="">Generic — reusable by any school</option>
-            {schools.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} (exclusive)
-              </option>
-            ))}
-          </select>
+          <Label htmlFor={brandId}>Brand (optional)</Label>
+          <Input
+            id={brandId}
+            className="h-9"
+            placeholder="e.g. Tata, Amul, Aashirvaad"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+          />
           <p className="text-xs text-muted-foreground">
-            Most uniform items should stay Generic so schools can share them. Only pick a specific
-            school for an item exclusive to it (e.g. a crested blazer).
+            As printed on the pack. Leave blank for loose or unbranded goods. Customers can
+            search by brand.
           </p>
         </div>
       </div>

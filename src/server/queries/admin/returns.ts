@@ -5,7 +5,6 @@ import { normalizePhoneNumber } from "@/lib/phone";
 export type AdminReturnFilters = {
   status?: ReturnRequestStatus;
   type?: ReturnRequestType;
-  schoolId?: string;
   /** Inclusive, local-calendar-day bounds — "YYYY-MM-DD", same convention
    * as getAdminOrders (src/server/queries/admin/orders.ts). */
   dateFrom?: string;
@@ -22,7 +21,7 @@ const ADMIN_RETURN_LIST_LIMIT = 200;
  * covers Return Number, Order Number, Customer Name, Customer ID, Phone
  * (both a normalized exact match and a raw partial match, mirroring
  * `searchCustomers`'s own documented partial-search limitation for
- * displayName/phone), and School — all via one `OR`, never requiring an
+ * displayName/phone) — all via one `OR`, never requiring an
  * exact match where the existing convention already supports partial.
  * "Customer" as a distinct filter (section 4) is deliberately NOT a
  * second, separate dropdown — the free-text search above already covers
@@ -42,7 +41,6 @@ export async function getAdminReturnRequests(filters: AdminReturnFilters) {
     where: {
       ...(filters.status ? { status: filters.status } : {}),
       ...(filters.type ? { type: filters.type } : {}),
-      ...(filters.schoolId ? { order: { schoolId: filters.schoolId } } : {}),
       ...(createdAtGte || createdAtLt
         ? {
             createdAt: {
@@ -59,7 +57,6 @@ export async function getAdminReturnRequests(filters: AdminReturnFilters) {
               { customer: { displayName: { contains: trimmedQuery, mode: "insensitive" as const } } },
               { customer: { customerId: { contains: trimmedQuery, mode: "insensitive" as const } } },
               { customer: { primaryPhone: { contains: trimmedQuery } } },
-              { order: { school: { name: { contains: trimmedQuery, mode: "insensitive" as const } } } },
               ...(normalizedPhone.valid
                 ? [{ customer: { primaryPhoneNormalized: normalizedPhone.normalized } }]
                 : []),
@@ -68,7 +65,7 @@ export async function getAdminReturnRequests(filters: AdminReturnFilters) {
         : {}),
     },
     include: {
-      order: { select: { orderNumber: true, school: { select: { name: true } } } },
+      order: { select: { orderNumber: true } },
       customer: { select: { customerId: true, displayName: true, primaryPhone: true } },
       items: { include: { orderItem: true } },
     },
@@ -82,7 +79,7 @@ export async function getAdminReturnRequests(filters: AdminReturnFilters) {
  * "Purchased Quantity"/"Already Returned"/"Remaining" can be computed
  * against the live `OrderItem.returnClaimedQuantity`, never a stale
  * snapshot), the acting admin's name for every lifecycle timestamp that
- * is actually set, and the school for display. Unlike the customer-portal
+ * is actually set. Unlike the customer-portal
  * equivalent (`getReturnRequestsForOrder`), this is intentionally NOT
  * scoped by customerId — an admin's authorization is `getAdminSession()`
  * itself (checked by the caller), not per-customer ownership.
@@ -106,7 +103,6 @@ export async function getAdminReturnRequestByNumber(returnNumber: string) {
       order: {
         include: {
           items: { orderBy: { id: "asc" } },
-          school: { select: { name: true } },
         },
       },
       customer: { select: { customerId: true, displayName: true, primaryPhone: true } },

@@ -244,12 +244,6 @@ export async function placeOrderForBasket(
 
       const totalInPaise = subtotalInPaise + deliveryFeeInPaise;
 
-      // Best-effort "primary school" for this order, for display/filtering
-      // convenience only — a basket mixing two schools' exclusive items is
-      // an edge case nothing in the UI encourages; picking the first is a
-      // documented simplification, not a correctness requirement.
-      const schoolId = lines.find((line) => line.productSchoolId)?.productSchoolId ?? null;
-
       // Resolved only after stock is confirmed available — a checkout that
       // fails the stock check above never reaches this line, so it never
       // creates a customer for an order that didn't happen. Passing `tx`
@@ -286,7 +280,6 @@ export async function placeOrderForBasket(
         accessToken,
         idempotencyKey: input.idempotencyKey,
         source: "ONLINE",
-        schoolId,
         customerId,
         customerName: input.customerName,
         customerMobile: input.customerMobile,
@@ -436,7 +429,6 @@ export async function placeOrderForBasket(
     // never fail because of a messaging problem, even a hypothetical
     // future bug in the service's own "never throws" guarantee.
     try {
-      const school = order.schoolId ? await db.school.findUnique({ where: { id: order.schoolId }, select: { name: true } }) : null;
       await notifyOrderEvent(
         {
           orderNumber: order.orderNumber,
@@ -446,7 +438,6 @@ export async function placeOrderForBasket(
           customerName: order.customerName,
           customerMobile: order.customerMobile,
           customerWhatsapp: order.customerWhatsapp,
-          schoolName: school?.name ?? null,
         },
         "ORDER_PLACED",
       );

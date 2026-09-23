@@ -433,7 +433,6 @@ describe("anonymizeCustomer — personal-data audit (2026-08-10)", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: created.customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

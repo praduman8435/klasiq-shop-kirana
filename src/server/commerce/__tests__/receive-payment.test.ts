@@ -72,7 +72,6 @@ async function createPartialSale(params: { priceInPaise: number; amountReceivedI
   const sale = await createCounterSale({
     lines: [{ productVariantId: variant.id, quantity: 1 }],
     customer: { mode: "EXISTING", customerId: params.customerId },
-    schoolId: null,
     paymentMethod: "CASH",
     idempotencyKey: randomUUID(),
     adminUserId,

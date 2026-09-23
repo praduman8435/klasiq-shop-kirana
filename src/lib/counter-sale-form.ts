@@ -266,15 +266,3 @@ export function nextSearchResultIndex(params: {
   if (direction === "down") return (currentIndex + 1) % resultCount;
   return (currentIndex - 1 + resultCount) % resultCount;
 }
-
-export type RecentSchool = { id: string; name: string };
-
-const MAX_RECENT_SCHOOLS = 5;
-
-/** Moves `school` to the front of the recent list (deduping it), capped at
- * MAX_RECENT_SCHOOLS — the whole "recent selections" feature is this one
- * pure update plus a localStorage read/write in the component, no backend
- * involved. */
-export function addRecentSchool(recents: RecentSchool[], school: RecentSchool): RecentSchool[] {
-  return [school, ...recents.filter((r) => r.id !== school.id)].slice(0, MAX_RECENT_SCHOOLS);
-}

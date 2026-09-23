@@ -47,7 +47,7 @@ export async function updateOrderStatus(params: {
 
   const order = await db.order.findUnique({
     where: { orderNumber },
-    include: { items: true, school: { select: { name: true } } },
+    include: { items: true },
   });
   if (!order) {
     return { success: false, error: { type: "NOT_FOUND", message: "Order not found." } };
@@ -162,7 +162,6 @@ export async function updateOrderStatus(params: {
           customerName: order.customerName,
           customerMobile: order.customerMobile,
           customerWhatsapp: order.customerWhatsapp,
-          schoolName: order.school?.name ?? null,
         },
         event,
       );

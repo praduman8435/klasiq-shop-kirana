@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getHeaderCategories } from "@/server/queries/categories";
 import { CategoryNavLink } from "@/components/site/category-nav-link";
-import { SchoolSearch } from "@/components/site/school-search";
+import { SiteSearch } from "@/components/site/site-search";
 import { MobileNav } from "@/components/site/mobile-nav";
 import { BagLink } from "@/components/site/bag-link";
 import { TrackOrdersLink } from "@/components/site/track-orders-link";
@@ -64,7 +64,7 @@ export async function SiteHeader({ storeName }: { storeName: string }) {
         </div>
 
         <div className="hidden min-w-40 flex-1 justify-center px-4 md:flex">
-          <SchoolSearch size="compact" className="max-w-xs" />
+          <SiteSearch size="compact" className="max-w-xs" />
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">

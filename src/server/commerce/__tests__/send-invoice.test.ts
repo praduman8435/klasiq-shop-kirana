@@ -62,7 +62,6 @@ async function createOrder() {
   const sale = await createCounterSale({
     lines: [{ productVariantId: variant.id, quantity: 1 }],
     customer: { mode: "GUEST" },
-    schoolId: null,
     paymentMethod: "CASH",
     idempotencyKey: randomUUID(),
     adminUserId,

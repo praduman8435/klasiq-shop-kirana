@@ -5,7 +5,7 @@ import { Bookmark, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BRAND, STORE_CONTACT } from "@/lib/constants";
 import { formatPaise } from "@/lib/money";
-import { getFulfillmentLabel, getOrderSchoolContext, getPaymentMethodLabel } from "@/lib/order-message";
+import { getFulfillmentLabel, getPaymentMethodLabel } from "@/lib/order-message";
 import { PAYMENT_STATUS_LABEL } from "@/lib/order-lifecycle";
 import { getOrderByNumberAndToken } from "@/server/queries/orders";
 
@@ -28,7 +28,6 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
 
   const isPickup = order.fulfillmentType === "STORE_PICKUP";
   const isDelivery = order.fulfillmentType === "LOCAL_DELIVERY";
-  const schoolContext = getOrderSchoolContext(order.items);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-8">
@@ -46,11 +45,6 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
         <p className="mt-3 rounded-full bg-secondary px-4 py-1.5 font-mono text-sm font-medium">
           {order.orderNumber}
         </p>
-        {schoolContext && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Shopping for <span className="text-foreground">{schoolContext.name}</span>
-          </p>
-        )}
       </div>
 
       <div className="mt-5 flex items-start gap-2.5 rounded-xl border border-accent/40 bg-accent/10 p-3.5">
@@ -73,7 +67,7 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
                 <div>
                   <p className="font-medium">{item.productName}</p>
                   <p className="text-xs text-muted-foreground">
-                    Size {item.size} &middot; Qty {item.quantity}
+                    {item.size} &middot; Qty {item.quantity}
                   </p>
                 </div>
                 {/* Section 13 — the customer's actual paid amount, never the

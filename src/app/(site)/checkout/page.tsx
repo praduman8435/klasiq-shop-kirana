@@ -7,7 +7,6 @@ import { CheckoutForm } from "@/components/checkout/checkout-form";
 import {
   basketTotalInPaise,
   getBasket,
-  getBasketSchoolContext,
   getConvertedBasketOrderLink,
 } from "@/lib/basket";
 import { computeCheckoutBlockingIssues } from "@/lib/basket-math";
@@ -21,8 +20,6 @@ export const metadata: Metadata = {
 
 export default async function CheckoutPage() {
   const basket = await getBasket();
-  const schoolContext = getBasketSchoolContext(basket);
-
   if (!basket || basket.items.length === 0) {
     // If this basket already produced an order (parent hit back/refresh
     // after placing it), send them straight to that confirmation instead
@@ -44,7 +41,7 @@ export default async function CheckoutPage() {
           Add something to your bag before checking out.
         </p>
         <Button render={<Link href="/" />} nativeButton={false} className="mt-5 h-11">
-          Find your school
+          Start Shopping
         </Button>
       </div>
     );
@@ -66,11 +63,6 @@ export default async function CheckoutPage() {
         <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
           Checkout
         </h1>
-        {schoolContext && (
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Shopping for {schoolContext.name}
-          </p>
-        )}
         <div className="mt-4 flex gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden />
           <div>
@@ -122,9 +114,7 @@ export default async function CheckoutPage() {
         Checkout
       </h1>
       <p className="mt-0.5 text-sm text-muted-foreground">
-        {schoolContext
-          ? `Shopping for ${schoolContext.name} — no account needed, just a few details.`
-          : "No account needed — just a few details."}
+        No account needed — just a few details.
       </p>
 
       <CheckoutForm

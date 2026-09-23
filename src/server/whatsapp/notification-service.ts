@@ -27,13 +27,11 @@ export type OrderForNotification = {
   /** The checkout-time WhatsApp snapshot (`Order.customerWhatsapp`) —
    * see "Customer phone selection" below for the full fallback chain. */
   customerWhatsapp: string | null;
-  schoolName: string | null;
 };
 
 /**
  * Section 6's "concise... only useful information," expressed as one
- * short sentence per event, with the school folded in only when the
- * order actually has one (never an awkward empty parameter otherwise).
+ * short sentence per event.
  * `DELIVERED` is fulfillment-aware — "collected" for Store Pickup vs.
  * "delivered" for Local Delivery — reusing the exact same distinction
  * the customer portal's own tracking timeline already makes
@@ -43,22 +41,20 @@ export type OrderForNotification = {
 function buildContextLine(
   event: OrderNotificationEvent,
   fulfillmentType: FulfillmentType,
-  schoolName: string | null,
 ): string {
-  const schoolSuffix = schoolName ? ` for ${schoolName}` : "";
   switch (event) {
     case "ORDER_PLACED":
-      return `Your order${schoolSuffix} has been placed and is being processed.`;
+      return "Your order has been placed and is being processed.";
     case "ORDER_CONFIRMED":
-      return `Your order${schoolSuffix} has been confirmed.`;
+      return "Your order has been confirmed.";
     case "PREPARING":
-      return `Your order${schoolSuffix} is being prepared.`;
+      return "Your order is being prepared.";
     case "READY_FOR_PICKUP":
-      return `Your order${schoolSuffix} is ready for pickup at ${BRAND.legacyStoreNames[0]}.`;
+      return `Your order is ready for pickup at ${BRAND.legacyStoreNames[0]}.`;
     case "DELIVERED":
       return fulfillmentType === "STORE_PICKUP"
-        ? `Your order${schoolSuffix} has been collected.`
-        : `Your order${schoolSuffix} has been delivered.`;
+        ? "Your order has been collected."
+        : "Your order has been delivered.";
   }
 }
 
@@ -128,7 +124,7 @@ export async function notifyOrderEvent(order: OrderForNotification, event: Order
 
     const transportConfig = getWhatsAppTransportConfig();
     const sender = getNotificationSender();
-    const contextLine = buildContextLine(event, order.fulfillmentType, order.schoolName);
+    const contextLine = buildContextLine(event, order.fulfillmentType);
     // Reuses the EXISTING secure, per-order confirmation URL (Phase 2) —
     // never a new mechanism, never the customer-portal's own session-
     // based route. The access token in this URL is not "exposed

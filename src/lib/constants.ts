@@ -11,20 +11,16 @@ export const BRAND = {
   /** All-caps wordmark/logo treatment — visual only, never used as the
    * textual brand name in copy. */
   wordmark: "KLASIQ",
-  /** Phase 3.7 Part 7 (final visual direction) — the previous tagline
-   * ("School essentials, made simple.") made the whole brand read as
-   * school-only, even though the catalog already spans uniforms,
-   * footwear, bags, and kurtis, with more categories to come. Plays on
-   * the brand name itself (Klasiq/"classic") instead. */
+  /** Plays on the brand name itself (Klasiq/"classic") — deliberately
+   * category-neutral, so it holds as the kirana catalog grows. */
   tagline: "Classic quality, modern shopping.",
   /** Phase 3.7 Part 7 (homepage redesign) — the homepage hero's own,
    * shorter, punchier line, distinct from the general-purpose tagline
    * above (used in <title>/meta/footer). Keeps the "Klasiq/classic"
-   * wordplay explicit rather than implicit, and stays brand-wide, never
-   * school-exclusive. */
+   * wordplay explicit rather than implicit, and stays brand-wide. */
   heroHeadline: "Classic essentials. New energy.",
   description:
-    "Uniforms, footwear, bags, kurtis and everyday essentials for the whole family — search your school for an exact fit, or browse and shop everything else.",
+    "Atta, dal, oil, masale, snacks and everyday household essentials from your neighbourhood store — order online for pickup or home delivery.",
   /** Deliberately vague on an exact founding year — see PHASE_3_REPORT.md
    * "Heritage claims". Update only when a specific founding year is
    * explicitly confirmed for production copy. */

@@ -57,7 +57,6 @@ export async function getAdminOrderByNumber(orderNumber: string) {
     where: { orderNumber },
     include: {
       items: { orderBy: { id: "asc" } },
-      school: { select: { name: true } },
       customer: { select: { customerId: true, displayName: true } },
       createdByAdminUser: { select: { name: true } },
       inventoryAdjustments: { orderBy: { createdAt: "desc" } },

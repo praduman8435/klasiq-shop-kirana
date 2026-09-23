@@ -1,12 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { SchoolSearch } from "@/components/site/school-search";
+import { SiteSearch } from "@/components/site/site-search";
 import { ProductCard } from "@/components/product/product-card";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { BRAND } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import {
-  getFeaturedGenericProducts,
+  getFeaturedProducts,
   getHeaderCategories,
   pickBrowseFallbackCategory,
 } from "@/server/queries/categories";
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
  * Phase 3.7 Part 7 (homepage redesign) — dark-first, compact, editorial.
  * Replaces the light cream hero + 5 huge category cards + no product
  * discovery with: a dark cinematic hero (restrained red glow, one rare
- * gold badge, a compact school-search that no longer eats the whole
+ * gold badge, a compact product search that no longer eats the whole
  * viewport), a horizontally-scrolling category rail (compact chips, not
  * dashboard cards), and one small real-product teaser section. The whole
  * page — header and footer included, via `RouteThemeScope` — wears the
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
 export default async function HomePage() {
   const [categories, featuredProducts] = await Promise.all([
     getHeaderCategories(),
-    getFeaturedGenericProducts(5),
+    getFeaturedProducts(5),
   ]);
   const signatureCategory = pickBrowseFallbackCategory(categories);
 
@@ -53,27 +53,17 @@ export default async function HomePage() {
             (10s) drift/pulse gives the page a quiet sense of life on
             load without reading as an animated decoration; collapses to
             static under prefers-reduced-motion via the global rule.
-            Search-overlay fix — `overflow-hidden` used to live on the
-            section itself, which also clipped the school-search
-            dropdown the moment it grew past the hero's own bottom edge.
-            Scoping `overflow-hidden` to just this glow's own wrapper
+            `overflow-hidden` is scoped to just this glow's own wrapper
             (sized to the section, but not an ancestor of the search box
-            below) keeps the glow contained. The dropdown itself no
-            longer lives in this subtree at all — `SchoolSearch` now
-            portals it to `document.body` (see that component's own doc
-            comment), which is what actually resolved the remaining
-            "Shop by category" overlap; a same-tree CSS/z-index fix here
-            couldn't win against that rail's independently-composited
-            `overflow-x-auto` scroll layer. */}
+            below) so it never clips anything else in the hero. */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute left-1/2 top-0 size-80 rounded-full bg-accent/10 blur-3xl [animation:hero-glow-drift_10s_ease-in-out_infinite] sm:size-96" />
         </div>
 
         {/* Final refinement pass — the hero previously carried a full
-            explanatory paragraph ("Uniforms, footwear, bags, kurtis...")
-            plus a duplicate "Shop by school" / "Find your school's
-            essentials" heading pair directly above the search input that
-            already speaks for itself. That's four lines of reading before
+            explanatory paragraph plus a duplicate heading pair directly
+            above a search input that already speaks for itself. That's
+            four lines of reading before
             a shopper could act, on top of the eyebrow and headline. Less
             explanation, more shopping: the search box is the CTA, its own
             placeholder is the label. Nothing replaces the removed copy —
@@ -88,7 +78,7 @@ export default async function HomePage() {
           </h1>
 
           <div className="w-full max-w-sm transition-transform duration-300 focus-within:scale-[1.015]">
-            <SchoolSearch size="hero" />
+            <SiteSearch size="hero" />
           </div>
         </div>
       </section>

@@ -108,7 +108,7 @@ export const RETURN_REQUEST_STATUS_ACTION_LABEL: Record<ReturnRequestStatus, str
  * possible" instruction — one Record to translate, never a string
  * scattered across pages. */
 export const RETURN_REASON_LABEL: Record<ReturnReason, string> = {
-  WRONG_SIZE: "Wrong Size",
+  WRONG_SIZE: "Wrong Pack Size",
   DEFECTIVE: "Defective",
   DAMAGED: "Damaged",
   WRONG_PRODUCT: "Wrong Product",

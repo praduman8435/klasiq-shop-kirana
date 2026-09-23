@@ -108,7 +108,7 @@ export default async function SupplierPurchaseReturnDetailPage({ params }: PageP
                   {/* Mobile — stacked block. */}
                   <div className="flex flex-col gap-1 sm:hidden">
                     <p className="text-sm font-medium">
-                      {item.productVariant.product.name} &middot; Size {item.productVariant.size}
+                      {item.productVariant.product.name} &middot; {item.productVariant.size}
                     </p>
                     <p className="text-xs text-muted-foreground">SKU {item.productVariant.sku}</p>
                     <p className="text-xs text-muted-foreground">
@@ -123,7 +123,7 @@ export default async function SupplierPurchaseReturnDetailPage({ params }: PageP
                   <div className="hidden items-center gap-3 sm:flex">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">
-                        {item.productVariant.product.name} &middot; Size {item.productVariant.size}
+                        {item.productVariant.product.name} &middot; {item.productVariant.size}
                       </p>
                     </div>
                     <span className="w-24 shrink-0 truncate text-xs text-muted-foreground">{item.productVariant.sku}</span>

@@ -81,7 +81,7 @@ export function InvoiceView({ invoice }: { invoice: Invoice }) {
                 <div>
                   <p className="font-medium">{item.productName}</p>
                   <p className="mt-0.5 text-xs text-neutral-500">
-                    Size {item.size} &middot; SKU {item.sku} &middot; Qty {item.quantity} &middot;{" "}
+                    {item.size} &middot; SKU {item.sku} &middot; Qty {item.quantity} &middot;{" "}
                     {formatPaise(item.unitPriceInPaise)} each
                   </p>
                 </div>

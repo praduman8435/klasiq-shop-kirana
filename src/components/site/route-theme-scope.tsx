@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
  * dark-first — this list is the single source of truth for "which
  * routes are done," not a place to opt in speculatively. The full
  * customer journey (Home → Category → Product → Bag → Checkout →
- * Order confirmation → Track Order → School storefront) is now one
+ * Order confirmation → Track Order) is now one
  * continuous dark surface.
  */
 /**
@@ -34,7 +34,6 @@ const RESERVED_TOP_LEVEL_SEGMENTS = new Set([
   "checkout",
   "order",
   "product",
-  "school",
   "search",
   "track",
 ]);
@@ -53,7 +52,6 @@ export function isDarkRoute(pathname: string): boolean {
   if (pathname === "/search") return true;
   if (pathname === "/track" || pathname.startsWith("/track/")) return true;
   if (pathname.startsWith("/order/")) return true;
-  if (pathname.startsWith("/school/")) return true;
 
   const segments = pathname.split("/").filter(Boolean);
   if (segments.length === 1 && !RESERVED_TOP_LEVEL_SEGMENTS.has(segments[0])) {

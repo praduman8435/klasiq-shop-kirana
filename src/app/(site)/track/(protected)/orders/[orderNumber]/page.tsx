@@ -142,7 +142,7 @@ export default async function TrackOrderDetailPage({ params }: PageProps) {
                   <div>
                     <p className="font-medium">{item.productName}</p>
                     <p className="text-xs text-muted-foreground">
-                      Size {item.size} &middot; Qty {item.quantity} &middot; {formatPaise(effectiveUnitPriceInPaise)} each
+                      {item.size} &middot; Qty {item.quantity} &middot; {formatPaise(effectiveUnitPriceInPaise)} each
                     </p>
                     {returnInfo && returnInfo.claimedQuantity > 0 && (
                       <p className="mt-0.5 text-xs text-muted-foreground">

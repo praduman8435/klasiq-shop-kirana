@@ -215,7 +215,7 @@ export function CheckoutForm({
               <ul className="mt-2 space-y-1">
                 {stockIssues.map((issue) => (
                   <li key={`${issue.productName}-${issue.size}`}>
-                    {issue.productName} (Size {issue.size}): only {issue.availableQuantity}{" "}
+                    {issue.productName} ({issue.size}): only {issue.availableQuantity}{" "}
                     available, you requested {issue.requestedQuantity}.
                   </li>
                 ))}
@@ -486,7 +486,7 @@ export function CheckoutForm({
                     <div>
                       <p className="text-sm font-medium leading-tight">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
-                        Size {item.size} &middot; Qty {item.quantity}
+                        {item.size} &middot; Qty {item.quantity}
                       </p>
                     </div>
                     <p className="text-sm font-medium">

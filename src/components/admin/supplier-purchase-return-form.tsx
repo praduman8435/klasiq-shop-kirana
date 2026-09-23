@@ -63,7 +63,7 @@ function ReturnItemRow({
       <div className="flex flex-col gap-2 sm:hidden">
         <div>
           <p className="text-sm font-medium">
-            {variant.productName} &middot; Size {variant.size}
+            {variant.productName} &middot; {variant.size}
           </p>
           <p className="text-xs text-muted-foreground">SKU {variant.sku}</p>
         </div>
@@ -91,7 +91,7 @@ function ReturnItemRow({
       <div className="hidden items-center gap-3 sm:flex">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">
-            {variant.productName} &middot; Size {variant.size}
+            {variant.productName} &middot; {variant.size}
           </p>
           <p className="truncate text-xs text-muted-foreground">SKU {variant.sku}</p>
         </div>

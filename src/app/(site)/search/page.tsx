@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CategoryProductGrid } from "@/components/product/category-product-grid";
 import { ProductSearchForm } from "@/components/product/product-search-form";
 import { productSearchQuerySchema } from "@/lib/validation/product-search";
-import { searchGenericProducts } from "@/server/queries/categories";
+import { searchProducts } from "@/server/queries/categories";
 
 type PageProps = { searchParams: Promise<{ q?: string }> };
 
@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: PageProps): Promise<Met
  * when `q` is absent/empty after validation — there is no "browse
  * everything" mode hiding behind an empty search box; an empty query is
  * its own honest state; the "not-found" bookkeeping. See
- * `searchGenericProducts` (src/server/queries/categories.ts) for the
+ * `searchProducts` (src/server/queries/categories.ts) for the
  * shared, parameterized query this delegates to — identical to what
  * `/[categorySlug]?q=` uses, just without a category constraint.
  */
@@ -36,7 +36,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const parsed = productSearchQuerySchema.safeParse({ q });
   const query = parsed.success ? parsed.data.q : undefined;
 
-  const products = query ? await searchGenericProducts(query) : [];
+  const products = query ? await searchProducts(query) : [];
 
   return (
     <CategoryProductGrid

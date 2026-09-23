@@ -7,7 +7,6 @@ import {
 
 const validBase = {
   lines: [{ productVariantId: "variant-1", quantity: 2 }],
-  schoolId: null,
   paymentMethod: "CASH" as const,
   idempotencyKey: "550e8400-e29b-41d4-a716-446655440000",
 };
@@ -84,15 +83,6 @@ describe("createCounterSaleSchema", () => {
       idempotencyKey: "not-a-uuid",
     });
     expect(result.success).toBe(false);
-  });
-
-  it("accepts a non-null schoolId", () => {
-    const result = createCounterSaleSchema.safeParse({
-      ...validBase,
-      customer: { mode: "GUEST" },
-      schoolId: "school-1",
-    });
-    expect(result.success).toBe(true);
   });
 
   it("accepts an omitted payment field (defaults to Full Payment downstream)", () => {

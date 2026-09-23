@@ -118,7 +118,7 @@ export default async function AdminSupplierDetailPage({ params, searchParams }: 
       </div>
 
       {/* Section 15 — reuses the exact same always-editable-form pattern
-          Products/Schools already establish (no separate "Edit" toggle
+          Products already establishes (no separate "Edit" toggle
           or view/edit mode split): this form IS the supplier's account
           view, pre-filled with its current values, "Save changes"
           persisting in place. */}

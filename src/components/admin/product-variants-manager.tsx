@@ -22,6 +22,7 @@ type Variant = {
   size: string;
   sku: string;
   priceInPaise: number;
+  mrpInPaise: number | null;
   stockQuantity: number;
   lowStockThreshold: number;
   stockStatus: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
@@ -29,6 +30,11 @@ type Variant = {
 };
 
 const INPUT_CLASS = "h-9 text-sm";
+
+/** "" (left blank) clears MRP — loose/unbranded goods have none. */
+function parseMrpInput(value: string): number | null {
+  return value.trim() === "" ? null : Number(value);
+}
 
 function VariantEditForm({
   variant,
@@ -42,6 +48,7 @@ function VariantEditForm({
   const [size, setSize] = useState(variant.size);
   const [sku, setSku] = useState(variant.sku);
   const [price, setPrice] = useState(String(variant.priceInPaise / 100));
+  const [mrp, setMrp] = useState(variant.mrpInPaise === null ? "" : String(variant.mrpInPaise / 100));
   const [stock, setStock] = useState(String(variant.stockQuantity));
 
   function handleSave() {
@@ -52,10 +59,11 @@ function VariantEditForm({
         size,
         sku,
         priceInRupees: Number(price),
+        mrpInRupees: parseMrpInput(mrp),
         stockQuantity: Number(stock),
       });
       if (result.success) {
-        toast.success("Size updated.");
+        toast.success("Pack size updated.");
         onDone();
         router.refresh();
       } else {
@@ -67,8 +75,8 @@ function VariantEditForm({
   return (
     <div className="flex flex-wrap items-end gap-2 bg-secondary/20 px-1 py-2.5">
       <div className="flex flex-col gap-1">
-        <Label className="text-xs text-muted-foreground">Size</Label>
-        <Input value={size} onChange={(e) => setSize(e.target.value)} className={cn(INPUT_CLASS, "w-16")} />
+        <Label className="text-xs text-muted-foreground">Pack size</Label>
+        <Input value={size} onChange={(e) => setSize(e.target.value)} className={cn(INPUT_CLASS, "w-24")} />
       </div>
       <div className="flex flex-col gap-1">
         <Label className="text-xs text-muted-foreground">SKU</Label>
@@ -82,6 +90,18 @@ function VariantEditForm({
           min={0}
           value={price}
           onChange={(e) => setPrice(e.target.value)}
+          className={cn(INPUT_CLASS, "w-24")}
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label className="text-xs text-muted-foreground">MRP (₹)</Label>
+        <Input
+          type="number"
+          step="0.01"
+          min={0}
+          value={mrp}
+          onChange={(e) => setMrp(e.target.value)}
+          placeholder="Optional"
           className={cn(INPUT_CLASS, "w-24")}
         />
       </div>
@@ -117,7 +137,7 @@ function VariantRow({ variant }: { variant: Variant }) {
     startTransition(async () => {
       const result = await setVariantActiveAction({ id: variant.id, isActive: !variant.isActive });
       if (result.success) {
-        toast.success(variant.isActive ? "Size deactivated." : "Size activated.");
+        toast.success(variant.isActive ? "Pack size deactivated." : "Pack size activated.");
         router.refresh();
       } else {
         toast.error(result.error.message);
@@ -127,12 +147,12 @@ function VariantRow({ variant }: { variant: Variant }) {
 
   function handleDelete() {
     if (isPending) return;
-    const confirmed = window.confirm(`Delete size ${variant.size} (SKU ${variant.sku})? This cannot be undone.`);
+    const confirmed = window.confirm(`Delete pack size ${variant.size} (SKU ${variant.sku})? This cannot be undone.`);
     if (!confirmed) return;
     startTransition(async () => {
       const result = await deleteVariantAction({ id: variant.id });
       if (result.success) {
-        toast.success("Size deleted.");
+        toast.success("Pack size deleted.");
         router.refresh();
       } else {
         toast.error(result.error.message);
@@ -149,12 +169,13 @@ function VariantRow({ variant }: { variant: Variant }) {
   }
 
   const stockLabel = `${variant.stockQuantity} · ${STOCK_STATUS_LABEL[variant.stockStatus]}`;
+  const mrpLabel = variant.mrpInPaise === null ? null : `MRP ${formatPaise(variant.mrpInPaise)}`;
 
   const actions = (
     <>
       <button
         type="button"
-        aria-label={`Edit size ${variant.size}`}
+        aria-label={`Edit pack size ${variant.size}`}
         disabled={isPending}
         onClick={() => setEditing(true)}
         className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted disabled:opacity-40"
@@ -166,7 +187,7 @@ function VariantRow({ variant }: { variant: Variant }) {
       </Button>
       <button
         type="button"
-        aria-label={`Delete size ${variant.size}`}
+        aria-label={`Delete pack size ${variant.size}`}
         disabled={isPending}
         onClick={handleDelete}
         className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-40"
@@ -181,13 +202,14 @@ function VariantRow({ variant }: { variant: Variant }) {
       {/* Mobile — compact stacked block. */}
       <div className="flex flex-col gap-1 px-1 py-2.5 sm:hidden">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-sm font-medium">Size {variant.size}</span>
+          <span className="text-sm font-medium">{variant.size}</span>
           <span className={cn("text-xs font-medium", STOCK_STATUS_TEXT_CLASS[variant.stockStatus])}>
             {stockLabel}
           </span>
         </div>
         <p className="truncate text-xs text-muted-foreground">
           SKU {variant.sku} · {formatPaise(variant.priceInPaise)}
+          {mrpLabel && ` (${mrpLabel})`}
           {!variant.isActive && " · Inactive"}
         </p>
         <div className="mt-1 flex items-center gap-1">{actions}</div>
@@ -195,12 +217,15 @@ function VariantRow({ variant }: { variant: Variant }) {
 
       {/* Desktop — operational table row. */}
       <div className="hidden items-center gap-3 px-1 py-2.5 sm:flex">
-        <span className="w-14 shrink-0 text-sm font-medium">{variant.size}</span>
+        <span className="w-20 shrink-0 text-sm font-medium">{variant.size}</span>
         <span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
           {variant.sku}
           {!variant.isActive && " · Inactive"}
         </span>
         <span className="w-20 shrink-0 text-right text-sm">{formatPaise(variant.priceInPaise)}</span>
+        <span className="w-20 shrink-0 text-right text-sm text-muted-foreground">
+          {variant.mrpInPaise === null ? "—" : formatPaise(variant.mrpInPaise)}
+        </span>
         <span className={cn("w-32 shrink-0 text-right text-sm", STOCK_STATUS_TEXT_CLASS[variant.stockStatus])}>
           {stockLabel}
         </span>
@@ -216,10 +241,12 @@ function AddVariantForm({ productId, onDone }: { productId: string; onDone: () =
   const [size, setSize] = useState("");
   const [sku, setSku] = useState("");
   const [price, setPrice] = useState("");
+  const [mrp, setMrp] = useState("");
   const [stock, setStock] = useState("0");
   const sizeId = useId();
   const skuId = useId();
   const priceId = useId();
+  const mrpId = useId();
   const stockId = useId();
 
   function handleAdd(event: React.FormEvent) {
@@ -231,10 +258,11 @@ function AddVariantForm({ productId, onDone }: { productId: string; onDone: () =
         size: size.trim(),
         sku: sku.trim(),
         priceInRupees: Number(price),
+        mrpInRupees: parseMrpInput(mrp),
         stockQuantity: Number(stock) || 0,
       });
       if (result.success) {
-        toast.success("Size added.");
+        toast.success("Pack size added.");
         router.refresh();
         onDone();
       } else {
@@ -248,14 +276,14 @@ function AddVariantForm({ productId, onDone }: { productId: string; onDone: () =
       <div className="flex flex-wrap gap-2">
         <div className="flex flex-col gap-1">
           <Label htmlFor={sizeId} className="text-xs text-muted-foreground">
-            Size
+            Pack size
           </Label>
           <Input
             id={sizeId}
             value={size}
             onChange={(e) => setSize(e.target.value)}
-            placeholder="e.g. 28"
-            className={cn(INPUT_CLASS, "w-20")}
+            placeholder="e.g. 1 kg"
+            className={cn(INPUT_CLASS, "w-24")}
             autoFocus
           />
         </div>
@@ -280,6 +308,21 @@ function AddVariantForm({ productId, onDone }: { productId: string; onDone: () =
           />
         </div>
         <div className="flex flex-col gap-1">
+          <Label htmlFor={mrpId} className="text-xs text-muted-foreground">
+            MRP (₹)
+          </Label>
+          <Input
+            id={mrpId}
+            type="number"
+            step="0.01"
+            min={0}
+            value={mrp}
+            onChange={(e) => setMrp(e.target.value)}
+            placeholder="Optional"
+            className={cn(INPUT_CLASS, "w-24")}
+          />
+        </div>
+        <div className="flex flex-col gap-1">
           <Label htmlFor={stockId} className="text-xs text-muted-foreground">
             Opening stock
           </Label>
@@ -295,7 +338,7 @@ function AddVariantForm({ productId, onDone }: { productId: string; onDone: () =
       </div>
       <div className="flex items-center gap-2">
         <Button type="submit" size="sm" className="h-9" disabled={isPending || !size.trim() || !sku.trim() || !price}>
-          {isPending ? "Adding…" : "Add size"}
+          {isPending ? "Adding…" : "Add pack size"}
         </Button>
         <Button type="button" size="sm" variant="ghost" className="h-9" disabled={isPending} onClick={onDone}>
           Cancel
@@ -318,14 +361,15 @@ export function ProductVariantsManager({
     <div>
       {variants.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-6 text-center">
-          <p className="text-sm text-muted-foreground">No sizes added yet.</p>
+          <p className="text-sm text-muted-foreground">No pack sizes added yet.</p>
         </div>
       ) : (
         <div className="rounded-lg border border-border">
           <div className="hidden items-center gap-3 border-b border-border px-1 py-2 text-xs font-medium text-muted-foreground sm:flex">
-            <span className="w-14 shrink-0">Size</span>
+            <span className="w-20 shrink-0">Pack size</span>
             <span className="flex-1">SKU</span>
             <span className="w-20 shrink-0 text-right">Price</span>
+            <span className="w-20 shrink-0 text-right">MRP</span>
             <span className="w-32 shrink-0 text-right">Stock</span>
             <span className="w-44 shrink-0" />
           </div>
@@ -342,7 +386,7 @@ export function ProductVariantsManager({
       ) : (
         <Button type="button" variant="outline" className="mt-3 h-9" onClick={() => setShowAddForm(true)}>
           <Plus className="size-4" aria-hidden />
-          Add size
+          Add pack size
         </Button>
       )}
     </div>

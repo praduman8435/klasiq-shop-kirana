@@ -109,7 +109,7 @@ export function ReceiveInventoryVariantSearch({
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">
-                      {variant.productName} &middot; Size {variant.size}
+                      {variant.productName} &middot; {variant.size}
                     </p>
                     <p className="truncate text-xs text-muted-foreground">
                       SKU {variant.sku} &middot;{" "}

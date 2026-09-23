@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Boxes, Plus, School as SchoolIcon, ClipboardList } from "lucide-react";
+import { Boxes, Plus, ShoppingBag, ClipboardList } from "lucide-react";
 import { DashboardMetricGroup } from "@/components/admin/stat-card";
 import { formatPaise } from "@/lib/money";
 import { getDashboardStats } from "@/server/queries/admin/dashboard";
 
 const QUICK_ACTIONS = [
+  { href: "/admin/counter-sale", label: "Counter Sale", icon: ShoppingBag },
   { href: "/admin/products/new", label: "Add Product", icon: Plus },
-  { href: "/admin/schools/new", label: "Add School", icon: SchoolIcon },
   { href: "/admin/inventory", label: "Update Stock", icon: Boxes },
   { href: "/admin/orders", label: "View Orders", icon: ClipboardList },
 ] as const;

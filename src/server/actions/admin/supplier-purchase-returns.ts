@@ -103,7 +103,7 @@ export async function createSupplierPurchaseReturnAction(
   const variantIds = parsed.data.items.map((item) => item.productVariantId);
   const uniqueVariantIds = [...new Set(variantIds)];
   if (uniqueVariantIds.length !== variantIds.length) {
-    return { success: false, error: { type: "VALIDATION", message: "Each size can only appear once per return." } };
+    return { success: false, error: { type: "VALIDATION", message: "Each pack size can only appear once per return." } };
   }
 
   try {
@@ -134,7 +134,7 @@ export async function createSupplierPurchaseReturnAction(
       for (const item of parsed.data.items) {
         const variant = variantMap.get(item.productVariantId);
         if (!variant) {
-          throw new SupplierReturnValidationError("One of the selected sizes could not be found.");
+          throw new SupplierReturnValidationError("One of the selected pack sizes could not be found.");
         }
         const receivedQuantity = receivedByVariant.get(item.productVariantId) ?? 0;
         const alreadyReturnedQuantity = returnedByVariant.get(item.productVariantId) ?? 0;

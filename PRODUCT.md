@@ -8,57 +8,61 @@ web
 
 ## Users
 
-Primary: parents (and, secondarily, students) shopping for their child's school uniform — the core case is finding the exact uniform, size, and school-specific essentials for a named school, without guessing or making a trip across town to compare. Secondary: the same shoppers browsing general everyday retail — footwear, bags, kurtis, and future categories (stationery, dresses, other clothing) — as a convenience once they're already in the store, not as the store's primary framing. Staff/admin users (in-store counter sale, inventory, order fulfillment, returns, KhataBook credit ledger) are a separate, secondary audience served by the admin panel, distinct in scope from the customer storefront.
+Primary: households in the store's own neighbourhood buying everyday groceries and household essentials — atta, rice, dal, oil, masale, snacks, dairy, personal care, cleaning and pooja items — who want to order from a shop they already know and have it ready for pickup or delivered, instead of walking over or calling. Many are repeat buyers of the same staples, often on a mid-range Android phone.
+
+Secondary: store staff and the owner, using the admin panel for the day-to-day running of the shop — counter sales (walk-in billing, the busiest surface), online order fulfilment, stock and supplier purchases, returns, and KhataBook (the udhaar/credit ledger for regular customers who run a tab). Admin is a separate surface with its own, denser needs.
 
 ## Product Purpose
 
-Klasiq lets a parent search for their child's exact school and get the right uniform (correct size, correct approved variant) delivered or ready for pickup, without creating an account — just a name and phone number. It also serves as a general local retail storefront for footwear, bags, kurtis, and everyday essentials, both for families who came for a uniform and for anyone shopping locally. Success is a parent finding the right item quickly and trusting that what arrives matches what their child's school actually requires.
+Klasiq lets a neighbourhood customer find what they need — by product or brand — pick the right pack size, and place an order for store pickup or local delivery without creating an account: just a name and phone number, paying cash or UPI on pickup/delivery. Behind the counter, the same system bills walk-in sales, keeps stock honest across online and counter sales, and tracks who owes what. Success is a customer reordering their staples in under a minute, and staff never having to reconcile two separate systems.
 
 ## Positioning
 
-The core differentiator is the combination of an **exact school-fit guarantee** (search-your-school discovery surfaces only that school's approved uniform items, correct sizing, correct variant — never a guess) **backed by a trusted, decades-old, family-run physical store**, not an anonymous marketplace. A stranger's e-commerce listing can't promise "this is what your child's school actually requires"; Klasiq's local retail heritage and direct relationship with schools can. Convenience (no account, cash on pickup/delivery, WhatsApp order updates) supports this positioning but is not the primary claim — the school-fit guarantee and local trust are.
+The neighbourhood kirana store, online — not an anonymous quick-commerce app. The differentiator is the store itself: the shop people already buy from, with its own counter, its own staff and the credit relationship regulars rely on. Convenience (no account, cash/UPI on delivery, WhatsApp updates, pickup or delivery from the shop down the road) supports that, it doesn't replace it.
 
 ## Operating Context
 
-- **Customer storefront**: anonymous, cookie-based basket (no login) → checkout with name + mobile number only → Store Pickup or Local Delivery → cash payment on pickup/delivery. No online payment gateway.
-- **Customer identity/order tracking**: OTP-based phone verification (no password, no persistent account) for "Track Orders" — order history, order detail, invoice download, and return/exchange requests.
-- **Fulfillment**: Store Pickup (collect at the physical store) and Local Delivery (route-distance-based delivery fee, free within a radius or above an order threshold), both explicitly scoped to the store's own serviceable area.
-- **Notifications**: WhatsApp order-lifecycle and return/exchange-lifecycle messages (Order Placed/Confirmed/Preparing/Ready for Pickup/Delivered; Return/Exchange Requested/Approved/Rejected/Received/Completed).
-- **Admin/staff operations** (separate surface, `/admin`): counter sale (in-store walk-in sales, can include price negotiation/discounts), order management, inventory/stock management, category management, school management, returns/exchange processing, and KhataBook (a customer credit ledger for local families who run a running tab).
-- **Schools**: some are real partner schools (e.g. Ujala Public School) with their own assigned/exclusive uniform products; others are explicitly seeded demo schools for illustration.
+- **Customer storefront**: anonymous, cookie-based basket (no login) → checkout with name + mobile number only → Store Pickup or Local Delivery → cash/UPI payment on pickup/delivery. No online payment gateway.
+- **Customer identity/order tracking**: OTP-based phone verification (no password, no persistent account) for "Track Orders" — order history, order detail, invoice download, and return requests.
+- **Fulfillment**: Store Pickup and Local Delivery (route-distance-based delivery fee, free within a radius or above an order threshold), scoped to the store's own serviceable area.
+- **Notifications**: WhatsApp order-lifecycle and return-lifecycle messages.
+- **Admin/staff operations** (`/admin`): counter sale (walk-in billing, can include negotiated discounts and partial payment onto the customer's khata), order management, inventory, supplier purchases/payments/returns, category management, returns processing, and KhataBook.
+- **Both channels share one stock pool**: an online order and a counter sale draw from the same inventory, and must never oversell it.
 
 ## Capabilities and Constraints
 
-- Product variants are size-only (no color or other attributes) — the schema does not model additional variant dimensions.
-- Categories are fully dynamic and admin-managed (not hardcoded); today's set is Uniforms, Shoes, Socks, Bags, kurtis, with more expected over time (e.g. stationery, dresses).
-- No customer accounts or passwords anywhere — OTP phone verification is the only identity mechanism, and it is optional (a customer can check out and never verify their number at all).
-- No online payment gateway — cash on pickup/delivery only, by explicit design.
-- Product imagery is often absent in current data; the product experience must degrade gracefully (no broken images, no invented photography) when a photo doesn't exist.
-- Server-authoritative pricing/stock/delivery-fee — the client is never trusted as a source of truth for any of these, and this is a hard constraint on any future UI work.
+- Products are sold in **pack sizes** (e.g. "500 g", "1 kg", "Pack of 4") — each pack size is its own variant with its own price, stock and SKU. Loose goods are sold as fixed pack sizes; there is no sell-by-weight.
+- Each pack size can carry an optional **MRP**; the selling price may never exceed it. The storefront shows the MRP struck through only when the price is genuinely lower.
+- Products have an optional **brand** (plain text). Customer search and counter-sale search both match on brand.
+- Categories are fully dynamic and admin-managed (not hardcoded). The default set is eight aisles: Atta, Rice & Dal · Oil, Ghee & Masale · Dairy, Bread & Eggs · Snacks & Packaged Food · Tea, Coffee & Drinks · Personal Care · Cleaning & Household · Pooja Samagri.
+- No customer accounts or passwords anywhere — OTP phone verification is the only identity mechanism, and it is optional.
+- No online payment gateway — cash/UPI on pickup/delivery, by design.
+- No GST/HSN on products or invoices — explicitly out of scope for now.
+- No expiry/batch tracking.
+- Product imagery is often absent; the product experience must degrade gracefully (no broken images, no invented photography) when a photo doesn't exist.
+- Server-authoritative pricing/stock/delivery-fee — the client is never trusted as a source of truth for any of these.
 
 ## Brand Commitments
 
-- Name: **Klasiq** (running text), **KLASIQ** (all-caps wordmark/logo treatment only). The name is a deliberate play on "classic."
-- Tagline: "Classic quality, modern shopping." — deliberately brand-wide, not school-only.
-- Heritage line: "Serving local families for around 30 years." — confirmed real, kept deliberately non-specific on an exact founding year.
-- Backed by two real, named legacy physical stores: **Milan Readymade & General Store** and **Shubham Vashtralaya** — referenced sparingly (footer/trust areas), never as the primary on-screen brand.
-- Typography: Fraunces (display/heading) paired with Plus Jakarta Sans (body) — an established, intentional pairing, not a placeholder.
+- Name: **Klasiq** (running text), **KLASIQ** (all-caps wordmark/logo treatment only). The name is a play on "classic."
+- Tagline: "Classic quality, modern shopping."
+- Typography: Fraunces (display/heading) paired with Plus Jakarta Sans (body).
+- **To confirm for this store** (carried over from the original Klasiq fork, not yet verified for the kirana store — do not treat as fact): the heritage line "Serving local families for around 30 years", the backing store names "Milan Readymade & General Store" and "Shubham Vashtralaya", and the store phone number / Maps link in `STORE_CONTACT`.
 
 ## Evidence on Hand
 
-- Real partner school: Ujala Public School (confirmed real, not demo).
-- Seed/demo data exists alongside real data: "Demo Sunrise Public School" and "Demo Valley Academy" are explicitly illustrative seed schools, and the storefront footer explicitly discloses "product names, sizes and prices shown for demo schools are illustrative" — future work must preserve this distinction and never blur demo content into a claim about real inventory/pricing.
-- No customer testimonials, press, case studies, or benchmark data exist or should be invented.
-- Most current product photography is placeholder/absent — treat this as a known gap, not evidence that real photography is unwanted.
+- Seed data (`prisma/seed.ts`) is illustrative demo data flagged `isDemo: true` — prices, MRPs and stock are not the real store's. It uses real consumer brand names only so the catalogue looks realistic in development.
+- No customer testimonials, press, or benchmark data exist or should be invented.
+- Most product photography is absent — treat this as a known gap, not evidence that real photography is unwanted.
 
 ## Product Principles
 
-1. The school-fit guarantee is the product's reason to exist — any redesign must keep "search your school → correct uniform" fast, prominent, and unambiguous, even as general retail grows alongside it.
-2. Never let general-retail framing erase the school-specific trust story; the two coexist (parents-first, general-retail-second), they don't trade off against each other.
-3. Server-authoritative commerce data (price, stock, delivery fee) is never a place for UI convenience to quietly introduce client-side trust.
-4. Missing product photography is expected and permanent for some items — design for a graceful fallback as a first-class state, not an edge case.
-5. Local, family-run trust (real store names, real heritage, real partner schools) is a genuine asset — reference it, don't dilute it with invented proof.
+1. Reordering staples must be fast: search (by product or brand) and pack-size selection are the core storefront interactions.
+2. The counter is as important as the storefront — counter-sale speed and accuracy are never traded away for storefront polish.
+3. Server-authoritative commerce data (price, MRP rule, stock, delivery fee) is never a place for UI convenience to quietly introduce client-side trust.
+4. Missing product photography is expected and permanent for some items — design the fallback as a first-class state.
+5. Local trust is the asset — reference the real store, never invent proof.
 
 ## Accessibility & Inclusion
 
-No product-specific accessibility requirement has been formally established beyond general web accessibility good practice (semantic HTML, keyboard navigation, sufficient color contrast, accessible names on interactive elements) — already an active concern in recent storefront work, not yet a documented standard.
+General web accessibility good practice (semantic HTML, keyboard navigation, sufficient colour contrast, accessible names on interactive elements). Large tap targets and legible type on small, budget Android screens matter more than usual for this audience. Hindi/bilingual labels are a likely future need and not yet built.

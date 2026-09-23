@@ -103,7 +103,6 @@ async function createUnpaidOrder() {
   const sale = await createCounterSale({
     lines: [{ productVariantId: variant.id, quantity: 1 }],
     customer: { mode: "EXISTING", customerId: customer.id },
-    schoolId: null,
     paymentMethod: "CASH",
     idempotencyKey: randomUUID(),
     adminUserId: adminId,

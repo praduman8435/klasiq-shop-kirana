@@ -19,28 +19,6 @@ export type OrderMessageData = {
   totalInPaise: number;
 };
 
-/**
- * Same rule as `getBasketSchoolContext` (src/lib/basket.ts), applied to a
- * placed order's items instead of a live basket's: only returns a school
- * when EVERY line traces back to that exact same school. A single generic
- * item, a mixed basket, or a product whose `productId` link has since gone
- * null (the catalog product was deleted after the order was placed) all
- * deliberately fall back to `null` rather than guessing — never a
- * fabricated or partial association.
- */
-export function getOrderSchoolContext(
-  items: { product: { school: { name: string; slug: string } | null } | null }[],
-): { name: string; slug: string } | null {
-  if (items.length === 0) return null;
-
-  const schools = items.map((item) => item.product?.school ?? null);
-  if (schools.some((school) => !school)) return null;
-
-  const first = schools[0]!;
-  const allSameSchool = schools.every((school) => school!.slug === first.slug);
-  return allSameSchool ? { name: first.name, slug: first.slug } : null;
-}
-
 export function getFulfillmentLabel(fulfillmentType: FulfillmentType): string {
   switch (fulfillmentType) {
     case "STORE_PICKUP":
@@ -83,7 +61,7 @@ export function buildOrderConfirmationMessage(order: OrderMessageData): string {
   lines.push("Items:");
   for (const item of order.items) {
     lines.push(
-      `- ${item.productName} (Size ${item.size}) x${item.quantity} — ${formatPaise(item.lineTotalInPaise)}`,
+      `- ${item.productName} (${item.size}) x${item.quantity} — ${formatPaise(item.lineTotalInPaise)}`,
     );
   }
   lines.push("");

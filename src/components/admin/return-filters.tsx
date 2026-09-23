@@ -20,7 +20,7 @@ const RETURN_REQUEST_TYPE_FILTER_LABEL: Record<(typeof RETURN_REQUEST_TYPE_VALUE
   EXCHANGE: "Exchange",
 };
 
-const FILTER_KEYS = ["status", "type", "schoolId", "dateFrom", "dateTo"] as const;
+const FILTER_KEYS = ["status", "type", "dateFrom", "dateTo"] as const;
 
 const SELECT_CLASS =
   "h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
@@ -29,10 +29,10 @@ const SELECT_CLASS =
  * Same query-param-driven filtering as before (`updateParam` still just
  * pushes `/admin/returns?...`) — only the presentation changed, mirroring
  * `OrderFilters`' identical desktop-row / mobile-Sheet split
- * (src/components/admin/order-filters.tsx) so five controls never
+ * (src/components/admin/order-filters.tsx) so four controls never
  * compete for space on a narrow screen.
  */
-export function ReturnFilters({ schools }: { schools: { id: string; name: string }[] }) {
+export function ReturnFilters() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -81,22 +81,6 @@ export function ReturnFilters({ schools }: { schools: { id: string; name: string
     </select>
   );
 
-  const schoolSelect = (
-    <select
-      aria-label="Filter by school"
-      value={searchParams.get("schoolId") ?? ""}
-      onChange={(e) => updateParam("schoolId", e.target.value)}
-      className={SELECT_CLASS}
-    >
-      <option value="">All schools</option>
-      {schools.map((school) => (
-        <option key={school.id} value={school.id}>
-          {school.name}
-        </option>
-      ))}
-    </select>
-  );
-
   const dateRange = (
     <div className="flex items-center gap-1.5">
       <input
@@ -121,7 +105,7 @@ export function ReturnFilters({ schools }: { schools: { id: string; name: string
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <Input
-          placeholder="Search return #, order #, customer, phone or school"
+          placeholder="Search return #, order #, customer or phone"
           defaultValue={searchParams.get("q") ?? ""}
           onKeyDown={(e) => {
             if (e.key === "Enter") updateParam("q", e.currentTarget.value);
@@ -152,7 +136,6 @@ export function ReturnFilters({ schools }: { schools: { id: string; name: string
             <div className="flex flex-col gap-3 p-4 pt-0">
               <div className="flex flex-col gap-1.5">{statusSelect}</div>
               <div className="flex flex-col gap-1.5">{typeSelect}</div>
-              <div className="flex flex-col gap-1.5">{schoolSelect}</div>
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-medium text-muted-foreground">Date range</span>
                 {dateRange}
@@ -168,7 +151,6 @@ export function ReturnFilters({ schools }: { schools: { id: string; name: string
       <div className="hidden flex-wrap items-center gap-2 sm:flex">
         {statusSelect}
         {typeSelect}
-        {schoolSelect}
         {dateRange}
       </div>
     </div>

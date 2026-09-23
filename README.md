@@ -1,13 +1,18 @@
 # Klasiq
 
-School essentials, made simple — a school-uniform commerce platform: a
-public storefront for parents (search a school, browse its uniform
-collection, order online) and a Klasiq Admin dashboard for the shop that
-operates it. Klasiq is the digital brand behind the physical retail
-businesses Milan Readymade & General Store and Shubham Vashtralaya.
+A kirana/general-store commerce platform: a public storefront where
+neighbourhood customers search by product or brand, pick a pack size and
+order for store pickup or local delivery, and a Klasiq Admin dashboard
+for the shop — counter sales, orders, stock, suppliers, returns and
+KhataBook (customer credit). See `PRODUCT.md` for the product brief.
 
-See `docs/PHASE_0_AUDIT.md` through `docs/PHASE_3_REPORT.md` for the full
-build history, architecture decisions, and what each phase added.
+This codebase started as a fork of Klasiq, a school-uniform store; the
+School domain (schools, classes, uniform assignments, recommended sets)
+has been removed. `docs/PHASE_*` are that original project's build
+history — still accurate for architecture (checkout, counter sale,
+returns, KhataBook, suppliers), but anything school-specific in them no
+longer applies. The migration history was squashed into a single
+`init` migration at the fork point.
 
 ## Stack
 
@@ -37,8 +42,8 @@ queues, or other infrastructure.
    npx prisma migrate deploy
    ```
 
-4. **Seed demo data** (clearly-labelled fictional schools/products —
-   see `prisma/seed.ts`):
+4. **Seed demo data** (eight kirana categories and illustrative demo
+   products — see `prisma/seed.ts`):
 
    ```bash
    npm run db:seed
@@ -78,7 +83,7 @@ queues, or other infrastructure.
 | `npm run lint` | ESLint |
 | `npm test` | Vitest (unit + real-Postgres integration tests) |
 | `npm run db:migrate` | Create/apply a Prisma migration in development |
-| `npm run db:seed` | Load demo schools/products/categories |
+| `npm run db:seed` | Load demo categories/products |
 | `npm run db:create-admin` | Bootstrap a Klasiq Admin user (see above) |
 | `npm run db:studio` | Prisma Studio, for inspecting the database directly |
 

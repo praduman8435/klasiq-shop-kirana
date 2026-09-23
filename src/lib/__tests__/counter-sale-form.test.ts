@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   addLineToCart,
-  addRecentSchool,
   computeCartTotals,
   detectCreateFormPrefill,
   getCounterSaleSubmitGate,
@@ -376,32 +375,5 @@ describe("nextSearchResultIndex", () => {
 
   it("returns -1 when there are no results", () => {
     expect(nextSearchResultIndex({ currentIndex: -1, resultCount: 0, direction: "down" })).toBe(-1);
-  });
-});
-
-describe("addRecentSchool", () => {
-  it("adds a new school to the front", () => {
-    const result = addRecentSchool([], { id: "s1", name: "School One" });
-    expect(result).toEqual([{ id: "s1", name: "School One" }]);
-  });
-
-  it("moves an already-recent school to the front instead of duplicating it", () => {
-    const recents = [
-      { id: "s1", name: "School One" },
-      { id: "s2", name: "School Two" },
-    ];
-    const result = addRecentSchool(recents, { id: "s2", name: "School Two" });
-    expect(result).toEqual([
-      { id: "s2", name: "School Two" },
-      { id: "s1", name: "School One" },
-    ]);
-  });
-
-  it("caps the list at 5 entries, dropping the oldest", () => {
-    const recents = Array.from({ length: 5 }, (_, i) => ({ id: `s${i}`, name: `School ${i}` }));
-    const result = addRecentSchool(recents, { id: "s5", name: "School 5" });
-    expect(result).toHaveLength(5);
-    expect(result[0]).toEqual({ id: "s5", name: "School 5" });
-    expect(result.find((r) => r.id === "s4")).toBeUndefined();
   });
 });

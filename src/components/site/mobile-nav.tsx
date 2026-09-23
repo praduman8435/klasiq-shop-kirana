@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { CategoryNavLink } from "@/components/site/category-nav-link";
-import { SchoolSearch } from "@/components/site/school-search";
+import { SiteSearch } from "@/components/site/site-search";
 import { TrackOrdersLink } from "@/components/site/track-orders-link";
 import { getCategoryIcon } from "@/lib/category-icons";
 import { isDarkRoute } from "@/components/site/route-theme-scope";
@@ -50,7 +50,7 @@ export function MobileNav({ categories }: { categories: { slug: string; name: st
           <SheetTitle className="text-left font-heading">Browse</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-6 px-4 pb-6">
-          <SchoolSearch size="compact" />
+          <SiteSearch size="compact" />
           <nav aria-label="Categories" className="flex flex-col gap-1">
             {categories.map((category) => (
               <CategoryNavLink

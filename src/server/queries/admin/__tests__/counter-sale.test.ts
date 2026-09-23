@@ -4,9 +4,9 @@ import { db } from "@/lib/db";
 import { searchSellableVariants } from "@/server/queries/admin/counter-sale";
 
 let categoryId: string;
-let schoolId: string;
 const suffix = randomUUID().slice(0, 8);
 const productName = `Test Search Shirt ${suffix}`;
+const brand = `TestBrand${suffix}`;
 let activeVariantId: string;
 let inactiveVariantProductId: string;
 let inactiveVariantId: string;
@@ -18,13 +18,8 @@ beforeAll(async () => {
   });
   categoryId = category.id;
 
-  const school = await db.school.create({
-    data: { slug: `test-counter-search-school-${suffix}`, name: "Test Counter Search School" },
-  });
-  schoolId = school.id;
-
   const product = await db.product.create({
-    data: { slug: `test-counter-search-product-${suffix}`, name: productName, categoryId, schoolId },
+    data: { slug: `test-counter-search-product-${suffix}`, name: productName, categoryId, brand },
   });
   const variant = await db.productVariant.create({
     data: {
@@ -80,7 +75,6 @@ afterAll(async () => {
     where: { id: { in: [inactiveVariantProductId] } },
   });
   await db.product.deleteMany({ where: { name: { startsWith: "Test Search Inactive Product" } } });
-  await db.school.delete({ where: { id: schoolId } });
   await db.category.delete({ where: { id: categoryId } });
   await db.$disconnect();
 });
@@ -96,10 +90,10 @@ describe("searchSellableVariants", () => {
     expect(results.some((r) => r.variantId === activeVariantId)).toBe(true);
   });
 
-  it("includes school name when the product is school-specific", async () => {
-    const results = await searchSellableVariants("Test Search Shirt");
+  it("finds a variant by partial brand, and includes the brand in the result", async () => {
+    const results = await searchSellableVariants(brand.toLowerCase());
     const found = results.find((r) => r.variantId === activeVariantId);
-    expect(found?.schoolName).toBe("Test Counter Search School");
+    expect(found?.brand).toBe(brand);
   });
 
   it("excludes a deactivated variant even when its product is active", async () => {

@@ -3,14 +3,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
 import {
   getCategoryBySlug,
-  getGenericCategoryProducts,
+  getCategoryProducts,
   getHeaderCategories,
-  searchGenericProducts,
+  searchProducts,
 } from "@/server/queries/categories";
 
 const createdCategoryIds: string[] = [];
 const createdProductIds: string[] = [];
-const createdSchoolIds: string[] = [];
 
 afterEach(async () => {
   if (createdProductIds.length) {
@@ -20,10 +19,6 @@ afterEach(async () => {
   if (createdCategoryIds.length) {
     await db.category.deleteMany({ where: { id: { in: createdCategoryIds } } });
     createdCategoryIds.length = 0;
-  }
-  if (createdSchoolIds.length) {
-    await db.school.deleteMany({ where: { id: { in: createdSchoolIds } } });
-    createdSchoolIds.length = 0;
   }
 });
 
@@ -100,7 +95,7 @@ async function createProduct(params: {
   categoryId: string;
   name: string;
   description?: string;
-  schoolId?: string;
+  brand?: string;
   isActive?: boolean;
   variantActive?: boolean;
 }) {
@@ -111,7 +106,7 @@ async function createProduct(params: {
       name: params.name,
       description: params.description ?? null,
       categoryId: params.categoryId,
-      schoolId: params.schoolId ?? null,
+      brand: params.brand ?? null,
       isActive: params.isActive ?? true,
       variants: {
         create: [
@@ -130,22 +125,14 @@ async function createProduct(params: {
   return product;
 }
 
-async function createSchool() {
-  const suffix = randomUUID().slice(0, 8);
-  const school = await db.school.create({
-    data: { slug: `test-school-${suffix}`, name: `Test School ${suffix}` },
-  });
-  createdSchoolIds.push(school.id);
-  return school;
-}
 
-describe("getGenericCategoryProducts — category browsing + in-category search (?q=)", () => {
+describe("getCategoryProducts — category browsing + in-category search (?q=)", () => {
   it("returns every active generic product in the category when no query is given", async () => {
     const category = await createCategory();
     const shirt = await createProduct({ categoryId: category.id, name: "White Shirt" });
     const pant = await createProduct({ categoryId: category.id, name: "Grey Pant" });
 
-    const products = await getGenericCategoryProducts(category.slug);
+    const products = await getCategoryProducts(category.slug);
     const names = products.map((p) => p.name);
     expect(names).toContain(shirt.name);
     expect(names).toContain(pant.name);
@@ -155,7 +142,7 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
     const category = await createCategory();
     await createProduct({ categoryId: category.id, name: "White Shirt" });
 
-    const products = await getGenericCategoryProducts(category.slug, "sHiRt");
+    const products = await getCategoryProducts(category.slug, "sHiRt");
     expect(products.map((p) => p.name)).toEqual(["White Shirt"]);
   });
 
@@ -167,7 +154,7 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
       description: "A durable navy blazer for winter.",
     });
 
-    const products = await getGenericCategoryProducts(category.slug, "blazer");
+    const products = await getCategoryProducts(category.slug, "blazer");
     expect(products.map((p) => p.name)).toEqual(["Item One"]);
   });
 
@@ -180,7 +167,7 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
     // Searching "shirt" inside category A must never surface category B's
     // product, even though its name also matches "shirt" — the category
     // constraint and the search term are ANDed in the same query.
-    const products = await getGenericCategoryProducts(categoryA.slug, "shirt");
+    const products = await getCategoryProducts(categoryA.slug, "shirt");
     expect(products.map((p) => p.id)).not.toContain(shoeInB.id);
   });
 
@@ -188,28 +175,24 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
     const category = await createCategory();
     await createProduct({ categoryId: category.id, name: "White Shirt" });
 
-    const products = await getGenericCategoryProducts(category.slug, `no-such-product-${randomUUID()}`);
+    const products = await getCategoryProducts(category.slug, `no-such-product-${randomUUID()}`);
     expect(products).toEqual([]);
   });
 
-  it("never returns a school-exclusive product, even when its name matches", async () => {
+  it("also matches the product brand, case-insensitively", async () => {
     const category = await createCategory();
-    const school = await createSchool();
-    const exclusive = await createProduct({
-      categoryId: category.id,
-      name: "Exclusive Sunrise Shirt",
-      schoolId: school.id,
-    });
+    const branded = await createProduct({ categoryId: category.id, name: "Iodised Salt 1kg", brand: "Tata" });
+    await createProduct({ categoryId: category.id, name: "Rock Salt 1kg" });
 
-    const products = await getGenericCategoryProducts(category.slug, "shirt");
-    expect(products.map((p) => p.id)).not.toContain(exclusive.id);
+    const products = await getCategoryProducts(category.slug, "tATa");
+    expect(products.map((p) => p.id)).toEqual([branded.id]);
   });
 
   it("never returns a deactivated product", async () => {
     const category = await createCategory();
     const inactive = await createProduct({ categoryId: category.id, name: "Retired Shirt", isActive: false });
 
-    const products = await getGenericCategoryProducts(category.slug, "shirt");
+    const products = await getCategoryProducts(category.slug, "shirt");
     expect(products.map((p) => p.id)).not.toContain(inactive.id);
   });
 
@@ -218,18 +201,18 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
     await createProduct({ categoryId: category.id, name: "White Shirt" });
 
     await expect(
-      getGenericCategoryProducts(category.slug, "'; DROP TABLE products; --"),
+      getCategoryProducts(category.slug, "'; DROP TABLE products; --"),
     ).resolves.toEqual([]);
     // The table must genuinely still exist and be queryable afterward.
-    await expect(getGenericCategoryProducts(category.slug)).resolves.not.toEqual([]);
+    await expect(getCategoryProducts(category.slug)).resolves.not.toEqual([]);
   });
 
   it("does not crash on HTML-shaped or unicode input, and matches nothing spurious", async () => {
     const category = await createCategory();
     await createProduct({ categoryId: category.id, name: "White Shirt" });
 
-    await expect(getGenericCategoryProducts(category.slug, "<script>alert(1)</script>")).resolves.toEqual([]);
-    await expect(getGenericCategoryProducts(category.slug, "衬衫👕")).resolves.toEqual([]);
+    await expect(getCategoryProducts(category.slug, "<script>alert(1)</script>")).resolves.toEqual([]);
+    await expect(getCategoryProducts(category.slug, "衬衫👕")).resolves.toEqual([]);
   });
 
   it("respects a result limit override", async () => {
@@ -238,7 +221,7 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
     await createProduct({ categoryId: category.id, name: `Capped Shirt B ${randomUUID().slice(0, 4)}` });
     await createProduct({ categoryId: category.id, name: `Capped Shirt C ${randomUUID().slice(0, 4)}` });
 
-    const products = await getGenericCategoryProducts(category.slug, "Capped Shirt", 2);
+    const products = await getCategoryProducts(category.slug, "Capped Shirt", 2);
     expect(products).toHaveLength(2);
   });
 
@@ -259,63 +242,61 @@ describe("getGenericCategoryProducts — category browsing + in-category search 
     });
     createdProductIds.push(product.id);
 
-    const products = await getGenericCategoryProducts(category.slug, "shirt");
+    const products = await getCategoryProducts(category.slug, "shirt");
     expect(products).toHaveLength(1);
     expect(products[0]!.variants[0]!.stockStatus).toBe("OUT_OF_STOCK");
   });
 });
 
-describe("searchGenericProducts — cross-category /search", () => {
+describe("searchProducts — cross-category /search", () => {
   it("finds a matching product across categories with no category constraint", async () => {
     const categoryA = await createCategory();
     const categoryB = await createCategory();
     const shirt = await createProduct({ categoryId: categoryA.id, name: "White Shirt" });
     const shoe = await createProduct({ categoryId: categoryB.id, name: "Black Shoe" });
 
-    const shirtResults = await searchGenericProducts("shirt");
+    const shirtResults = await searchProducts("shirt");
     expect(shirtResults.map((p) => p.id)).toContain(shirt.id);
     expect(shirtResults.map((p) => p.id)).not.toContain(shoe.id);
   });
 
   it("returns [] for an empty or whitespace-only query, without touching the database", async () => {
-    await expect(searchGenericProducts("")).resolves.toEqual([]);
-    await expect(searchGenericProducts("   ")).resolves.toEqual([]);
+    await expect(searchProducts("")).resolves.toEqual([]);
+    await expect(searchProducts("   ")).resolves.toEqual([]);
   });
 
   it("returns [] for a nonexistent product name", async () => {
     const category = await createCategory();
     await createProduct({ categoryId: category.id, name: "White Shirt" });
 
-    const results = await searchGenericProducts(`no-such-product-${randomUUID()}`);
+    const results = await searchProducts(`no-such-product-${randomUUID()}`);
     expect(results).toEqual([]);
   });
 
-  it("never returns a school-exclusive product", async () => {
-    const category = await createCategory();
-    const school = await createSchool();
-    const exclusive = await createProduct({
-      categoryId: category.id,
-      name: "Exclusive Valley Blazer",
-      schoolId: school.id,
-    });
+  it("matches by brand across categories", async () => {
+    const tag = randomUUID().slice(0, 8);
+    const dairy = await createCategory();
+    const snacks = await createCategory();
+    const butter = await createProduct({ categoryId: dairy.id, name: "Butter 100g", brand: `Brand ${tag}` });
+    const cookies = await createProduct({ categoryId: snacks.id, name: "Cookies 200g", brand: `Brand ${tag}` });
 
-    const results = await searchGenericProducts("blazer");
-    expect(results.map((p) => p.id)).not.toContain(exclusive.id);
+    const results = await searchProducts(`brand ${tag}`);
+    expect(results.map((p) => p.id).sort()).toEqual([butter.id, cookies.id].sort());
   });
 
   it("each result carries its own category slug/name (needed for cross-category display)", async () => {
     const category = await createCategory({ name: `Bags ${randomUUID().slice(0, 6)}` });
     const bag = await createProduct({ categoryId: category.id, name: "School Bag" });
 
-    const results = await searchGenericProducts("bag");
+    const results = await searchProducts("bag");
     const found = results.find((p) => p.id === bag.id);
     expect(found?.category.slug).toBe(category.slug);
     expect(found?.category.name).toBe(category.name);
   });
 
   it("does not crash and exposes no internal error detail on SQL/HTML-shaped input", async () => {
-    await expect(searchGenericProducts("'; DROP TABLE products; --")).resolves.toEqual([]);
-    await expect(searchGenericProducts("<img src=x onerror=alert(1)>")).resolves.toEqual([]);
+    await expect(searchProducts("'; DROP TABLE products; --")).resolves.toEqual([]);
+    await expect(searchProducts("<img src=x onerror=alert(1)>")).resolves.toEqual([]);
   });
 
   it("respects a result limit override", async () => {
@@ -325,7 +306,7 @@ describe("searchGenericProducts — cross-category /search", () => {
     await createProduct({ categoryId: category.id, name: `Limit Test ${tag} B` });
     await createProduct({ categoryId: category.id, name: `Limit Test ${tag} C` });
 
-    const results = await searchGenericProducts(`Limit Test ${tag}`, 2);
+    const results = await searchProducts(`Limit Test ${tag}`, 2);
     expect(results).toHaveLength(2);
   });
 });

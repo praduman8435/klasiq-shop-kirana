@@ -7,6 +7,7 @@ import { getAdminSession } from "@/lib/admin/session";
 import { deriveStockStatus } from "@/lib/stock";
 import { rupeesToPaise } from "@/lib/money";
 import {
+  checkPriceAgainstMrp,
   createProductSchema,
   createVariantSchema,
   deleteVariantSchema,
@@ -70,7 +71,7 @@ export async function createProductAction(
       slug: parsed.data.slug,
       description: parsed.data.description || null,
       categoryId: parsed.data.categoryId,
-      schoolId: parsed.data.schoolId,
+      brand: parsed.data.brand || null,
       imageUrl: parsed.data.imageUrl || null,
       isActive: parsed.data.isActive,
     },
@@ -113,7 +114,7 @@ export async function updateProductAction(
       slug: parsed.data.slug,
       description: parsed.data.description || null,
       categoryId: parsed.data.categoryId,
-      schoolId: parsed.data.schoolId,
+      brand: parsed.data.brand || null,
       imageUrl: parsed.data.imageUrl || null,
       isActive: parsed.data.isActive,
     },
@@ -137,6 +138,13 @@ export async function createVariantAction(
     };
   }
 
+  const priceInPaise = rupeesToPaise(parsed.data.priceInRupees);
+  const mrpInPaise = parsed.data.mrpInRupees == null ? null : rupeesToPaise(parsed.data.mrpInRupees);
+  const mrpError = checkPriceAgainstMrp(priceInPaise, mrpInPaise);
+  if (mrpError) {
+    return { success: false, error: { type: "VALIDATION", message: mrpError } };
+  }
+
   const existingSku = await db.productVariant.findUnique({ where: { sku: parsed.data.sku } });
   if (existingSku) {
     return { success: false, error: { type: "CONFLICT", message: "That SKU is already in use." } };
@@ -145,7 +153,7 @@ export async function createVariantAction(
     where: { productId_size: { productId: parsed.data.productId, size: parsed.data.size } },
   });
   if (existingSize) {
-    return { success: false, error: { type: "CONFLICT", message: "That size already exists for this product." } };
+    return { success: false, error: { type: "CONFLICT", message: "That pack size already exists for this product." } };
   }
 
   const maxSortOrder = await db.productVariant.aggregate({
@@ -159,7 +167,8 @@ export async function createVariantAction(
       productId: parsed.data.productId,
       size: parsed.data.size,
       sku: parsed.data.sku,
-      priceInPaise: rupeesToPaise(parsed.data.priceInRupees),
+      priceInPaise,
+      mrpInPaise,
       stockQuantity: parsed.data.stockQuantity,
       lowStockThreshold,
       stockStatus: deriveStockStatus(parsed.data.stockQuantity, lowStockThreshold),
@@ -187,7 +196,19 @@ export async function updateVariantAction(
 
   const current = await db.productVariant.findUnique({ where: { id: parsed.data.id } });
   if (!current) {
-    return { success: false, error: { type: "NOT_FOUND", message: "Size not found." } };
+    return { success: false, error: { type: "NOT_FOUND", message: "Pack size not found." } };
+  }
+
+  const priceInPaise = rupeesToPaise(parsed.data.priceInRupees);
+  const mrpInPaise =
+    parsed.data.mrpInRupees === undefined
+      ? current.mrpInPaise
+      : parsed.data.mrpInRupees === null
+        ? null
+        : rupeesToPaise(parsed.data.mrpInRupees);
+  const mrpError = checkPriceAgainstMrp(priceInPaise, mrpInPaise);
+  if (mrpError) {
+    return { success: false, error: { type: "VALIDATION", message: mrpError } };
   }
 
   if (parsed.data.sku !== current.sku) {
@@ -201,7 +222,7 @@ export async function updateVariantAction(
       where: { productId_size: { productId: current.productId, size: parsed.data.size } },
     });
     if (sizeTaken) {
-      return { success: false, error: { type: "CONFLICT", message: "That size already exists for this product." } };
+      return { success: false, error: { type: "CONFLICT", message: "That pack size already exists for this product." } };
     }
   }
 
@@ -211,7 +232,8 @@ export async function updateVariantAction(
     data: {
       size: parsed.data.size,
       sku: parsed.data.sku,
-      priceInPaise: rupeesToPaise(parsed.data.priceInRupees),
+      priceInPaise,
+      mrpInPaise,
       stockQuantity: parsed.data.stockQuantity,
       lowStockThreshold,
       stockStatus: deriveStockStatus(parsed.data.stockQuantity, lowStockThreshold),
@@ -255,7 +277,7 @@ export async function deleteVariantAction(
 
   const variant = await db.productVariant.findUnique({ where: { id: parsed.data.id } });
   if (!variant) {
-    return { success: false, error: { type: "NOT_FOUND", message: "Size not found." } };
+    return { success: false, error: { type: "NOT_FOUND", message: "Pack size not found." } };
   }
 
   try {
@@ -266,7 +288,7 @@ export async function deleteVariantAction(
         success: false,
         error: {
           type: "CONFLICT",
-          message: "This size has order history and can't be deleted — deactivate it instead.",
+          message: "This pack size has order history and can't be deleted — deactivate it instead.",
         },
       };
     }

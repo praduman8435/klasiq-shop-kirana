@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 import { BasketLineItem } from "@/components/basket/basket-line-item";
 import { Button } from "@/components/ui/button";
-import { basketTotalInPaise, getBasket, getBasketSchoolContext } from "@/lib/basket";
+import { basketTotalInPaise, getBasket } from "@/lib/basket";
 import { formatPaise } from "@/lib/money";
 
 export const metadata: Metadata = {
@@ -15,7 +15,6 @@ export default async function BagPage() {
   const basket = await getBasket();
   const items = basket?.items ?? [];
   const total = basketTotalInPaise(basket);
-  const schoolContext = getBasketSchoolContext(basket);
 
   if (items.length === 0) {
     return (
@@ -27,7 +26,7 @@ export default async function BagPage() {
           Your Bag is empty
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your selected school essentials will appear here.
+          Items you add will appear here.
         </p>
         <Button render={<Link href="/" />} nativeButton={false} className="mt-5 h-11">
           Continue Shopping
@@ -65,7 +64,6 @@ export default async function BagPage() {
       </h1>
       <p className="mt-0.5 text-sm text-muted-foreground">
         {itemCountLabel}
-        {schoolContext && <> · Shopping for {schoolContext.name}</>}
       </p>
 
       <div className="mt-3 h-px bg-border" aria-hidden />
@@ -91,7 +89,7 @@ export default async function BagPage() {
                     imageUrl: item.productVariant.product.imageUrl,
                     categorySlugForPlaceholder: item.productVariant.product.category.slug,
                     isActive: item.productVariant.product.isActive,
-                    school: item.productVariant.product.school,
+                    brand: item.productVariant.product.brand,
                   },
                 },
               }}

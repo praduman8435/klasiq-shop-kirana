@@ -14,7 +14,6 @@ function baseOrder(overrides: Partial<OrderForNotification> = {}): OrderForNotif
     customerName: "Riya Sharma",
     customerMobile: "9876543210",
     customerWhatsapp: "9876543210",
-    schoolName: null,
     ...overrides,
   };
 }
@@ -90,14 +89,6 @@ describe("notifyOrderEvent", () => {
       await notifyOrderEvent(baseOrder({ fulfillmentType: "LOCAL_DELIVERY" }), "DELIVERED");
       expect(lastRequestBody().template.components[0].parameters[2].text).toMatch(/delivered/i);
     });
-  });
-
-  it("includes the school name in the context line when present, omits it when absent", async () => {
-    await notifyOrderEvent(baseOrder({ schoolName: "Demo Sunrise Public School" }), "ORDER_CONFIRMED");
-    expect(lastRequestBody().template.components[0].parameters[2].text).toContain("Demo Sunrise Public School");
-
-    await notifyOrderEvent(baseOrder({ schoolName: null }), "ORDER_CONFIRMED");
-    expect(lastRequestBody().template.components[0].parameters[2].text).not.toContain("for ");
   });
 
   it("builds the tracking link from the order's own secure access token", async () => {

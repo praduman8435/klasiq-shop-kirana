@@ -93,7 +93,7 @@ export function InventoryRow({ item }: { item: InventoryRowData }) {
     <div className="flex h-8 shrink-0 items-center rounded-md border border-border">
       <button
         type="button"
-        aria-label={`Decrease stock for ${item.productName} size ${item.size}`}
+        aria-label={`Decrease stock for ${item.productName} ${item.size}`}
         disabled={isPending || item.stockQuantity <= 0}
         onClick={() => runDelta(-1, "MANUAL_CORRECTION")}
         className="flex h-full w-7 shrink-0 items-center justify-center text-muted-foreground disabled:opacity-40"
@@ -103,7 +103,7 @@ export function InventoryRow({ item }: { item: InventoryRowData }) {
       <span className="w-8 shrink-0 text-center text-sm font-semibold tabular-nums">{item.stockQuantity}</span>
       <button
         type="button"
-        aria-label={`Increase stock for ${item.productName} size ${item.size}`}
+        aria-label={`Increase stock for ${item.productName} ${item.size}`}
         disabled={isPending}
         onClick={() => runDelta(1, "MANUAL_CORRECTION")}
         className="flex h-full w-7 shrink-0 items-center justify-center text-muted-foreground disabled:opacity-40"
@@ -215,7 +215,7 @@ export function InventoryRow({ item }: { item: InventoryRowData }) {
           <div className="min-w-0">
             <p className="truncate text-sm font-medium">{item.productName}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {item.categoryName} · Size {item.size} · SKU {item.sku}
+              {item.categoryName} · {item.size} · SKU {item.sku}
             </p>
           </div>
           <span className={cn("shrink-0 text-right text-xs font-medium", STOCK_STATUS_TEXT_CLASS[item.stockStatus])}>
@@ -236,7 +236,7 @@ export function InventoryRow({ item }: { item: InventoryRowData }) {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">{item.productName}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {item.categoryName} · Size {item.size} · SKU {item.sku}
+              {item.categoryName} · {item.size} · SKU {item.sku}
             </p>
           </div>
           <span className="w-20 shrink-0 text-right text-sm">{formatPaise(item.priceInPaise)}</span>

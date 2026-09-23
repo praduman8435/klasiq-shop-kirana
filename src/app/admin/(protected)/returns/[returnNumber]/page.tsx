@@ -184,7 +184,7 @@ export default async function AdminReturnDetailPage({ params }: PageProps) {
                       <div className="min-w-0">
                         <p className="font-medium">{requestItem.orderItem.productName}</p>
                         <p className="text-xs text-muted-foreground">
-                          Size {requestItem.orderItem.size} &middot; SKU {requestItem.orderItem.skuSnapshot}
+                          {requestItem.orderItem.size} &middot; SKU {requestItem.orderItem.skuSnapshot}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
                           Reason: <span className="text-foreground">{RETURN_REASON_LABEL[requestItem.reason]}</span>
@@ -247,12 +247,12 @@ export default async function AdminReturnDetailPage({ params }: PageProps) {
                     <li key={item.id}>
                       <p>
                         Restored to inventory: <span className="font-medium">{item.quantity}</span> ×{" "}
-                        {item.orderItem.productName} · Size {item.orderItem.size}
+                        {item.orderItem.productName} · {item.orderItem.size}
                       </p>
                       {item.replacementVariant && (
                         <p className="mt-0.5 text-muted-foreground">
                           Replacement issued: <span className="font-medium text-foreground">{item.quantity}</span> ×{" "}
-                          {item.replacementVariant.product.name} · Size {item.replacementVariant.size}
+                          {item.replacementVariant.product.name} · {item.replacementVariant.size}
                         </p>
                       )}
                     </li>
@@ -264,7 +264,7 @@ export default async function AdminReturnDetailPage({ params }: PageProps) {
                   {request.inventoryAdjustments.map((adj) => (
                     <li key={adj.id} className="flex items-center justify-between gap-3 py-2">
                       <span>
-                        {adj.productVariant.product.name} · Size {adj.productVariant.size}
+                        {adj.productVariant.product.name} · {adj.productVariant.size}
                         <span className="ml-2 text-xs text-muted-foreground">
                           {adj.reason.replace(/_/g, " ").toLowerCase()}
                         </span>
@@ -413,9 +413,6 @@ export default async function AdminReturnDetailPage({ params }: PageProps) {
               {request.order.orderNumber}
             </Link>
             <p className="text-sm text-muted-foreground">{formatDateTime(request.order.createdAt)}</p>
-            {request.order.school && (
-              <p className="mt-1 text-xs text-muted-foreground">School: {request.order.school.name}</p>
-            )}
           </section>
 
           <div className="border-t border-border" />

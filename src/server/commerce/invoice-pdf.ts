@@ -154,7 +154,7 @@ export async function generateInvoicePdf(invoice: Invoice): Promise<Buffer> {
       .fontSize(8.5)
       .fillColor(MUTED)
       .text(
-        `Size ${item.size} · SKU ${item.sku} · Qty ${item.quantity} · ${formatPaise(item.unitPriceInPaise)} each${
+        `${item.size} · SKU ${item.sku} · Qty ${item.quantity} · ${formatPaise(item.unitPriceInPaise)} each${
           discounted ? ` · was ${formatPaise(item.lineTotalInPaise)}` : ""
         }`,
       );

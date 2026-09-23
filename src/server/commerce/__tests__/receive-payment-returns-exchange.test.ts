@@ -86,7 +86,6 @@ describe("A Return's price calculation is unaffected by a payment received on th
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -145,7 +144,6 @@ describe("An Exchange's price difference is unaffected by a payment received on 
     const sale = await createCounterSale({
       lines: [{ productVariantId: original.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

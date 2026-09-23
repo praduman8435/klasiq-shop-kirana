@@ -26,7 +26,6 @@ export type CreateCounterSaleError =
   | { type: "STOCK_ISSUE"; message: string; issues: OrderLineIssue[] }
   | { type: "CUSTOMER_NOT_FOUND"; message: string }
   | { type: "INVALID_PHONE"; message: string }
-  | { type: "SCHOOL_NOT_FOUND"; message: string }
   | { type: "DISCOUNT_INVALID"; message: string }
   | { type: "PARTIAL_PAYMENT_REQUIRES_CUSTOMER"; message: string }
   | { type: "PAYMENT_INVALID"; message: string }
@@ -147,7 +146,6 @@ async function resolveCounterSaleCustomer(
 export async function createCounterSale(input: {
   lines: { productVariantId: string; quantity: number }[];
   customer: CounterSaleCustomerInput;
-  schoolId: string | null;
   paymentMethod: Extract<PaymentMethod, "CASH" | "UPI" | "CARD">;
   idempotencyKey: string;
   /// The authenticated admin recording this sale — see
@@ -239,16 +237,6 @@ export async function createCounterSale(input: {
     return { success: false, error: resolvedCustomer.error };
   }
 
-  if (input.schoolId) {
-    const school = await db.school.findUnique({ where: { id: input.schoolId } });
-    if (!school) {
-      return {
-        success: false,
-        error: { type: "SCHOOL_NOT_FOUND", message: "That school no longer exists — refresh and try again." },
-      };
-    }
-  }
-
   try {
     const order = await db.$transaction(async (tx) => {
       const resolved = await resolveAndDecrementOrderLines(tx, input.lines);
@@ -313,7 +301,6 @@ export async function createCounterSale(input: {
         accessToken,
         idempotencyKey: input.idempotencyKey,
         source: "COUNTER",
-        schoolId: input.schoolId,
         createdByAdminUserId: input.adminUserId,
         customerId: resolvedCustomer.customer.customerId,
         customerName: resolvedCustomer.customer.customerName,

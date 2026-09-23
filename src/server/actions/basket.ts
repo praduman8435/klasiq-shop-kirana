@@ -7,11 +7,9 @@ import { isOrderable, isVariantOrderable } from "@/lib/stock";
 import {
   clampAddQuantity,
   clampSetQuantity,
-  pickDefaultOrderableVariant,
 } from "@/lib/basket-math";
 import {
   MAX_QUANTITY_PER_LINE,
-  addRecommendedSetSchema,
   addToBasketSchema,
   removeBasketItemSchema,
   setBasketItemQuantitySchema,
@@ -61,7 +59,7 @@ export async function addToBasket(
     return { success: false, message: "That item is no longer available." };
   }
   if (!isOrderable(variant.stockStatus)) {
-    return { success: false, message: "That size is currently out of stock." };
+    return { success: false, message: "That pack size is currently out of stock." };
   }
 
   const basketId = await getOrCreateBasketId();
@@ -82,7 +80,7 @@ export async function addToBasket(
   if (nextQuantity <= (existing?.quantity ?? 0)) {
     return {
       success: false,
-      message: `Only ${variant.stockQuantity} left in this size.`,
+      message: `Only ${variant.stockQuantity} left in this pack size.`,
     };
   }
 
@@ -158,7 +156,7 @@ export async function setBasketItemQuantity(
   ) {
     await db.basketItem.delete({ where: { id: item.id } });
     revalidateBasketViews();
-    return { success: false, message: "That size is no longer available and was removed." };
+    return { success: false, message: "That pack size is no longer available and was removed." };
   }
 
   const clamped = clampSetQuantity({
@@ -191,93 +189,4 @@ export async function removeBasketItem(
   await db.basketItem.delete({ where: { id: item.id } });
   revalidateBasketViews();
   return { success: true };
-}
-
-export async function addRecommendedSet(
-  input: unknown,
-): Promise<BasketActionResult> {
-  const parsed = addRecommendedSetSchema.safeParse(input);
-  if (!parsed.success) {
-    return { success: false, message: "Invalid request." };
-  }
-
-  // Phase 3.7 Part 4 — filters `product.isActive` on the join and
-  // `variants: { where: { isActive: true } }` on the nested list, matching
-  // the identical, already-proven-safe shape `getSchoolRecommendedSets`
-  // (src/server/queries/schools.ts) already uses for the read-only display
-  // of this same data. This Server Action previously ran its own,
-  // independent, unfiltered query — meaning a deactivated product/variant
-  // that the customer could never see via the display query could still
-  // be added to their bag through this mutation, since only `stockStatus`
-  // (via `pickDefaultOrderableVariant`) was ever checked, never `isActive`.
-  const set = await db.recommendedUniformSet.findUnique({
-    where: { id: parsed.data.setId },
-    include: {
-      items: {
-        where: { product: { isActive: true } },
-        include: {
-          product: {
-            include: { variants: { where: { isActive: true } } },
-          },
-        },
-      },
-    },
-  });
-  if (!set) {
-    return { success: false, message: "That uniform set no longer exists." };
-  }
-
-  const basketId = await getOrCreateBasketId();
-  const unavailable: string[] = [];
-
-  for (const item of set.items) {
-    const defaultVariant = pickDefaultOrderableVariant(item.product.variants);
-
-    if (!defaultVariant) {
-      unavailable.push(item.product.name);
-      continue;
-    }
-
-    const existing = await db.basketItem.findUnique({
-      where: {
-        basketId_productVariantId: {
-          basketId,
-          productVariantId: defaultVariant.id,
-        },
-      },
-    });
-
-    const nextQuantity = clampAddQuantity({
-      existingQuantity: existing?.quantity ?? 0,
-      requestedQuantity: item.quantity,
-      stockQuantity: defaultVariant.stockQuantity,
-      maxPerLine: MAX_QUANTITY_PER_LINE,
-    });
-
-    if (existing) {
-      await db.basketItem.update({
-        where: { id: existing.id },
-        data: { quantity: nextQuantity },
-      });
-    } else {
-      await db.basketItem.create({
-        data: {
-          basketId,
-          productVariantId: defaultVariant.id,
-          quantity: nextQuantity,
-          priceInPaiseAtAdd: defaultVariant.priceInPaise,
-        },
-      });
-    }
-  }
-
-  revalidateBasketViews();
-
-  if (unavailable.length > 0) {
-    return {
-      success: true,
-      message: `Added — but ${unavailable.join(", ")} could not be added (out of stock).`,
-    };
-  }
-  return { success: true, message: "Complete set added to your bag." };
 }

@@ -12,8 +12,8 @@ import { db } from "@/lib/db";
  * everywhere else in this codebase.
  *
  * A deactivated product resolves to `null` here — identical treatment to
- * every other public product query (`getGenericCategoryProducts`,
- * `searchGenericProducts`), which already never surface an inactive
+ * every other public product query (`getCategoryProducts`,
+ * `searchProducts`), which already never surface an inactive
  * product in a listing. A customer following a stale link to a since-
  * deactivated product sees the same 404 as an unknown slug, not a
  * "this item is no longer sold" page — consistent with how this app
@@ -21,20 +21,12 @@ import { db } from "@/lib/db";
  * hide-vs-delete precedent is about *categories*, not products; nothing
  * in this codebase has ever exposed a deactivated product to a
  * customer, so this isn't a new restriction).
- *
- * Unlike the generic category/search queries, this is NOT restricted to
- * `schoolId: null` — a school-exclusive product has a perfectly real
- * detail page once a customer reaches it from its own school's catalog
- * page (`/school/[slug]`); only the generic *listing* queries exclude
- * school-exclusive products, never product-level access to one a
- * customer has legitimately been shown.
  */
 export async function getProductBySlug(slug: string) {
   const product = await db.product.findUnique({
     where: { slug },
     include: {
       category: { select: { slug: true, name: true } },
-      school: { select: { slug: true, name: true } },
       variants: {
         where: { isActive: true },
         orderBy: { sortOrder: "asc" },

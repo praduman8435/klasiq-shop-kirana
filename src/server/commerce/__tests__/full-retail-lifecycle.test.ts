@@ -93,7 +93,6 @@ describe("Full retail-ops lifecycle: Discount + Partial Payment -> KhataBook -> 
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

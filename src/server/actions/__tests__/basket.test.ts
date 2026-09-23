@@ -23,13 +23,11 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
-import { addRecommendedSet, addToBasket, removeBasketItem, setBasketItemQuantity } from "@/server/actions/basket";
+import { addToBasket, removeBasketItem, setBasketItemQuantity } from "@/server/actions/basket";
 
 let categoryId: string;
 const createdProductIds: string[] = [];
 const createdBasketIds: string[] = [];
-const createdSchoolIds: string[] = [];
-const createdSetIds: string[] = [];
 
 beforeEach(() => {
   store.clear();
@@ -59,14 +57,8 @@ afterAll(async () => {
     await db.basketItem.deleteMany({ where: { basketId: { in: createdBasketIds } } });
     await db.basket.deleteMany({ where: { id: { in: createdBasketIds } } });
   }
-  if (createdSetIds.length) {
-    await db.recommendedUniformSet.deleteMany({ where: { id: { in: createdSetIds } } });
-  }
   if (createdProductIds.length) {
     await db.product.deleteMany({ where: { id: { in: createdProductIds } } });
-  }
-  if (createdSchoolIds.length) {
-    await db.school.deleteMany({ where: { id: { in: createdSchoolIds } } });
   }
   if (categoryId) await db.category.deleteMany({ where: { id: categoryId } });
   await db.$disconnect();
@@ -142,7 +134,7 @@ describe("addToBasket — Phase 3.7 Part 3 adversarial coverage", () => {
   it("rejects an out-of-stock variant", async () => {
     const variant = await createVariant({ stockStatus: "OUT_OF_STOCK", stockQuantity: 0 });
     const result = await addToBasket({ productVariantId: variant.id, quantity: 1 });
-    expect(result).toEqual({ success: false, message: "That size is currently out of stock." });
+    expect(result).toEqual({ success: false, message: "That pack size is currently out of stock." });
   });
 
   // Phase 3.7 Part 4 — Scenarios C/D. Before this fix, only `stockStatus`
@@ -258,7 +250,7 @@ describe("setBasketItemQuantity — Scenarios C/D (Phase 3.7 Part 4): deactivate
     await db.productVariant.update({ where: { id: variant.id }, data: { isActive: false } });
 
     const result = await setBasketItemQuantity({ basketItemId: item.id, quantity: 3 });
-    expect(result).toEqual({ success: false, message: "That size is no longer available and was removed." });
+    expect(result).toEqual({ success: false, message: "That pack size is no longer available and was removed." });
     expect(await db.basketItem.findUnique({ where: { id: item.id } })).toBeNull();
   });
 
@@ -271,45 +263,8 @@ describe("setBasketItemQuantity — Scenarios C/D (Phase 3.7 Part 4): deactivate
     await db.product.update({ where: { id: variant.productId }, data: { isActive: false } });
 
     const result = await setBasketItemQuantity({ basketItemId: item.id, quantity: 2 });
-    expect(result).toEqual({ success: false, message: "That size is no longer available and was removed." });
+    expect(result).toEqual({ success: false, message: "That pack size is no longer available and was removed." });
     expect(await db.basketItem.findUnique({ where: { id: item.id } })).toBeNull();
-  });
-});
-
-describe("addRecommendedSet — deactivated items never added (Phase 3.7 Part 4)", () => {
-  it("skips a deactivated product's item and a deactivated variant, adding only genuinely active items", async () => {
-    const school = await db.school.create({
-      data: { slug: `test-school-${randomUUID().slice(0, 8)}`, name: "Test School" },
-    });
-    createdSchoolIds.push(school.id);
-
-    const activeVariant = await createVariant({ stockQuantity: 5 });
-    const inactiveProductVariant = await createVariant({ productIsActive: false, stockQuantity: 5 });
-    const inactiveVariantOnly = await createVariant({ variantIsActive: false, stockQuantity: 5 });
-
-    const set = await db.recommendedUniformSet.create({
-      data: {
-        schoolId: school.id,
-        name: "Test Set",
-        items: {
-          create: [
-            { productId: activeVariant.productId, quantity: 1, sortOrder: 0 },
-            { productId: inactiveProductVariant.productId, quantity: 1, sortOrder: 1 },
-            { productId: inactiveVariantOnly.productId, quantity: 1, sortOrder: 2 },
-          ],
-        },
-      },
-    });
-    createdSetIds.push(set.id);
-
-    const result = await addRecommendedSet({ setId: set.id });
-    expect(result.success).toBe(true);
-
-    const basketId = await getCurrentBasketId();
-    const items = await db.basketItem.findMany({ where: { basketId } });
-    expect(items.map((i) => i.productVariantId)).toEqual([activeVariant.id]);
-    expect(items.map((i) => i.productVariantId)).not.toContain(inactiveProductVariant.id);
-    expect(items.map((i) => i.productVariantId)).not.toContain(inactiveVariantOnly.id);
   });
 });
 

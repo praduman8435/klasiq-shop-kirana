@@ -69,7 +69,6 @@ describe("Returns after a discounted Counter Sale (section 8)", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -132,7 +131,6 @@ describe("Returns after a discounted Counter Sale (section 8)", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 2 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -185,7 +183,6 @@ describe("Partial returns on a discounted, multi-quantity line (section 10)", ()
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 2 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -260,7 +257,6 @@ describe("Exchange price difference after a discount (section 9)", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: original.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

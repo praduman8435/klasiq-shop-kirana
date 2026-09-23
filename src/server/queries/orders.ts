@@ -27,15 +27,7 @@ export async function getOrderByNumberAndToken(orderNumber: string, accessToken:
   const order = await db.order.findUnique({
     where: { orderNumber },
     include: {
-      items: {
-        orderBy: { id: "asc" },
-        // `product` is nullable (SetNull if the catalog product was later
-        // deleted) — only used here to surface which school (if any) this
-        // order was for, the same "trace every line back to one school"
-        // rule `getBasketSchoolContext` already uses for the Bag/Checkout.
-        // Never affects the order's own historical snapshot fields above.
-        include: { product: { include: { school: { select: { name: true, slug: true } } } } },
-      },
+      items: { orderBy: { id: "asc" } },
     },
   });
 

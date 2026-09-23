@@ -2,8 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Prisma } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "@/lib/db";
-import { getSchoolAssignedProducts } from "@/server/queries/schools";
-import { getGenericCategoryProducts } from "@/server/queries/categories";
+import { getCategoryProducts } from "@/server/queries/categories";
 
 // These tests exercise the database constraints and public-query filtering
 // that the admin CRUD actions rely on. The admin action layer itself can't
@@ -15,7 +14,6 @@ import { getGenericCategoryProducts } from "@/server/queries/categories";
 // are covered here.
 
 let categoryId: string;
-let schoolId: string;
 const createdProductIds: string[] = [];
 
 beforeAll(async () => {
@@ -23,34 +21,17 @@ beforeAll(async () => {
     data: { slug: `test-constraints-${randomUUID()}`, name: "Test Constraints Category" },
   });
   categoryId = category.id;
-
-  const school = await db.school.create({
-    data: { slug: `test-constraints-school-${randomUUID()}`, name: "Test Constraints School" },
-  });
-  schoolId = school.id;
 });
 
 afterAll(async () => {
   if (createdProductIds.length) {
     await db.product.deleteMany({ where: { id: { in: createdProductIds } } });
   }
-  await db.school.delete({ where: { id: schoolId } });
   await db.category.delete({ where: { id: categoryId } });
   await db.$disconnect();
 });
 
 describe("slug uniqueness constraints", () => {
-  it("rejects a second school with the same slug", async () => {
-    const slug = `duplicate-school-${randomUUID()}`;
-    const first = await db.school.create({ data: { slug, name: "First School" } });
-
-    await expect(db.school.create({ data: { slug, name: "Second School" } })).rejects.toMatchObject({
-      code: "P2002",
-    });
-
-    await db.school.delete({ where: { id: first.id } });
-  });
-
   it("rejects a second product with the same slug", async () => {
     const slug = `duplicate-product-${randomUUID()}`;
     const first = await db.product.create({ data: { slug, name: "First Product", categoryId } });
@@ -80,22 +61,6 @@ describe("slug uniqueness constraints", () => {
 });
 
 describe("isActive filtering respected by public queries", () => {
-  it("excludes a deactivated product from the school storefront", async () => {
-    const product = await db.product.create({
-      data: { slug: `test-inactive-${randomUUID()}`, name: "Deactivated Product", categoryId, isActive: false },
-    });
-    createdProductIds.push(product.id);
-    await db.productVariant.create({
-      data: { productId: product.id, size: "M", sku: `TEST-${randomUUID()}`, priceInPaise: 10000, stockQuantity: 5 },
-    });
-    await db.schoolUniformAssignment.create({
-      data: { schoolId, productId: product.id, gender: "UNISEX" },
-    });
-
-    const products = await getSchoolAssignedProducts({ schoolId });
-    expect(products.some((p) => p.id === product.id)).toBe(false);
-  });
-
   it("excludes a deactivated variant from a still-active product's listing", async () => {
     const product = await db.product.create({
       data: { slug: `test-inactive-variant-${randomUUID()}`, name: "Product With Inactive Size", categoryId },
@@ -114,21 +79,18 @@ describe("isActive filtering respected by public queries", () => {
     await db.productVariant.create({
       data: { productId: product.id, size: "L", sku: `TEST-${randomUUID()}`, priceInPaise: 12000, stockQuantity: 5 },
     });
-    await db.schoolUniformAssignment.create({
-      data: { schoolId, productId: product.id, gender: "UNISEX" },
-    });
-
-    const products = await getSchoolAssignedProducts({ schoolId });
+    const category = await db.category.findUniqueOrThrow({ where: { id: categoryId } });
+    const products = await getCategoryProducts(category.slug);
     const found = products.find((p) => p.id === product.id);
     expect(found).toBeDefined();
     expect(found?.variants.map((v) => v.size)).toEqual(["L"]);
   });
 
-  it("excludes an inactive product from generic category listings", async () => {
+  it("excludes an inactive product from category listings", async () => {
     const product = await db.product.create({
       data: {
-        slug: `test-generic-inactive-${randomUUID()}`,
-        name: "Inactive Generic Product",
+        slug: `test-listing-inactive-${randomUUID()}`,
+        name: "Inactive Listed Product",
         categoryId,
         isActive: false,
       },
@@ -136,7 +98,7 @@ describe("isActive filtering respected by public queries", () => {
     createdProductIds.push(product.id);
 
     const category = await db.category.findUniqueOrThrow({ where: { id: categoryId } });
-    const products = await getGenericCategoryProducts(category.slug);
+    const products = await getCategoryProducts(category.slug);
     expect(products.some((p) => p.id === product.id)).toBe(false);
   });
 });

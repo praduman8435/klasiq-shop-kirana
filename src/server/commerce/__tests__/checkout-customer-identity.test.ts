@@ -219,7 +219,6 @@ describe("placeOrderForBasket — counter/online identity convergence", () => {
     const counterResult = await createCounterSale({
       lines: [{ productVariantId: counterVariant.id, quantity: 1 }],
       customer: { mode: "NEW", displayName: "Counter First", primaryPhone: phone },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -263,7 +262,6 @@ describe("placeOrderForBasket — counter/online identity convergence", () => {
     const counterResult = await createCounterSale({
       lines: [{ productVariantId: counterVariant.id, quantity: 1 }],
       customer: { mode: "NEW", primaryPhone: `${phone.slice(0, 5)} ${phone.slice(5)}` },
-      schoolId: null,
       paymentMethod: "UPI",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,

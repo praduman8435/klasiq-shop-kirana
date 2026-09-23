@@ -85,7 +85,6 @@ describe("createCounterSale — guest sale", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 2 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -127,7 +126,6 @@ describe("createCounterSale — guest sale", () => {
         { productVariantId: variant.id, quantity: 2 },
       ],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -167,7 +165,6 @@ describe("createCounterSale — customer selection", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "UPI",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -192,7 +189,6 @@ describe("createCounterSale — customer selection", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: "does-not-exist" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -212,7 +208,6 @@ describe("createCounterSale — customer selection", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "NEW", displayName: "Fresh Customer", primaryPhone: phone },
-      schoolId: null,
       paymentMethod: "CARD",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -240,7 +235,6 @@ describe("createCounterSale — customer selection", () => {
     const first = await createCounterSale({
       lines: [{ productVariantId: variant1.id, quantity: 1 }],
       customer: { mode: "NEW", displayName: "Repeat Customer", primaryPhone: phone },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -254,7 +248,6 @@ describe("createCounterSale — customer selection", () => {
     const second = await createCounterSale({
       lines: [{ productVariantId: variant2.id, quantity: 1 }],
       customer: { mode: "NEW", primaryPhone: phone },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -279,7 +272,6 @@ describe("createCounterSale — customer selection", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "NEW", primaryPhone: "123" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -295,72 +287,6 @@ describe("createCounterSale — customer selection", () => {
   });
 });
 
-describe("createCounterSale — school association", () => {
-  it("associates the order with a school when provided", async () => {
-    const { variant } = await createTestVariant({ priceInPaise: 10000, stockQuantity: 5 });
-    const school = await db.school.create({
-      data: { slug: `test-counter-school-${randomUUID()}`, name: "Test Counter School" },
-    });
-
-    const result = await createCounterSale({
-      lines: [{ productVariantId: variant.id, quantity: 1 }],
-      customer: { mode: "GUEST" },
-      schoolId: school.id,
-      paymentMethod: "CASH",
-      idempotencyKey: randomUUID(),
-      adminUserId: testAdminId,
-    });
-
-    expect(result.success).toBe(true);
-    if (!result.success) return;
-    const order = await db.order.findUniqueOrThrow({ where: { orderNumber: result.orderNumber } });
-    createdOrderIds.push(order.id);
-    expect(order.schoolId).toBe(school.id);
-
-    await db.order.delete({ where: { id: order.id } });
-    createdOrderIds.splice(createdOrderIds.indexOf(order.id), 1);
-    await db.school.delete({ where: { id: school.id } });
-  });
-
-  it("leaves the order unassociated when no school is provided (general retail item)", async () => {
-    const { variant } = await createTestVariant({ priceInPaise: 10000, stockQuantity: 5 });
-
-    const result = await createCounterSale({
-      lines: [{ productVariantId: variant.id, quantity: 1 }],
-      customer: { mode: "GUEST" },
-      schoolId: null,
-      paymentMethod: "CASH",
-      idempotencyKey: randomUUID(),
-      adminUserId: testAdminId,
-    });
-
-    expect(result.success).toBe(true);
-    if (!result.success) return;
-    const order = await db.order.findUniqueOrThrow({ where: { orderNumber: result.orderNumber } });
-    createdOrderIds.push(order.id);
-    expect(order.schoolId).toBeNull();
-  });
-
-  it("returns SCHOOL_NOT_FOUND for a bogus school id, creating no order and leaving stock untouched", async () => {
-    const { variant } = await createTestVariant({ priceInPaise: 10000, stockQuantity: 5 });
-
-    const result = await createCounterSale({
-      lines: [{ productVariantId: variant.id, quantity: 1 }],
-      customer: { mode: "GUEST" },
-      schoolId: "does-not-exist",
-      paymentMethod: "CASH",
-      idempotencyKey: randomUUID(),
-      adminUserId: testAdminId,
-    });
-
-    expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.type).toBe("SCHOOL_NOT_FOUND");
-
-    const untouchedVariant = await db.productVariant.findUniqueOrThrow({ where: { id: variant.id } });
-    expect(untouchedVariant.stockQuantity).toBe(5);
-  });
-});
-
 describe("createCounterSale — inactive products and variants (Phase 3.2 Part 3 hardening)", () => {
   it("rejects a sale for a deactivated variant, even though it's otherwise in stock", async () => {
     const { product, variant } = await createTestVariant({ priceInPaise: 10000, stockQuantity: 5 });
@@ -369,7 +295,6 @@ describe("createCounterSale — inactive products and variants (Phase 3.2 Part 3
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -393,7 +318,6 @@ describe("createCounterSale — inactive products and variants (Phase 3.2 Part 3
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -412,7 +336,6 @@ describe("createCounterSale — rejections", () => {
     const result = await createCounterSale({
       lines: [],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -427,7 +350,6 @@ describe("createCounterSale — rejections", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 3 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -460,7 +382,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -491,7 +412,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -520,7 +440,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 2 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -547,7 +466,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -578,7 +496,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
         { productVariantId: belt.id, quantity: 1 },
       ],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -614,7 +531,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
         { productVariantId: c.id, quantity: 1 },
       ],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -639,7 +555,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -661,7 +576,6 @@ describe("createCounterSale — discounts (Phase 3.6.5 Part 2)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -697,7 +611,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -719,7 +632,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -743,7 +655,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -768,7 +679,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -792,7 +702,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -815,7 +724,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -838,7 +746,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -855,7 +762,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -878,7 +784,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -908,7 +813,6 @@ describe("createCounterSale — payments (Phase 3.6.5 Part 3)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -931,7 +835,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -955,7 +858,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -978,7 +880,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -1012,7 +913,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -1055,7 +955,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -1100,7 +999,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -1137,7 +1035,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -1173,7 +1070,6 @@ describe("createCounterSale — address (Phase 3.6.6 Part 1)", () => {
     const result = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId: testAdminId,
@@ -1210,7 +1106,6 @@ describe("createCounterSale — idempotency and concurrency", () => {
     const params = {
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" as const },
-      schoolId: null,
       paymentMethod: "CASH" as const,
       idempotencyKey,
       adminUserId: testAdminId,
@@ -1237,7 +1132,6 @@ describe("createCounterSale — idempotency and concurrency", () => {
     const params = {
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "GUEST" as const },
-      schoolId: null,
       paymentMethod: "CASH" as const,
       idempotencyKey,
       adminUserId: testAdminId,
@@ -1261,7 +1155,6 @@ describe("createCounterSale — idempotency and concurrency", () => {
       createCounterSale({
         lines: [{ productVariantId: variant.id, quantity: 1 }],
         customer: { mode: "GUEST" },
-        schoolId: null,
         paymentMethod: "CASH",
         idempotencyKey: randomUUID(),
         adminUserId: testAdminId,
@@ -1269,7 +1162,6 @@ describe("createCounterSale — idempotency and concurrency", () => {
       createCounterSale({
         lines: [{ productVariantId: variant.id, quantity: 1 }],
         customer: { mode: "GUEST" },
-        schoolId: null,
         paymentMethod: "CASH",
         idempotencyKey: randomUUID(),
         adminUserId: testAdminId,
@@ -1313,7 +1205,6 @@ describe("createCounterSale — idempotency and concurrency", () => {
       createCounterSale({
         lines: [{ productVariantId: variant.id, quantity: 1 }],
         customer: { mode: "GUEST" },
-        schoolId: null,
         paymentMethod: "CASH",
         idempotencyKey: randomUUID(),
         adminUserId: testAdminId,

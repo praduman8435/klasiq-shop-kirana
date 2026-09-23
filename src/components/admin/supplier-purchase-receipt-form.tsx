@@ -169,14 +169,14 @@ export function NewSupplierPurchaseReceiptForm({
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">
-                          {item.productName} &middot; Size {item.size}
+                          {item.productName} &middot; {item.size}
                         </p>
                         <p className="truncate text-xs text-muted-foreground">SKU {item.sku}</p>
                         <p className={cnStockClass(item.stockStatus)}>Current stock: {item.stockQuantity}</p>
                       </div>
                       <button
                         type="button"
-                        aria-label={`Remove ${item.productName} size ${item.size}`}
+                        aria-label={`Remove ${item.productName} ${item.size}`}
                         onClick={() => removeItem(item.variantId)}
                         className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                       >
@@ -218,7 +218,7 @@ export function NewSupplierPurchaseReceiptForm({
                   <div className="hidden items-center gap-3 sm:flex">
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">
-                        {item.productName} &middot; Size {item.size}
+                        {item.productName} &middot; {item.size}
                       </p>
                     </div>
                     <span className="w-24 shrink-0 truncate text-xs text-muted-foreground">{item.sku}</span>
@@ -252,7 +252,7 @@ export function NewSupplierPurchaseReceiptForm({
                     </div>
                     <button
                       type="button"
-                      aria-label={`Remove ${item.productName} size ${item.size}`}
+                      aria-label={`Remove ${item.productName} ${item.size}`}
                       onClick={() => removeItem(item.variantId)}
                       className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     >

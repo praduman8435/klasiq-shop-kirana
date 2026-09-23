@@ -107,7 +107,6 @@ describe("searchKhataBookCustomers", () => {
     const sale1 = await createCounterSale({
       lines: [{ productVariantId: v1.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -119,7 +118,6 @@ describe("searchKhataBookCustomers", () => {
     const sale2 = await createCounterSale({
       lines: [{ productVariantId: v2.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -150,7 +148,6 @@ describe("getRecentKhataBookCustomers", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -202,7 +199,6 @@ describe("getKhataBookCustomerDirectory", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: active.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -227,7 +223,6 @@ describe("getKhataBookCustomerDirectory", () => {
     const unpaidSale = await createCounterSale({
       lines: [{ productVariantId: v1.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: withBalance.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -241,7 +236,6 @@ describe("getKhataBookCustomerDirectory", () => {
     const paidSale = await createCounterSale({
       lines: [{ productVariantId: v2.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: paidUp.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -292,7 +286,6 @@ describe("getKhataBookCustomerProfile", () => {
     const s1 = await createCounterSale({
       lines: [{ productVariantId: v1.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -304,7 +297,6 @@ describe("getKhataBookCustomerProfile", () => {
     const s2 = await createCounterSale({
       lines: [{ productVariantId: v2.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "UPI",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -317,7 +309,6 @@ describe("getKhataBookCustomerProfile", () => {
     const s3 = await createCounterSale({
       lines: [{ productVariantId: v3.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -352,7 +343,6 @@ describe("getKhataBookCustomerProfile", () => {
     const returnSale = await createCounterSale({
       lines: [{ productVariantId: returned.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -380,7 +370,6 @@ describe("getKhataBookCustomerProfile", () => {
     const exchangeSale = await createCounterSale({
       lines: [{ productVariantId: exchanged.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -479,7 +468,6 @@ async function createPartialSaleForLedger(params: { priceInPaise: number; custom
   const sale = await createCounterSale({
     lines: [{ productVariantId: variant.id, quantity: 1 }],
     customer: { mode: "EXISTING", customerId: params.customerId },
-    schoolId: null,
     paymentMethod: "CASH",
     idempotencyKey: randomUUID(),
     adminUserId,

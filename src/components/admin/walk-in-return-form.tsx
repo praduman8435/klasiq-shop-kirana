@@ -388,7 +388,7 @@ export function WalkInReturnForm() {
                         <div className="flex-1">
                           <p className="text-sm font-medium">{item.productName}</p>
                           <p className="text-xs text-muted-foreground">
-                            Size {item.size} &middot; Purchased {item.purchasedQuantity}
+                            {item.size} &middot; Purchased {item.purchasedQuantity}
                             {item.claimedQuantity > 0 ? ` · ${item.claimedQuantity} already claimed` : ""}
                           </p>
                           {!item.eligible && item.returnableQuantity === 0 && (

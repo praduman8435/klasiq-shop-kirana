@@ -96,7 +96,6 @@ export async function getBasket() {
               product: {
                 include: {
                   category: { select: { slug: true } },
-                  school: { select: { name: true, slug: true } },
                 },
               },
             },
@@ -125,30 +124,6 @@ export function basketTotalInPaise(
     (sum, item) => sum + item.productVariant.priceInPaise * item.quantity,
     0,
   );
-}
-
-/**
- * Phase 3.7 Part 7 critique fix — the school a Bag/Checkout page can
- * confidently tell the customer they're "shopping for," so the school-fit
- * flow doesn't lose that context once they leave `/school/[slug]`. Only
- * returns a school when EVERY line in the basket traces back to that same
- * school's exclusive products — a single generic item makes the
- * association unreliable (the customer may also be buying unrelated
- * general-retail items), so this deliberately returns `null` for a fully
- * generic basket, a mixed basket, or a basket spanning two schools, rather
- * than ever guessing or showing a misleading name.
- */
-export function getBasketSchoolContext(
-  basket: Awaited<ReturnType<typeof getBasket>>,
-): { name: string; slug: string } | null {
-  if (!basket || basket.items.length === 0) return null;
-
-  const schools = basket.items.map((item) => item.productVariant.product.school);
-  if (schools.some((school) => !school)) return null;
-
-  const first = schools[0]!;
-  const allSameSchool = schools.every((school) => school!.slug === first.slug);
-  return allSameSchool ? { name: first.name, slug: first.slug } : null;
 }
 
 /**

@@ -22,7 +22,7 @@ export default async function AdminLoginPage() {
           {ADMIN_BRAND_NAME}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Sign in to manage schools, products and orders.
+          Sign in to manage products, stock and orders.
         </p>
       </div>
       <div className="rounded-2xl border bg-card p-6 shadow-sm">

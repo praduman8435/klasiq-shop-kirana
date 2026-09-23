@@ -80,7 +80,7 @@ export async function createSupplierPurchaseReceiptAction(
   const variantIds = parsed.data.items.map((item) => item.productVariantId);
   const uniqueVariantIds = [...new Set(variantIds)];
   if (uniqueVariantIds.length !== variantIds.length) {
-    return { success: false, error: { type: "VALIDATION", message: "Each size can only appear once per receipt." } };
+    return { success: false, error: { type: "VALIDATION", message: "Each pack size can only appear once per receipt." } };
   }
 
   const purchase = await db.supplierPurchase.findUnique({
@@ -102,7 +102,7 @@ export async function createSupplierPurchaseReceiptAction(
         select: { id: true },
       });
       if (variants.length !== uniqueVariantIds.length) {
-        throw new ReceiptValidationError("One of the selected sizes could not be found.");
+        throw new ReceiptValidationError("One of the selected pack sizes could not be found.");
       }
 
       const created = await tx.supplierPurchaseReceipt.create({

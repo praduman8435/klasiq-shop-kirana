@@ -15,7 +15,3 @@ export const setBasketItemQuantitySchema = z.object({
 export const removeBasketItemSchema = z.object({
   basketItemId: z.string().min(1),
 });
-
-export const addRecommendedSetSchema = z.object({
-  setId: z.string().min(1),
-});

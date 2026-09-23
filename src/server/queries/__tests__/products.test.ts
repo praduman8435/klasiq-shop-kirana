@@ -5,7 +5,6 @@ import { getProductBySlug } from "@/server/queries/products";
 
 const createdCategoryIds: string[] = [];
 const createdProductIds: string[] = [];
-const createdSchoolIds: string[] = [];
 
 afterEach(async () => {
   if (createdProductIds.length) {
@@ -15,10 +14,6 @@ afterEach(async () => {
   if (createdCategoryIds.length) {
     await db.category.deleteMany({ where: { id: { in: createdCategoryIds } } });
     createdCategoryIds.length = 0;
-  }
-  if (createdSchoolIds.length) {
-    await db.school.deleteMany({ where: { id: { in: createdSchoolIds } } });
-    createdSchoolIds.length = 0;
   }
 });
 
@@ -31,20 +26,11 @@ async function createCategory() {
   return category;
 }
 
-async function createSchool() {
-  const suffix = randomUUID().slice(0, 8);
-  const school = await db.school.create({
-    data: { slug: `test-school-${suffix}`, name: `Test School ${suffix}` },
-  });
-  createdSchoolIds.push(school.id);
-  return school;
-}
-
 async function createProduct(params: {
   categoryId: string;
   name?: string;
   description?: string | null;
-  schoolId?: string;
+  brand?: string;
   isActive?: boolean;
   variants?: { size: string; priceInPaise?: number; stockQuantity?: number; isActive?: boolean; sortOrder?: number }[];
 }) {
@@ -55,7 +41,7 @@ async function createProduct(params: {
       name: params.name ?? "Test Product",
       description: params.description ?? null,
       categoryId: params.categoryId,
-      schoolId: params.schoolId ?? null,
+      brand: params.brand ?? null,
       isActive: params.isActive ?? true,
       variants: {
         create: (params.variants ?? [{ size: "M" }]).map((v, index) => ({
@@ -74,7 +60,7 @@ async function createProduct(params: {
 }
 
 describe("getProductBySlug — Phase 3.7 Part 3 Product Detail query", () => {
-  it("returns the product with its category, variants, and no school for a generic product", async () => {
+  it("returns the product with its category and variants", async () => {
     const category = await createCategory();
     const product = await createProduct({ categoryId: category.id, name: "White Shirt" });
 
@@ -82,7 +68,7 @@ describe("getProductBySlug — Phase 3.7 Part 3 Product Detail query", () => {
     expect(found?.id).toBe(product.id);
     expect(found?.name).toBe("White Shirt");
     expect(found?.category.slug).toBe(category.slug);
-    expect(found?.school).toBeNull();
+    expect(found?.brand).toBeNull();
     expect(found?.variants).toHaveLength(1);
   });
 
@@ -125,14 +111,12 @@ describe("getProductBySlug — Phase 3.7 Part 3 Product Detail query", () => {
     expect(found?.variants.map((v) => v.size)).toEqual(["S", "L"]);
   });
 
-  it("resolves a school-exclusive product and includes the school", async () => {
+  it("includes the product's brand when set", async () => {
     const category = await createCategory();
-    const school = await createSchool();
-    const product = await createProduct({ categoryId: category.id, name: "Exclusive Blazer", schoolId: school.id });
+    const product = await createProduct({ categoryId: category.id, name: "Whole Wheat Atta 5kg", brand: "Aashirvaad" });
 
     const found = await getProductBySlug(product.slug);
-    expect(found?.school?.slug).toBe(school.slug);
-    expect(found?.school?.name).toBe(school.name);
+    expect(found?.brand).toBe("Aashirvaad");
   });
 
   it("always reflects the product's own real category — there is no category input to this query at all", async () => {

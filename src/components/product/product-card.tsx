@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { ProductThumbnail } from "@/components/product/product-thumbnail";
 import { formatPaise } from "@/lib/money";
+import { MrpPrice } from "@/components/product/mrp-price";
 import { STOCK_STATUS_LABEL, isOrderable } from "@/lib/stock";
 import { cn } from "@/lib/utils";
 import { addToBasket } from "@/server/actions/basket";
@@ -61,7 +62,7 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
         quantity: 1,
       });
       if (result.success) {
-        toast.success(`Added ${product.name} (Size ${selectedVariant.size}) to your bag.`);
+        toast.success(`Added ${product.name} (${selectedVariant.size}) to your bag.`);
         setJustAdded(true);
         // `router.refresh()` re-fetches this route's Server Component tree
         // (needed so the header's bag-count badge — itself a Server
@@ -123,14 +124,17 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
 
         {selectedVariant && (
           <div className="flex items-center justify-between gap-2">
-            <span className="text-sm font-medium tabular-nums text-foreground">
-              {formatPaise(selectedVariant.priceInPaise)}
+            <span className="flex min-w-0 flex-wrap items-baseline gap-x-1.5">
+              <span className="text-sm font-medium tabular-nums text-foreground">
+                {formatPaise(selectedVariant.priceInPaise)}
+              </span>
+              <MrpPrice priceInPaise={selectedVariant.priceInPaise} mrpInPaise={selectedVariant.mrpInPaise} />
             </span>
             {hasSizeChoice && (
               <Select value={selectedVariantId} onValueChange={(id) => setSelectedVariantId(id as string)}>
                 <SelectTrigger
                   size="sm"
-                  aria-label={`Select size for ${product.name}`}
+                  aria-label={`Select pack size for ${product.name}`}
                   className="h-7 min-w-0 shrink-0 gap-0.5 rounded-md border-0 bg-transparent px-1.5 text-xs font-medium text-foreground shadow-none hover:bg-muted dark:bg-transparent dark:hover:bg-muted/50"
                 >
                   <SelectValue>{selectedVariant.size}</SelectValue>
@@ -160,7 +164,7 @@ export function ProductCard({ product }: { product: ProductWithVariants }) {
         <button
           type="button"
           aria-label={
-            selectedVariant ? `Add ${product.name} (Size ${selectedVariant.size}) to bag` : `Add ${product.name} to bag`
+            selectedVariant ? `Add ${product.name} (${selectedVariant.size}) to bag` : `Add ${product.name} to bag`
           }
           disabled={!canOrder || isPending}
           onClick={addToBag}

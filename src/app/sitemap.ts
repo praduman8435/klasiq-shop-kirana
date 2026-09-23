@@ -10,12 +10,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // every category, not only ones shown in the header nav (a category
   // can be a genuine product-organizing page while deliberately hidden
   // from header navigation).
-  const [schools, categories] = await Promise.all([
-    db.school.findMany({ where: { isActive: true }, select: { slug: true, updatedAt: true } }),
-    db.category.findMany({ select: { slug: true, updatedAt: true } }),
-  ]);
+  const categories = await db.category.findMany({ select: { slug: true, updatedAt: true } });
 
-  const staticRoutes: MetadataRoute.Sitemap = [
+  return [
     { url: SITE_URL, changeFrequency: "weekly", priority: 1 },
     ...categories.map((category) => ({
       url: `${SITE_URL}/${category.slug}`,
@@ -24,13 +21,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     })),
   ];
-
-  const schoolRoutes: MetadataRoute.Sitemap = schools.map((school) => ({
-    url: `${SITE_URL}/school/${school.slug}`,
-    lastModified: school.updatedAt,
-    changeFrequency: "weekly",
-    priority: 0.9,
-  }));
-
-  return [...staticRoutes, ...schoolRoutes];
 }

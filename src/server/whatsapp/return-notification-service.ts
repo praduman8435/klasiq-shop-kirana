@@ -16,7 +16,7 @@ import {
  * `OrderForNotification`'s own convention (notification-service.ts, Part
  * 2). Callers (`returns.ts`/`admin-returns.ts`/`return-fulfillment.ts`)
  * resolve every field themselves from an already-fetched `ReturnRequest`
- * + `Order` (+ `Order.school`) — this service stays Prisma-free.
+ * + `Order` — this service stays Prisma-free.
  *
  * No `source`/`OrderSource` field here (contrast `OrderForNotification`)
  * — Part 3 deliberately does NOT exclude Counter-originated orders from
@@ -43,12 +43,10 @@ export type ReturnRequestForNotification = {
 
 /**
  * Section 4's "current status... next expected action," expressed as one
- * short sentence per event. Deliberately does NOT fold in a school name
- * (contrast `buildContextLine` in notification-service.ts) — section 4's
- * required fields are status, Return Number, Order Number, next action,
- * and (where appropriate) the tracking link; a school name isn't among
- * them, and a return/exchange's identity is already anchored by its own
- * Return Number, so adding it would be scope creep beyond "concise."
+ * short sentence per event — section 4's required fields are status,
+ * Return Number, Order Number, next action, and (where appropriate) the
+ * tracking link; a return/exchange's identity is already anchored by its
+ * own Return Number.
  *
  * `EXCHANGE_COMPLETED` is fulfillment-aware, folding in what the brief
  * calls "Exchange Ready" (see return-notification-events.ts's own doc

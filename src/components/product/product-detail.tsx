@@ -8,6 +8,7 @@ import { Check, ChevronRight, Minus, Plus, Store, Truck, Wallet } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { ProductThumbnail } from "@/components/product/product-thumbnail";
 import { formatPaise } from "@/lib/money";
+import { MrpPrice } from "@/components/product/mrp-price";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
 import { STOCK_STATUS_LABEL, isOrderable } from "@/lib/stock";
 import { cn } from "@/lib/utils";
@@ -119,7 +120,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           quantity,
         });
         if (result.success) {
-          toast.success(`Added ${product.name} (Size ${selectedVariant.size}) to your bag.`);
+          toast.success(`Added ${product.name} (${selectedVariant.size}) to your bag.`);
           router.refresh();
           if (onSuccess) {
             onSuccess();
@@ -201,9 +202,9 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           <h1 className="text-balance font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
             {product.name}
           </h1>
-          {product.school && (
+          {product.brand && (
             <p className="mt-1.5 text-xs font-medium text-muted-foreground">
-              Exclusive to {product.school.name}
+              {product.brand}
             </p>
           )}
           {product.description && (
@@ -227,6 +228,11 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                   <span className="font-heading text-3xl font-semibold tabular-nums tracking-tight text-foreground">
                     {formatPaise(selectedVariant.priceInPaise)}
                   </span>
+                  <MrpPrice
+                    priceInPaise={selectedVariant.priceInPaise}
+                    mrpInPaise={selectedVariant.mrpInPaise}
+                    className="text-sm"
+                  />
                   <span className={cn("text-sm font-medium", STOCK_BADGE_CLASS[selectedVariant.stockStatus])}>
                     {STOCK_STATUS_LABEL[selectedVariant.stockStatus]}
                   </span>
@@ -242,7 +248,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                   reintroducing the exact page-level horizontal overflow
                   the scrollable row was meant to prevent. */}
               <fieldset className="mt-6 min-w-0">
-                <legend className="text-sm font-medium text-foreground">Size</legend>
+                <legend className="text-sm font-medium text-foreground">Pack size</legend>
                 {/* `role="radiogroup"`/`radio` (not `aria-pressed`, which
                     describes an independent on/off toggle) — this is a
                     single choice among many, and a screen reader should
@@ -259,7 +265,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                   <div
                     ref={sizeRowRef}
                     role="radiogroup"
-                    aria-label="Size"
+                    aria-label="Pack size"
                     className="flex flex-nowrap gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                   >
                     {sortedVariants.map((variant, index) => {
@@ -274,7 +280,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                           type="button"
                           role="radio"
                           aria-checked={isSelected}
-                          aria-label={`Size ${variant.size}${orderable ? "" : " — out of stock"}`}
+                          aria-label={`${variant.size}${orderable ? "" : " — out of stock"}`}
                           tabIndex={isSelected ? 0 : -1}
                           onClick={() => selectVariant(variant.id)}
                           onKeyDown={(event) => handleSizeKeyDown(event, index)}

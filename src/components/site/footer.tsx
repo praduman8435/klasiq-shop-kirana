@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Phone, MapPin } from "lucide-react";
-import { SchoolSearch } from "@/components/site/school-search";
+import { SiteSearch } from "@/components/site/site-search";
 import { TrackOrdersLink } from "@/components/site/track-orders-link";
 import { BRAND, STORE_CONTACT, getBackedByLine } from "@/lib/constants";
 
@@ -12,13 +12,10 @@ const HELP_LINK_CLASS = "inline-flex items-center gap-1.5 transition-colors hove
  * uses semantic tokens as always.
  *
  * Phase 3.8 — replaced the "Shop" category column (redundant with the
- * header nav one scroll away) with a "Need Help?" column, and gave
- * "Find your school" a genuinely working search box instead of a link
- * to "/" that did nothing when you were already there. Both the help
- * list's Track Order/Find Your School entries and the search box reuse
- * the exact same components/routes the header and homepage already use
- * (`TrackOrdersLink`, `SchoolSearch`) — no second implementation of
- * either.
+ * header nav one scroll away) with a "Need Help?" column and a working
+ * product search box. Both reuse the exact same components/routes the
+ * header and homepage already use (`TrackOrdersLink`, `SiteSearch`) — no
+ * second implementation of either.
  */
 export function SiteFooter({ storeName }: { storeName: string }) {
   return (
@@ -69,20 +66,20 @@ export function SiteFooter({ storeName }: { storeName: string }) {
                 </a>
               </li>
               <li>
-                <Link href="/" className={HELP_LINK_CLASS}>
-                  Find Your School
+                <Link href="/search" className={HELP_LINK_CLASS}>
+                  Search Products
                 </Link>
               </li>
             </ul>
           </div>
 
           <div>
-            <p className="text-sm font-semibold text-foreground">Find your school</p>
+            <p className="text-sm font-semibold text-foreground">Looking for something?</p>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
-              Find your school to see the products and pricing available for
-              your school.
+              Search by product or brand — if it&apos;s on our shelves,
+              you&apos;ll find it here.
             </p>
-            <SchoolSearch size="compact" className="mt-3 max-w-xs" />
+            <SiteSearch size="compact" className="mt-3 max-w-xs" />
           </div>
         </div>
 

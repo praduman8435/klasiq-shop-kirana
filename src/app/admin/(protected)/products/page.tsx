@@ -77,7 +77,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                     <p className="truncate text-sm font-medium">{product.name}</p>
                     <p className="truncate text-xs text-muted-foreground">
                       {product.category.name}
-                      {product.school ? ` · ${product.school.name} exclusive` : " · Generic"}
+                      {product.brand && ` · ${product.brand}`}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
@@ -87,7 +87,7 @@ export default async function AdminProductsPage({ searchParams }: PageProps) {
                       </Badge>
                     )}
                     <span className="text-xs text-muted-foreground">
-                      {product._count.variants} size{product._count.variants === 1 ? "" : "s"}
+                      {product._count.variants} pack size{product._count.variants === 1 ? "" : "s"}
                     </span>
                     <ChevronRight
                       className="hidden size-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 sm:block"

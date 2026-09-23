@@ -116,7 +116,7 @@ export async function adjustInventoryByDelta(params: {
 
   const variant = await db.productVariant.findUnique({ where: { id: productVariantId } });
   if (!variant) {
-    return { success: false, error: { type: "NOT_FOUND", message: "That size no longer exists." } };
+    return { success: false, error: { type: "NOT_FOUND", message: "That pack size no longer exists." } };
   }
   if (delta === 0) {
     return { success: true, newQuantity: variant.stockQuantity };
@@ -168,7 +168,7 @@ export async function setInventoryQuantity(params: {
 
   const variant = await db.productVariant.findUnique({ where: { id: productVariantId } });
   if (!variant) {
-    return { success: false, error: { type: "NOT_FOUND", message: "That size no longer exists." } };
+    return { success: false, error: { type: "NOT_FOUND", message: "That pack size no longer exists." } };
   }
 
   try {

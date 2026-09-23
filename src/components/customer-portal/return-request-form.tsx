@@ -207,7 +207,7 @@ export function ReturnRequestForm({
                 <div className="flex-1">
                   <p className="text-sm font-medium">{item.productName}</p>
                   <p className="text-xs text-muted-foreground">
-                    Size {item.size} &middot; Purchased {item.purchasedQuantity}
+                    {item.size} &middot; Purchased {item.purchasedQuantity}
                   </p>
                   {item.claimedQuantity > 0 && (
                     <p className="text-xs text-muted-foreground">

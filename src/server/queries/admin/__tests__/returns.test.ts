@@ -9,7 +9,6 @@ import {
 } from "@/server/queries/admin/returns";
 
 let categoryId: string;
-let schoolId: string;
 const createdProductIds: string[] = [];
 const createdOrderIds: string[] = [];
 const createdCustomerIds: string[] = [];
@@ -19,11 +18,6 @@ beforeAll(async () => {
     data: { slug: `test-admin-returns-q-${randomUUID()}`, name: "Test Admin Returns Query Category" },
   });
   categoryId = category.id;
-
-  const school = await db.school.create({
-    data: { slug: `test-admin-returns-school-${randomUUID()}`, name: `Test Returns School ${randomUUID().slice(0, 6)}` },
-  });
-  schoolId = school.id;
 });
 
 afterAll(async () => {
@@ -31,7 +25,6 @@ afterAll(async () => {
   if (createdOrderIds.length) await db.order.deleteMany({ where: { id: { in: createdOrderIds } } });
   if (createdProductIds.length) await db.product.deleteMany({ where: { id: { in: createdProductIds } } });
   if (createdCustomerIds.length) await db.customer.deleteMany({ where: { id: { in: createdCustomerIds } } });
-  await db.school.delete({ where: { id: schoolId } });
   await db.category.delete({ where: { id: categoryId } });
   await db.$disconnect();
 });
@@ -59,7 +52,6 @@ async function createTestCustomer(displayName: string) {
 
 async function createReturnableOrderAndRequest(params: {
   customerId: string;
-  withSchool?: boolean;
   type?: "RETURN" | "EXCHANGE";
 }) {
   const suffix = randomUUID();
@@ -76,7 +68,6 @@ async function createReturnableOrderAndRequest(params: {
       accessToken: randomUUID(),
       source: "ONLINE",
       customerId: params.customerId,
-      schoolId: params.withSchool ? schoolId : null,
       customerName: "Test Admin Query Customer",
       customerMobile: "9800000000",
       fulfillmentType: "STORE_PICKUP",
@@ -141,17 +132,6 @@ describe("getAdminReturnRequests — filters", () => {
     const returns = await getAdminReturnRequests({ type: "RETURN" });
     expect(returns.some((r) => r.returnNumber === returnNumber)).toBe(false);
   });
-
-  it("filters by school", async () => {
-    const customer = await createTestCustomer("Filter School Customer");
-    const { returnNumber } = await createReturnableOrderAndRequest({ customerId: customer.id, withSchool: true });
-
-    const withSchool = await getAdminReturnRequests({ schoolId });
-    expect(withSchool.some((r) => r.returnNumber === returnNumber)).toBe(true);
-
-    const otherSchool = await getAdminReturnRequests({ schoolId: "nonexistent-school-id" });
-    expect(otherSchool.some((r) => r.returnNumber === returnNumber)).toBe(false);
-  });
 });
 
 describe("getAdminReturnRequests — search", () => {
@@ -184,15 +164,6 @@ describe("getAdminReturnRequests — search", () => {
     const { returnNumber } = await createReturnableOrderAndRequest({ customerId: customer.id });
 
     const results = await getAdminReturnRequests({ query: customer.customerId });
-    expect(results.some((r) => r.returnNumber === returnNumber)).toBe(true);
-  });
-
-  it("finds a request by school name", async () => {
-    const customer = await createTestCustomer("Search School Customer");
-    const { returnNumber } = await createReturnableOrderAndRequest({ customerId: customer.id, withSchool: true });
-
-    const school = await db.school.findUniqueOrThrow({ where: { id: schoolId } });
-    const results = await getAdminReturnRequests({ query: school.name });
     expect(results.some((r) => r.returnNumber === returnNumber)).toBe(true);
   });
 });

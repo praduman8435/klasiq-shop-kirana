@@ -1,4 +1,4 @@
-// Prisma schema for the school-uniform commerce platform.
+// Prisma schema for the Klasiq kirana/general-store commerce platform.
 // See docs/PHASE_0_AUDIT.md for the architectural reasoning behind this model.
 
 generator client {
@@ -21,12 +21,6 @@ datasource db {
 // ---------------------------------------------------------------------------
 // Enums
 // ---------------------------------------------------------------------------
-
-enum UniformGender {
-  BOYS
-  GIRLS
-  UNISEX
-}
 
 enum StockStatus {
   IN_STOCK
@@ -123,65 +117,12 @@ enum BasketStatus {
 }
 
 // ---------------------------------------------------------------------------
-// Schools
-// ---------------------------------------------------------------------------
-
-/// A participating school. Its public storefront lives at /school/[slug] and
-/// is the landing target for that school's printed QR code.
-model School {
-  id                String  @id @default(cuid())
-  slug              String  @unique
-  name              String
-  logoUrl           String?
-  city              String?
-  isActive          Boolean @default(true)
-  isDemo            Boolean @default(false)
-  /// Controls whether the public storefront may claim an "Official Uniform
-  /// Partner" relationship. A school existing in Klasiq does NOT by itself
-  /// mean Klasiq is its official/exclusive supplier — the storefront shows
-  /// neutral "School Uniform Collection" wording unless this is explicitly
-  /// set true for a verified partnership. See docs/PHASE_3_REPORT.md
-  /// "School partnership wording".
-  isVerifiedPartner Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  classes         SchoolClass[]
-  uniformProducts Product[]                 @relation("SchoolSpecificProducts")
-  assignments     SchoolUniformAssignment[]
-  recommendedSets RecommendedUniformSet[]
-  orders          Order[]
-
-  @@map("schools")
-}
-
-/// A grade/class within a school (e.g. "Class 7"). Owned by the school
-/// because class naming and structure differs between institutions.
-model SchoolClass {
-  id        String @id @default(cuid())
-  schoolId  String
-  name      String
-  sortOrder Int    @default(0)
-
-  school      School                    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  assignments SchoolUniformAssignment[]
-  sets        RecommendedUniformSet[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([schoolId, name])
-  @@map("school_classes")
-}
-
-// ---------------------------------------------------------------------------
 // Catalogue
 // ---------------------------------------------------------------------------
 
-/// Top-level shopping categories that back the main nav & category routes:
-/// /uniforms, /shoes, /socks, /school-bags. Self-referencing parentId keeps
-/// this extensible (e.g. future "Belts & Ties" under a broader grouping)
+/// Shopping categories that back the main nav & category routes (e.g.
+/// /atta-rice-dal, /snacks-packaged-food). Self-referencing parentId gives a
+/// two-level aisle → shelf tree (e.g. "Atta, Rice & Dal" → "Dals & Pulses")
 /// without a schema change.
 model Category {
   id          String  @id @default(cuid())
@@ -216,10 +157,8 @@ model Category {
   @@map("categories")
 }
 
-/// A sellable item. Most uniform products are generic (schoolId is null) and
-/// reused across many schools via SchoolUniformAssignment — e.g. "White
-/// Shirt". A product that only exists for one school (e.g. a school-crested
-/// blazer) sets schoolId directly instead of being reused.
+/// A sellable item, e.g. "Aashirvaad Whole Wheat Atta". Each pack size it is
+/// sold in is a ProductVariant.
 model Product {
   id          String  @id @default(cuid())
   slug        String  @unique
@@ -227,16 +166,16 @@ model Product {
   description String?
   imageUrl    String?
   categoryId  String
-  schoolId    String?
+  /// Manufacturer brand as printed on the pack ("Tata", "Amul"). Plain text,
+  /// not a model: it's a search/display label, never a catalog grouping.
+  /// Null for loose or unbranded goods.
+  brand       String?
   isDemo      Boolean @default(false)
   isActive    Boolean @default(true)
 
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  school   School?  @relation("SchoolSpecificProducts", fields: [schoolId], references: [id], onDelete: Cascade)
 
   variants    ProductVariant[]
-  assignments SchoolUniformAssignment[]
-  setItems    RecommendedUniformSetItem[]
   /// Convenience reference from historical order items. Nullable + SetNull:
   /// a deleted product must never block deleting the product itself, and
   /// must never invalidate the order — productName/skuSnapshot on OrderItem
@@ -247,25 +186,31 @@ model Product {
   updatedAt DateTime @updatedAt
 
   @@index([categoryId])
-  @@index([schoolId])
   @@map("products")
 }
 
-/// A purchasable size/price/stock combination of a Product. Price is
-/// intentionally per-variant (not per-product) because size can affect
-/// price. This is the unit referenced everywhere money or stock matters:
-/// basket items, order items.
+/// A purchasable pack-size/price/stock combination of a Product. `size`
+/// holds the pack size ("500 g", "1 kg", "Pack of 4") — the column keeps
+/// its original name because order/return snapshots reference it, but every
+/// UI surface labels it "Pack size". Price is per-variant because pack size
+/// drives price. This is the unit referenced everywhere money or stock
+/// matters: basket items, order items.
 model ProductVariant {
   id                String      @id @default(cuid())
   productId         String
   size              String
   sku               String      @unique
   priceInPaise      Int
+  /// Maximum Retail Price printed on the pack. Optional (loose goods have
+  /// none); when set, priceInPaise must not exceed it — selling above MRP
+  /// isn't allowed — and the storefront shows it struck through beside
+  /// the selling price.
+  mrpInPaise        Int?
   stockQuantity     Int         @default(0)
   lowStockThreshold Int         @default(5)
   stockStatus       StockStatus @default(IN_STOCK)
   sortOrder         Int         @default(0)
-  /// Lets admin retire a size (discontinued, mis-added, etc.) without
+  /// Lets admin retire a pack size (discontinued, mis-added, etc.) without
   /// deleting it — deletion is blocked anyway once an OrderItem references
   /// it (onDelete: Restrict below), so deactivation is the normal safe path.
   /// Public queries only ever return isActive: true variants.
@@ -289,74 +234,6 @@ model ProductVariant {
   @@unique([productId, size])
   @@index([productId])
   @@map("product_variants")
-}
-
-// ---------------------------------------------------------------------------
-// School <-> Product relationship
-// ---------------------------------------------------------------------------
-
-/// Marks a Product as part of a school's required/available uniform for a
-/// given class and gender group. classId/gender null = applies broadly
-/// (all classes / all genders) at that school. This is what the school
-/// storefront queries to build "the uniform collection relevant to that
-/// school" without duplicating Product rows per school.
-model SchoolUniformAssignment {
-  id         String        @id @default(cuid())
-  schoolId   String
-  classId    String?
-  gender     UniformGender @default(UNISEX)
-  productId  String
-  isRequired Boolean       @default(true)
-  sortOrder  Int           @default(0)
-
-  school  School       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  class   SchoolClass? @relation(fields: [classId], references: [id], onDelete: Cascade)
-  product Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([schoolId, classId, gender, productId])
-  @@index([schoolId])
-  @@map("school_uniform_assignments")
-}
-
-/// A named, curated bundle ("Class 7 Boys — Complete Uniform") that a parent
-/// can add to their basket in one action. Items reference a Product (not a
-/// specific size) because the correct size depends on the child; the parent
-/// picks sizes when the set is added to the basket.
-model RecommendedUniformSet {
-  id          String        @id @default(cuid())
-  schoolId    String
-  classId     String?
-  gender      UniformGender @default(UNISEX)
-  name        String
-  description String?
-  isActive    Boolean       @default(true)
-
-  school School                      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  class  SchoolClass?                @relation(fields: [classId], references: [id], onDelete: Cascade)
-  items  RecommendedUniformSetItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([schoolId])
-  @@map("recommended_uniform_sets")
-}
-
-model RecommendedUniformSetItem {
-  id        String @id @default(cuid())
-  setId     String
-  productId String
-  quantity  Int    @default(1)
-  sortOrder Int    @default(0)
-
-  set     RecommendedUniformSet @relation(fields: [setId], references: [id], onDelete: Cascade)
-  product Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([setId, productId])
-  @@map("recommended_uniform_set_items")
 }
 
 // ---------------------------------------------------------------------------
@@ -523,7 +400,6 @@ model Order {
   /// one (counter sales did not exist yet), so the migration backfill is a
   /// true fact, not invented data.
   source                 OrderSource @default(ONLINE)
-  schoolId               String?
   /// Nullable (Phase 3.2): a guest counter sale may have neither. Online
   /// checkout's own validation (checkoutInputSchema) still always requires
   /// both, so this relaxation is additive — it does not change what a
@@ -687,7 +563,6 @@ model Order {
   /// docs/PHASE_3_5_REPORT.md "Return window".
   deliveredAt DateTime?
 
-  school               School?               @relation(fields: [schoolId], references: [id], onDelete: SetNull)
   customer             Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
   createdByAdminUser   AdminUser?            @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
   items                OrderItem[]
@@ -704,7 +579,6 @@ model Order {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([schoolId])
   @@index([customerId])
   @@index([source])
   @@index([createdByAdminUserId])
@@ -1332,7 +1206,7 @@ model PaymentReceipt {
 /// representatives of the same wholesale business) could legitimately
 /// share one number.
 ///
-/// `isActive` mirrors School.isActive's own meaning: deactivating a
+/// `isActive` mirrors Product.isActive's own meaning: deactivating a
 /// supplier must never delete it or its future purchase/payment history —
 /// it only stops the supplier from being offered as the default choice
 /// once Purchase creation exists (Part 2+). Hard delete is deliberately
@@ -1482,8 +1356,8 @@ model SupplierPurchaseBill {
 /// One image reference for a SupplierPurchaseBill. `url` is a plain,
 /// admin-pasted link to an already-hosted image — this codebase has no
 /// real binary file-upload/storage infrastructure anywhere yet (see
-/// Product.imageUrl/School.logoUrl's own identical "paste an
-/// already-hosted link" convention, product-form.tsx/school-form.tsx).
+/// Product.imageUrl's own identical "paste an already-hosted link"
+/// convention, product-form.tsx).
 /// Introducing an upload pipeline, or storing base64 image blobs in
 /// Postgres, would be exactly the kind of speculative infrastructure
 /// decision this phase's brief warns against making without a dedicated

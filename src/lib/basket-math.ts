@@ -6,13 +6,6 @@
  */
 import { isOrderable } from "@/lib/stock";
 
-export type OrderableVariant = {
-  id: string;
-  sortOrder: number;
-  stockQuantity: number;
-  stockStatus: "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK";
-};
-
 /**
  * Computes the new line quantity when adding `requestedQuantity` more of an
  * item to a basket that may already contain `existingQuantity` of it.
@@ -43,20 +36,6 @@ export function clampSetQuantity(params: {
 }): number {
   const { requestedQuantity, stockQuantity, maxPerLine } = params;
   return Math.max(0, Math.min(requestedQuantity, stockQuantity, maxPerLine));
-}
-
-/**
- * Picks which variant a "complete set" item should default to when added in
- * bulk — the lowest-sortOrder variant that's actually orderable. Returns
- * undefined if every size is out of stock, so the caller can skip it and
- * tell the parent instead of silently adding something unbuyable.
- */
-export function pickDefaultOrderableVariant<T extends OrderableVariant>(
-  variants: readonly T[],
-): T | undefined {
-  return [...variants]
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .find((variant) => variant.stockStatus !== "OUT_OF_STOCK");
 }
 
 export type CheckoutBlockingLine = {
@@ -93,7 +72,7 @@ export function computeCheckoutBlockingIssues(
 ): CheckoutBlockingIssue[] {
   return items.flatMap((item) => {
     const { productVariant: variant } = item;
-    const label = `${variant.product.name} (size ${variant.size})`;
+    const label = `${variant.product.name} (${variant.size})`;
 
     if (!variant.isActive || !variant.product.isActive || !isOrderable(variant.stockStatus)) {
       return [{ id: item.id, label, reason: "no longer available" }];

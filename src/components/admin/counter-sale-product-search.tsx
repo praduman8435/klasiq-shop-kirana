@@ -15,8 +15,7 @@ export type VariantSearchResult = {
   productId: string;
   productName: string;
   categoryName: string;
-  schoolId: string | null;
-  schoolName: string | null;
+  brand: string | null;
   size: string;
   sku: string;
   priceInPaise: number;
@@ -140,11 +139,11 @@ export function CounterSaleProductSearch({
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
-                        {variant.productName} &middot; Size {variant.size}
+                        {variant.productName} &middot; {variant.size}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
                         {variant.categoryName}
-                        {variant.schoolName ? ` · ${variant.schoolName}` : ""} &middot; SKU {variant.sku}
+                        {variant.brand ? ` · ${variant.brand}` : ""} &middot; SKU {variant.sku}
                       </p>
                       <p className="mt-0.5 text-xs">
                         <span className="font-semibold text-foreground">

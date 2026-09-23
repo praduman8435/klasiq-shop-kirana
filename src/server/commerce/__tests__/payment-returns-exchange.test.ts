@@ -83,7 +83,6 @@ describe("Returns after a Partial Payment (section 7)", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: variant.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -133,7 +132,6 @@ describe("Returns after a Partial Payment (section 7)", () => {
         { productVariantId: pant.id, quantity: 1 },
       ],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,
@@ -174,7 +172,6 @@ describe("Exchange after a Partial Payment (section 8)", () => {
     const sale = await createCounterSale({
       lines: [{ productVariantId: original.id, quantity: 1 }],
       customer: { mode: "EXISTING", customerId: customer.id },
-      schoolId: null,
       paymentMethod: "CASH",
       idempotencyKey: randomUUID(),
       adminUserId,

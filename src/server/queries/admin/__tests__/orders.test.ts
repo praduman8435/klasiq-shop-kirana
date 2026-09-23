@@ -5,12 +5,11 @@ import { getAdminOrderByNumber, getAdminOrders } from "@/server/queries/admin/or
 
 // Phase 3.2 Part 3 production-hardening: verifies the existing order
 // filters (source/status/payment/fulfillment/date/text) behave correctly
-// now that orders can be ONLINE or COUNTER, guest or customer-linked, and
-// school-linked or not — no new filtering logic, just proving the existing
+// now that orders can be ONLINE or COUNTER, and guest or customer-linked —
+// no new filtering logic, just proving the existing
 // query composes correctly across all of these dimensions at once.
 
 let categoryId: string;
-let schoolId: string;
 let customerId: string;
 const createdProductIds: string[] = [];
 const createdOrderIds: string[] = [];
@@ -20,11 +19,6 @@ beforeAll(async () => {
     data: { slug: `test-admin-orders-${randomUUID()}`, name: "Test Admin Orders Category" },
   });
   categoryId = category.id;
-
-  const school = await db.school.create({
-    data: { slug: `test-admin-orders-school-${randomUUID()}`, name: "Test Admin Orders School" },
-  });
-  schoolId = school.id;
 
   const customer = await db.customer.create({
     data: {
@@ -45,7 +39,6 @@ afterAll(async () => {
     await db.product.deleteMany({ where: { id: { in: createdProductIds } } });
   }
   await db.customer.delete({ where: { id: customerId } });
-  await db.school.delete({ where: { id: schoolId } });
   await db.category.delete({ where: { id: categoryId } });
   await db.$disconnect();
 });
@@ -55,7 +48,6 @@ async function createTestOrder(overrides: {
   customerName?: string | null;
   customerMobile?: string | null;
   customerId?: string | null;
-  schoolId?: string | null;
   createdAt?: Date;
 }) {
   const suffix = randomUUID();
@@ -81,7 +73,6 @@ async function createTestOrder(overrides: {
       customerName: overrides.customerName ?? null,
       customerMobile: overrides.customerMobile ?? null,
       customerId: overrides.customerId ?? null,
-      schoolId: overrides.schoolId ?? null,
       fulfillmentType: overrides.source === "COUNTER" ? "COUNTER_HANDOVER" : "STORE_PICKUP",
       paymentMethod: overrides.source === "COUNTER" ? "CASH" : "CASH_ON_DELIVERY",
       paymentStatus: overrides.source === "COUNTER" ? "PAID" : "UNPAID",
@@ -134,7 +125,7 @@ describe("getAdminOrders — source filtering", () => {
   });
 });
 
-describe("getAdminOrders — guest, customer-linked, and school-linked orders", () => {
+describe("getAdminOrders — guest and customer-linked orders", () => {
   it("includes a guest counter order (null customerName/customerMobile) without crashing", async () => {
     const guest = await createTestOrder({ source: "COUNTER" });
 
@@ -163,14 +154,6 @@ describe("getAdminOrders — guest, customer-linked, and school-linked orders", 
     const results = await getAdminOrders({ source: "COUNTER" });
     const found = results.find((o) => o.id === linked.id);
     expect(found?.customerId).toBe(customerId);
-  });
-
-  it("a school-linked order carries its schoolId through the filtered result", async () => {
-    const linked = await createTestOrder({ source: "COUNTER", schoolId });
-
-    const results = await getAdminOrders({ source: "COUNTER" });
-    const found = results.find((o) => o.id === linked.id);
-    expect(found?.schoolId).toBe(schoolId);
   });
 });
 

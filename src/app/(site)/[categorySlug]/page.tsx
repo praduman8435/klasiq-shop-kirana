@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CategoryProductGrid } from "@/components/product/category-product-grid";
 import { ProductSearchForm } from "@/components/product/product-search-form";
 import { productSearchQuerySchema } from "@/lib/validation/product-search";
-import { getCategoryBySlug, getGenericCategoryProducts } from "@/server/queries/categories";
+import { getCategoryBySlug, getCategoryProducts } from "@/server/queries/categories";
 
 type PageProps = {
   params: Promise<{ categorySlug: string }>;
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
  * identical to Next's own default 404 for any other unmatched path.
  *
  * Phase 3.7 Part 2 — an optional `?q=` searches WITHIN this category
- * only (`/uniforms?q=shirt`): the same `getGenericCategoryProducts` this
+ * only (`/uniforms?q=shirt`): the same `getCategoryProducts` this
  * page already called, now also given the query, so category and search
  * are the same `AND`-combined database query, never a client-side
  * post-filter that could let a search "leak" a different category's
@@ -57,7 +57,7 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   const parsedQuery = productSearchQuerySchema.safeParse({ q });
   const query = parsedQuery.success ? parsedQuery.data.q : undefined;
 
-  const products = await getGenericCategoryProducts(category.slug, query);
+  const products = await getCategoryProducts(category.slug, query);
 
   return (
     <CategoryProductGrid

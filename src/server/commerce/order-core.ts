@@ -17,10 +17,6 @@ export type OrderLineIssue = {
 export type ResolvedOrderLine = {
   productVariantId: string;
   productId: string;
-  /// The product's own schoolId (null for a generic, reusable product) —
-  /// surfaced so callers can derive an order's "primary school" without a
-  /// second product lookup. See place-order.ts / counter-sale.ts.
-  productSchoolId: string | null;
   productName: string;
   size: string;
   skuSnapshot: string;
@@ -144,7 +140,6 @@ export async function resolveAndDecrementOrderLines(
     resolvedLines.push({
       productVariantId: variantId,
       productId: variant.productId,
-      productSchoolId: variant.product.schoolId,
       productName: variant.product.name,
       size: variant.size,
       skuSnapshot: variant.sku,

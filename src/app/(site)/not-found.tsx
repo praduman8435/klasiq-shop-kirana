@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { Compass } from "lucide-react";
-import { SchoolSearch } from "@/components/site/school-search";
+import { SiteSearch } from "@/components/site/site-search";
 
 /**
  * Phase 3.7 Part 1 — storefront-specific 404, rendered inside the `(site)`
  * layout (so it keeps the header/footer, unlike the chrome-free root
  * fallback at src/app/not-found.tsx) for any `notFound()` under this
  * group without a more specific `not-found.tsx` of its own — most
- * notably an invalid/typo'd `/{categorySlug}`. `/school/[slug]` keeps its
- * own more specific `not-found.tsx` (closer in the tree, so it still
- * wins for that route).
+ * notably an invalid/typo'd `/{categorySlug}`.
  */
 export default function SiteNotFound() {
   return (
@@ -22,9 +20,9 @@ export default function SiteNotFound() {
       </h1>
       <p className="mt-2 text-muted-foreground">
         The link may be outdated, or the page may have moved. Try searching
-        for your school instead:
+        for what you need instead:
       </p>
-      <SchoolSearch size="compact" className="mt-6" />
+      <SiteSearch size="compact" className="mt-6" />
       <Link
         href="/"
         className="mt-6 text-sm font-medium text-muted-foreground underline underline-offset-2 hover:text-foreground"

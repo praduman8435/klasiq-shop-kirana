@@ -42,7 +42,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
       <div className="mb-5">
         <h1 className="font-heading text-xl font-semibold tracking-tight">Inventory</h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          {items.length} size{items.length === 1 ? "" : "s"} · stepper for quick corrections,
+          {items.length} pack size{items.length === 1 ? "" : "s"} · stepper for quick corrections,
           Receive stock for new arrivals, Set exact after a physical count
         </p>
       </div>
@@ -52,7 +52,7 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
           <DashboardMetricGroup
             wideCols={3}
             metrics={[
-              { label: "Total tracked sizes", value: items.length },
+              { label: "Total tracked pack sizes", value: items.length },
               { label: "Low stock", value: lowStockCount, tone: lowStockCount > 0 ? "warning" : "default" },
               { label: "Out of stock", value: outOfStockCount, tone: outOfStockCount > 0 ? "danger" : "default" },
             ]}
@@ -65,12 +65,12 @@ export default async function AdminInventoryPage({ searchParams }: PageProps) {
       {items.length === 0 ? (
         <div className="mt-6 rounded-lg border border-dashed border-border p-10 text-center">
           <p className="text-sm font-medium text-foreground">
-            {hasActiveFilters ? "No inventory matches your search" : "No sizes are currently tracked"}
+            {hasActiveFilters ? "No inventory matches your search" : "No pack sizes are currently tracked"}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasActiveFilters
               ? "Try a different search term or clear the category/stock filters."
-              : "Sizes appear here once a product has at least one active size."}
+              : "Pack sizes appear here once a product has at least one active pack size."}
           </p>
         </div>
       ) : (

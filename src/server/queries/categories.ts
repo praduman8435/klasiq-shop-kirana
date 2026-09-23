@@ -26,28 +26,17 @@ export async function getCategoryBySlug(slug: string) {
 
 export type BrowseFallbackCategory = { slug: string; name: string };
 
-const UNIFORM_LIKE_CATEGORY = /uniform/i;
-
 /**
- * The "browse instead" escape hatch shown when a school search, or a
- * school's own gender/class selection, comes up empty. Never a hardcoded
- * slug — prefers a uniform-like category from the live, admin-managed
- * list (the natural adjacent aisle for this flow), falls back to the
- * first header category if none match, and `null` only when no header
- * categories exist at all (callers fall back to the always-available
- * /search page in that case). Keeps working if "Uniforms" is renamed,
- * hidden, or removed by the admin.
+ * The "browse instead" escape hatch shown where a flow needs one category
+ * to point at (e.g. the homepage hero's secondary CTA). Never a hardcoded
+ * slug — the first header category from the live, admin-managed list, or
+ * `null` only when no header categories exist at all (callers fall back
+ * to the always-available /search page in that case).
  */
 export function pickBrowseFallbackCategory(
   categories: BrowseFallbackCategory[],
 ): BrowseFallbackCategory | null {
-  return (
-    categories.find(
-      (c) => UNIFORM_LIKE_CATEGORY.test(c.slug) || UNIFORM_LIKE_CATEGORY.test(c.name),
-    ) ??
-    categories[0] ??
-    null
-  );
+  return categories[0] ?? null;
 }
 
 // Phase 3.7 Part 2 — this is a single small storefront (seed data tops
@@ -55,32 +44,28 @@ export function pickBrowseFallbackCategory(
 // sensible, honest bound against an abusive/unbounded query without
 // building real pagination for a catalog that doesn't need it yet. See
 // docs/PHASE_3_7_REPORT.md Part 2 "Performance".
-const GENERIC_PRODUCT_RESULT_LIMIT = 60;
+const PRODUCT_RESULT_LIMIT = 60;
 
 /**
- * THE shared query behind both category browsing (`getGenericCategoryProducts`)
- * and cross-category product search (`searchGenericProducts`) — one
- * `where` builder, never two parallel implementations of "which generic
- * products match." Only generic products are ever returned (`schoolId:
- * null`) — a parent browsing/searching without a selected school should
- * never see another school's exclusive product; this mirrors the
- * pre-existing rule `getGenericCategoryProducts` already enforced,
- * unchanged. `query`, when given, matches product name OR description,
+ * THE shared query behind both category browsing (`getCategoryProducts`)
+ * and cross-category product search (`searchProducts`) — one `where`
+ * builder, never two parallel implementations of "which products match."
+ * `query`, when given, matches product name, brand, OR description,
  * case-insensitively, via Prisma's parameterized `contains` — never raw
  * SQL, never string-concatenated into a query.
  */
-async function findGenericProducts(params: { categorySlug?: string; query?: string; limit?: number }) {
+async function findProducts(params: { categorySlug?: string; query?: string; limit?: number }) {
   const trimmedQuery = params.query?.trim();
 
   return db.product.findMany({
     where: {
       isActive: true,
-      schoolId: null,
       ...(params.categorySlug ? { category: { slug: params.categorySlug } } : {}),
       ...(trimmedQuery
         ? {
             OR: [
               { name: { contains: trimmedQuery, mode: "insensitive" } },
+              { brand: { contains: trimmedQuery, mode: "insensitive" } },
               { description: { contains: trimmedQuery, mode: "insensitive" } },
             ],
           }
@@ -91,27 +76,26 @@ async function findGenericProducts(params: { categorySlug?: string; query?: stri
       variants: { where: { isActive: true }, orderBy: { sortOrder: "asc" } },
       category: { select: { slug: true, name: true } },
     },
-    take: params.limit ?? GENERIC_PRODUCT_RESULT_LIMIT,
+    take: params.limit ?? PRODUCT_RESULT_LIMIT,
   });
 }
 
 /**
- * Products for a standalone category browse page (e.g. /uniforms), with
- * an optional in-category search term (e.g. /uniforms?q=shirt — Phase
+ * Products for a standalone category browse page (e.g. /snacks), with
+ * an optional in-category search term (e.g. /snacks?q=biscuit — Phase
  * 3.7 Part 2). Category filtering and search are the SAME `where`
  * clause combined with AND, never a client-side post-filter — a search
- * inside "Shoes" can structurally never surface a "Uniforms" product.
+ * inside "Snacks" can structurally never surface a "Beverages" product.
  * `limit` defaults to the real production cap; tests override it to
- * exercise the cap itself without seeding 60+ rows, mirroring
- * `searchSchools(query, limit)`'s own precedent.
+ * exercise the cap itself without seeding 60+ rows.
  */
-export async function getGenericCategoryProducts(categorySlug: string, query?: string, limit?: number) {
-  return findGenericProducts({ categorySlug, query, limit });
+export async function getCategoryProducts(categorySlug: string, query?: string, limit?: number) {
+  return findProducts({ categorySlug, query, limit });
 }
 
 /**
  * Cross-category product search for the standalone /search page (Phase
- * 3.7 Part 2) — every generic, active product/category, no category
+ * 3.7 Part 2) — every active product/category, no category
  * constraint. Deliberately requires a non-empty `query` — returns `[]`
  * without ever touching the database for an empty/whitespace-only one;
  * there is no "browse everything" mode hiding behind an empty search
@@ -119,24 +103,23 @@ export async function getGenericCategoryProducts(categorySlug: string, query?: s
  * even if a future caller invokes this directly without that page's
  * own truthy-check).
  */
-export async function searchGenericProducts(query: string, limit?: number) {
+export async function searchProducts(query: string, limit?: number) {
   if (!query.trim()) return [];
-  return findGenericProducts({ query, limit });
+  return findProducts({ query, limit });
 }
 
 /**
  * Phase 3.7 Part 7 (homepage redesign) — a small, category-diverse sample
- * of real generic products for the homepage's "Shop the essentials"
- * teaser. Reuses `findGenericProducts` (never a second parallel query),
- * then prefers one product per distinct category so a 5-item teaser
- * doesn't accidentally read as "5 uniforms" just because uniforms sorts
- * first alphabetically — filling any remaining slots from the same
- * result set if there aren't enough distinct categories. Every product
- * returned is real, active, generic (schoolId: null) data; nothing here
- * invents a product, price, or image.
+ * of real products for the homepage's "Shop the essentials" teaser.
+ * Reuses `findProducts` (never a second parallel query), then prefers
+ * one product per distinct category so a 5-item teaser doesn't
+ * accidentally read as "5 atta packs" just because one aisle sorts first
+ * alphabetically — filling any remaining slots from the same result set
+ * if there aren't enough distinct categories. Every product returned is
+ * real, active data; nothing here invents a product, price, or image.
  */
-export async function getFeaturedGenericProducts(limit = 5) {
-  const pool = await findGenericProducts({ limit: limit * 6 });
+export async function getFeaturedProducts(limit = 5) {
+  const pool = await findProducts({ limit: limit * 6 });
 
   const seenCategories = new Set<string>();
   const diverse: typeof pool = [];

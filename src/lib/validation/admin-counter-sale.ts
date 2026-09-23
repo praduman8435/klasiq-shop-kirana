@@ -80,7 +80,6 @@ export const counterSaleAddressSchema = z.discriminatedUnion("mode", [
 export const createCounterSaleSchema = z.object({
   lines: z.array(counterSaleLineSchema).min(1, "Add at least one item."),
   customer: counterSaleCustomerSchema,
-  schoolId: z.string().min(1).nullable(),
   paymentMethod: z.enum(COUNTER_SALE_PAYMENT_METHOD_VALUES),
   idempotencyKey: z.string().uuid(),
   discount: counterSaleDiscountSchema.optional(),

@@ -84,12 +84,12 @@ export function ReturnReceivePanel({
             return (
               <div key={item.id} className="rounded-lg border bg-card p-3">
                 <p className="text-sm font-medium">
-                  {item.productName} &middot; Size {item.size} &middot; Qty {item.quantity}
+                  {item.productName} &middot; {item.size} &middot; Qty {item.quantity}
                 </p>
                 {chosen ? (
                   <div className="mt-2 flex items-center justify-between gap-3 rounded-lg bg-secondary/30 p-2">
                     <p className="text-xs">
-                      Replacement: {chosen.productName} &middot; Size {chosen.size}
+                      Replacement: {chosen.productName} &middot; {chosen.size}
                     </p>
                     <Button
                       type="button"

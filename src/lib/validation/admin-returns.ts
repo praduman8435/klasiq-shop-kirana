@@ -74,7 +74,6 @@ const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 export const adminReturnFiltersSchema = z.object({
   status: z.enum(RETURN_REQUEST_STATUS_VALUES).optional(),
   type: z.enum(RETURN_REQUEST_TYPE_VALUES).optional(),
-  schoolId: z.string().min(1).optional(),
   dateFrom: z.string().regex(DATE_ONLY_PATTERN).optional(),
   dateTo: z.string().regex(DATE_ONLY_PATTERN).optional(),
   query: z.string().trim().max(100).optional(),

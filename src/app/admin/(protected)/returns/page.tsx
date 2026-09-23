@@ -6,7 +6,6 @@ import { ReturnStatusBadge, ReturnTypeBadge } from "@/components/admin/return-st
 import { RETURN_REQUEST_STATUS_LABEL } from "@/lib/return-lifecycle";
 import { adminReturnFiltersSchema } from "@/lib/validation/admin-returns";
 import { getAdminReturnRequests } from "@/server/queries/admin/returns";
-import { getAdminSchools } from "@/server/queries/admin/schools";
 
 export const metadata: Metadata = { title: "Returns" };
 
@@ -14,7 +13,6 @@ type PageProps = {
   searchParams: Promise<{
     status?: string;
     type?: string;
-    schoolId?: string;
     dateFrom?: string;
     dateTo?: string;
     q?: string;
@@ -26,14 +24,13 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
   const parsed = adminReturnFiltersSchema.safeParse({
     status: query.status,
     type: query.type,
-    schoolId: query.schoolId,
     dateFrom: query.dateFrom,
     dateTo: query.dateTo,
     query: query.q,
   });
   const filters = parsed.success ? parsed.data : {};
 
-  const [requests, schools] = await Promise.all([getAdminReturnRequests(filters), getAdminSchools()]);
+  const requests = await getAdminReturnRequests(filters);
   // `Object.keys` alone over-counts here: zod's parsed output keeps every
   // optional key even when its value is `undefined`, so it would report
   // "active" on a completely filter-free page load (same fix already
@@ -63,7 +60,7 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
         </Link>
       </div>
 
-      <ReturnFilters schools={schools.map((s) => ({ id: s.id, name: s.name }))} />
+      <ReturnFilters />
 
       {requests.length === 0 ? (
         <div className="mt-6 rounded-lg border border-dashed border-border p-10 text-center">
@@ -72,7 +69,7 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {hasActiveFilters
-              ? "Try a different search term or clear the status/type/school filters."
+              ? "Try a different search term or clear the status/type filters."
               : "Return and exchange requests will show up here."}
           </p>
         </div>
@@ -93,7 +90,6 @@ export default async function AdminReturnsPage({ searchParams }: PageProps) {
                       Order {request.order.orderNumber}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {request.order.school ? `${request.order.school.name} · ` : ""}
                       {formatTimestamp(request.createdAt)}
                       {" · "}
                       {request.items.length} item{request.items.length === 1 ? "" : "s"}
