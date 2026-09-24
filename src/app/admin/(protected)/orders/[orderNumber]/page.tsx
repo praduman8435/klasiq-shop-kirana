@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, Eye, Printer } from "lucide-react";
+import { ArrowLeft, Download, Eye, MessageCircle, Phone, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { OrderNextStepButton } from "@/components/admin/order-next-step-button";
+import { OrderProgress } from "@/components/admin/order-progress";
+import { BRAND } from "@/lib/constants";
+import { ORDER_STATUS_BADGE_CLASS } from "@/lib/order-lifecycle";
+import { customerStatusMessage, nextStep, paymentSummary, simpleStatusLabel } from "@/lib/order-queue";
+import { telLink, whatsAppLink } from "@/lib/supplier-statement";
+import { cn } from "@/lib/utils";
 import {
   OrderStatusActions,
   PaymentStatusActions,
 } from "@/components/admin/order-status-actions";
 import { SendInvoiceWhatsAppButton } from "@/components/admin/send-invoice-whatsapp-button";
-import {
-  FulfillmentBadge,
-  OrderSourceBadge,
-  OrderStatusBadge,
-  PaymentStatusBadge,
-} from "@/components/admin/order-status-badge";
 import { formatPaise } from "@/lib/money";
 import { getFulfillmentLabel, getPaymentMethodLabel } from "@/lib/order-message";
 import { getAdminOrderByNumber } from "@/server/queries/admin/orders";
@@ -33,6 +35,21 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
   if (!order) notFound();
 
   const isPickup = order.fulfillmentType === "STORE_PICKUP";
+  const primaryStep = nextStep(order.status, order.fulfillmentType);
+  const payment = paymentSummary(order);
+  const call = telLink(order.customerMobile);
+  const chatPhone = order.customerWhatsapp || order.customerMobile;
+  const message = whatsAppLink(
+    chatPhone,
+    customerStatusMessage({
+      shopName: BRAND.legacyStoreNames[0] ?? BRAND.name,
+      customerName: order.customerName,
+      orderNumber: order.orderNumber,
+      totalInPaise: order.totalInPaise,
+      status: order.status,
+      fulfillmentType: order.fulfillmentType,
+    }),
+  );
   const isDelivery = order.fulfillmentType === "LOCAL_DELIVERY";
   const hasCustomerAddress = Boolean(
     order.customerAddressLine ||
@@ -53,23 +70,43 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
           <ArrowLeft className="size-4" aria-hidden />
           Orders
         </Link>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="font-mono text-lg font-semibold">{order.orderNumber}</h1>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="font-heading text-xl font-semibold tracking-tight">
+                {order.customerName || (order.source === "COUNTER" ? "Walk-in customer" : "Customer")}
+              </h1>
+              <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-medium", ORDER_STATUS_BADGE_CLASS[order.status])}>
+                {simpleStatusLabel(order.status, order.fulfillmentType)}
+              </span>
+            </div>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              {order.createdAt.toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" })}
+              <span className="font-mono">{order.orderNumber}</span> ·{" "}
+              {order.createdAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })} ·{" "}
+              {order.source === "COUNTER" ? "Counter sale" : `Online · ${getFulfillmentLabel(order.fulfillmentType)}`}
             </p>
           </div>
-          <div className="flex flex-wrap gap-1.5">
-            <OrderStatusBadge status={order.status} />
-            <PaymentStatusBadge status={order.paymentStatus} />
-            {/* Counter Sale's own fulfillment type IS "Counter Sale"
-                (COUNTER_HANDOVER) — the source badge already says it. */}
-            {order.fulfillmentType !== "COUNTER_HANDOVER" && (
-              <FulfillmentBadge fulfillmentType={order.fulfillmentType} className="opacity-70" />
-            )}
-            <OrderSourceBadge source={order.source} className="opacity-70" />
-          </div>
+          {(call || chatPhone) && (
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {call && (
+                <Button render={<a href={call} />} nativeButton={false} variant="outline" className="h-10">
+                  <Phone className="size-4" aria-hidden />
+                  Call
+                </Button>
+              )}
+              {chatPhone && (
+                <Button
+                  render={<a href={message} target="_blank" rel="noopener noreferrer" />}
+                  nativeButton={false}
+                  variant="outline"
+                  className="h-10"
+                >
+                  <MessageCircle className="size-4" aria-hidden />
+                  WhatsApp update
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -90,8 +127,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                     <div className="min-w-0">
                       <p className="font-medium">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
-                        {item.size} &middot; SKU {item.skuSnapshot} &middot; Qty {item.quantity} &middot;{" "}
-                        {formatPaise(item.unitPriceInPaise)} each
+                        {item.size} &middot; {item.quantity} &times; {formatPaise(item.unitPriceInPaise)}
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
@@ -128,7 +164,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 <span>{order.deliveryFeeInPaise > 0 ? formatPaise(order.deliveryFeeInPaise) : "Free"}</span>
               </div>
               <div className="mt-2 flex justify-between border-t border-border pt-2 text-base font-semibold">
-                <span>Grand Total</span>
+                <span>Total</span>
                 <span>{formatPaise(order.totalInPaise)}</span>
               </div>
               {/* Phase 3.6.5 Part 3 — Counter Sale only (see
@@ -141,7 +177,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               {order.source === "COUNTER" && (
                 <>
                   <div className="mt-1 flex justify-between">
-                    <span className="text-muted-foreground">Received</span>
+                    <span className="text-muted-foreground">Paid</span>
                     <span>{formatPaise(order.amountReceivedInPaise)}</span>
                   </div>
                   <div
@@ -151,7 +187,17 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                         : "mt-1 flex justify-between text-muted-foreground"
                     }
                   >
-                    <span>Outstanding</span>
+                    <span>
+                      On khata
+                      {order.customer && order.outstandingInPaise > 0 && (
+                        <Link
+                          href={`/admin/khatabook/${order.customer.customerId}`}
+                          className="ml-2 text-xs font-normal underline underline-offset-2"
+                        >
+                          Open khata
+                        </Link>
+                      )}
+                    </span>
                     <span>{formatPaise(order.outstandingInPaise)}</span>
                   </div>
                 </>
@@ -167,7 +213,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                   {order.inventoryAdjustments.map((adj) => (
                     <li key={adj.id}>
-                      {adj.createdAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} —{" "}
+                      {adj.createdAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })} —{" "}
                       {adj.reason.replace(/_/g, " ").toLowerCase()}: {adj.previousQuantity} → {adj.newQuantity}
                     </li>
                   ))}
@@ -180,14 +226,19 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         <div className="flex flex-col gap-5 border-t border-border pt-5 lg:sticky lg:top-6 lg:w-[360px] lg:shrink-0 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
           <section>
             <h2 className="text-sm font-semibold">Order status</h2>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {getFulfillmentLabel(order.fulfillmentType)} order
-            </p>
-            <div className="mt-2">
+            <div className="mt-3 flex flex-col gap-3">
+              <OrderProgress status={order.status} fulfillmentType={order.fulfillmentType} />
+              <OrderNextStepButton
+                orderNumber={order.orderNumber}
+                status={order.status}
+                fulfillmentType={order.fulfillmentType}
+                size="lg"
+              />
               <OrderStatusActions
                 orderNumber={order.orderNumber}
                 status={order.status}
                 fulfillmentType={order.fulfillmentType}
+                exclude={primaryStep}
               />
             </div>
           </section>
@@ -196,6 +247,14 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
 
           <section>
             <h2 className="text-sm font-semibold">Payment</h2>
+            <p
+              className={cn(
+                "mt-1 text-sm font-medium",
+                payment.tone === "due" ? "text-amber-500" : payment.tone === "paid" ? "text-emerald-400" : "text-muted-foreground",
+              )}
+            >
+              {payment.label}
+            </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {getPaymentMethodLabel({
                 paymentMethod: order.paymentMethod,

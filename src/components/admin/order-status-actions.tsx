@@ -20,14 +20,17 @@ export function OrderStatusActions({
   orderNumber,
   status,
   fulfillmentType,
+  exclude,
 }: {
   orderNumber: string;
   status: OrderStatus;
   fulfillmentType: FulfillmentType;
+  /** A status already offered elsewhere (the big next-step button). */
+  exclude?: OrderStatus | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const nextStatuses = nextValidOrderStatuses({ from: status, fulfillmentType });
+  const nextStatuses = nextValidOrderStatuses({ from: status, fulfillmentType }).filter((s) => s !== exclude);
 
   function handleTransition(newStatus: OrderStatus) {
     if (isPending) return;
@@ -51,6 +54,7 @@ export function OrderStatusActions({
   }
 
   if (nextStatuses.length === 0) {
+    if (exclude) return null;
     return <p className="text-sm text-muted-foreground">No further actions — this order is closed.</p>;
   }
 

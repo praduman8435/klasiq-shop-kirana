@@ -17,7 +17,7 @@ export type AdminOrderFilters = {
 // page fast and avoids ever silently rendering an unbounded table.
 const ADMIN_ORDER_LIST_LIMIT = 200;
 
-export async function getAdminOrders(filters: AdminOrderFilters) {
+export async function getAdminOrders(filters: AdminOrderFilters, options: { statuses?: OrderStatus[] | null } = {}) {
   const trimmedQuery = filters.query?.trim();
 
   // dateFrom is the start of that calendar day; dateTo is the start of the
@@ -30,7 +30,7 @@ export async function getAdminOrders(filters: AdminOrderFilters) {
 
   return db.order.findMany({
     where: {
-      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.status ? { status: filters.status } : options.statuses ? { status: { in: options.statuses } } : {}),
       ...(filters.paymentStatus ? { paymentStatus: filters.paymentStatus } : {}),
       ...(filters.fulfillmentType ? { fulfillmentType: filters.fulfillmentType } : {}),
       ...(filters.source ? { source: filters.source } : {}),
@@ -62,4 +62,28 @@ export async function getAdminOrderByNumber(orderNumber: string) {
       inventoryAdjustments: { orderBy: { createdAt: "desc" } },
     },
   });
+}
+
+/** How many orders are in each status — the counts on the Orders tabs. */
+export async function getOrderStatusCounts(): Promise<Partial<Record<OrderStatus, number>>> {
+  const groups = await db.order.groupBy({ by: ["status"], _count: { _all: true } });
+  return Object.fromEntries(groups.map((g) => [g.status, g._count._all]));
+}
+
+/** Today (India time): orders and their value, online vs counter. */
+export async function getTodayOrderSummary(now: Date = new Date()) {
+  const IST_OFFSET_MS = (5 * 60 + 30) * 60_000;
+  const ist = new Date(now.getTime() + IST_OFFSET_MS);
+  const startOfToday = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()) - IST_OFFSET_MS);
+  const groups = await db.order.groupBy({
+    by: ["source"],
+    where: { createdAt: { gte: startOfToday }, status: { not: "CANCELLED" } },
+    _count: { _all: true },
+    _sum: { totalInPaise: true },
+  });
+  const pick = (source: "ONLINE" | "COUNTER") => {
+    const g = groups.find((x) => x.source === source);
+    return { count: g?._count._all ?? 0, valueInPaise: g?._sum.totalInPaise ?? 0 };
+  };
+  return { online: pick("ONLINE"), counter: pick("COUNTER") };
 }
