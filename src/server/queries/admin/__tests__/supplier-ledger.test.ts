@@ -163,13 +163,15 @@ describe("getSupplierLedger — the Part 29 worked scenario", () => {
     expect(balances[2]).toBe(70000); // - Payment 1 (10000)
     expect(balances[3]).toBe(50000); // - Payment 2 (20000)
     expect(balances[4]).toBe(40000); // - Credit (10000)
-    expect(balances[5]).toBe(36000); // - Refund (4000)
+    expect(balances[5]).toBe(44000); // + Refund (4000): money the supplier sent back raises the balance
 
     // Closing balance (net account position) DIFFERS from purchase
     // outstanding by exactly the refund amount — Section 17's own
     // "explicitly distinguish, do not hide the difference" requirement.
-    expect(ledger.closingBalanceInPaise).toBe(36000);
-    expect(ledger.closingBalanceInPaise).toBe(ledgerSummary.purchaseOutstandingInPaise - 4000);
+    // A refund is cash coming BACK from the supplier, so it moves the
+    // balance up (a payment the shop makes moves it down).
+    expect(ledger.closingBalanceInPaise).toBe(44000);
+    expect(ledger.closingBalanceInPaise).toBe(ledgerSummary.purchaseOutstandingInPaise + 4000);
   });
 });
 

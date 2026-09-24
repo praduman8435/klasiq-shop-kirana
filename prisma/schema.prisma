@@ -206,6 +206,21 @@ model ProductPhoto {
   @@map("product_photos")
 }
 
+/// A photo of a supplier's paper bill, taken or picked in admin. Private
+/// business paperwork, so unlike ProductPhoto it is only ever served to a
+/// signed-in admin (/admin/bill-photos/{id}); a
+/// SupplierPurchaseBillAttachment's `url` points at that path. Shrunk on
+/// the phone first (long edge 1600 px), so rows stay ~100–300 KB.
+model SupplierBillPhoto {
+  id          String   @id @default(cuid())
+  contentType String
+  byteSize    Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  @@map("supplier_bill_photos")
+}
+
 /// A purchasable pack-size/price/stock combination of a Product. `size`
 /// holds the pack size ("500 g", "1 kg", "Pack of 4") — the column keeps
 /// its original name because order/return snapshots reference it, but every

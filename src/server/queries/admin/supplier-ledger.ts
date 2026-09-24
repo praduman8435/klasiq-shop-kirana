@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { netSupplierBalanceInPaise } from "@/lib/supplier-balance";
 import { getSupplierPaymentSummary } from "@/server/queries/admin/supplier-payments";
 import { getSupplierCreditSummary } from "@/server/queries/admin/supplier-credits";
 import { getSupplierRefundHistory } from "@/server/queries/admin/supplier-refunds";
@@ -83,7 +84,7 @@ function dateRangeWhere(from?: Date, to?: Date) {
  * which would be exactly the kind of new persistent ledger
  * infrastructure Part 7's brief explicitly forbids introducing.
  */
-async function fetchRawEvents(supplierId: string, from: Date | undefined, to: Date | undefined): Promise<RawEvent[]> {
+async function fetchRawEvents(supplierId: string, from?: Date, to?: Date): Promise<RawEvent[]> {
   const purchaseWhere = dateRangeWhere(from, to);
   const [purchases, payments, credits, refunds] = await Promise.all([
     db.supplierPurchase.findMany({
@@ -163,8 +164,11 @@ async function fetchRawEvents(supplierId: string, from: Date | undefined, to: Da
       type: "REFUND",
       reference: `#${refund.refundNumber}`,
       description: `${methodLabel} · ${refund.receivedByName}`,
-      debitInPaise: 0,
-      creditInPaise: refund.amountInPaise,
+      // Money the supplier sent BACK to the shop: it raises the balance
+      // (back towards zero from an advance/credit), so it's a debit —
+      // the opposite direction from a payment the shop makes.
+      debitInPaise: refund.amountInPaise,
+      creditInPaise: 0,
       href: `/admin/suppliers/${supplierId}/refunds/${refund.id}`,
       searchText: [refund.refundNumber, refund.reference ?? "", refund.receivedByName, methodLabel].join(" ").toLowerCase(),
     });
@@ -196,9 +200,12 @@ export async function getSupplierLedgerOpeningBalance(supplierId: string, before
     db.supplierRefund.aggregate({ where: { supplierId, refundDate: { lt: before } }, _sum: { amountInPaise: true } }),
   ]);
 
-  const debit = purchaseTotal._sum.totalInPaise ?? 0;
-  const credit = (paymentTotal._sum.amountInPaise ?? 0) + (creditTotal._sum.amountInPaise ?? 0) + (refundTotal._sum.amountInPaise ?? 0);
-  return debit - credit;
+  return netSupplierBalanceInPaise({
+    purchasesInPaise: purchaseTotal._sum.totalInPaise ?? 0,
+    paymentsInPaise: paymentTotal._sum.amountInPaise ?? 0,
+    creditsInPaise: creditTotal._sum.amountInPaise ?? 0,
+    refundsInPaise: refundTotal._sum.amountInPaise ?? 0,
+  });
 }
 
 export type SupplierLedgerResult = {
@@ -309,5 +316,51 @@ export async function getSupplierLedgerSummary(supplierId: string): Promise<Supp
       paymentSummary.paymentCount > 0 ||
       creditSummary.creditCount > 0 ||
       refundHistory.totalCount > 0,
+  };
+}
+
+export type SupplierKhata = {
+  /** Newest first, each with the running balance right after it. */
+  entries: LedgerEvent[];
+  /** Every entry ever, for "View full khata (N)". */
+  totalCount: number;
+  balanceInPaise: number;
+  totalBillsInPaise: number;
+  totalPaidInPaise: number;
+};
+
+/**
+ * The supplier page's khata: the same events and running balance as the
+ * full ledger (so the two can never disagree), newest first and capped
+ * at `limit` rows.
+ */
+export async function getSupplierKhata(supplierId: string, limit = 30): Promise<SupplierKhata> {
+  const rawEvents = await fetchRawEvents(supplierId);
+  let running = 0;
+  let totalBillsInPaise = 0;
+  let totalPaidInPaise = 0;
+  const withBalance: LedgerEvent[] = rawEvents.map((event) => {
+    running += event.debitInPaise - event.creditInPaise;
+    if (event.type === "PURCHASE") totalBillsInPaise += event.debitInPaise;
+    if (event.type === "PAYMENT") totalPaidInPaise += event.creditInPaise;
+    return {
+      key: event.key,
+      date: event.date,
+      type: event.type,
+      reference: event.reference,
+      description: event.description,
+      debitInPaise: event.debitInPaise,
+      creditInPaise: event.creditInPaise,
+      balanceInPaise: running,
+      href: event.href,
+    };
+  });
+
+  return {
+    entries: withBalance.slice(-limit).reverse(),
+    totalCount: withBalance.length,
+    balanceInPaise: running,
+    totalBillsInPaise,
+    totalPaidInPaise,
   };
 }

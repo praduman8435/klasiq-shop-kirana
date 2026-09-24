@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
-import { SupplierForm } from "@/components/admin/supplier-form";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { SupplierQuickCreateForm } from "@/components/admin/supplier-quick-create-form";
 
-export const metadata: Metadata = { title: "Add Supplier" };
+export const metadata: Metadata = { title: "Add supplier" };
 
 export default function NewSupplierPage() {
   return (
-    <div>
-      <div className="mb-5">
-        <h1 className="font-heading text-xl font-semibold tracking-tight">Add Supplier</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          Record a wholesaler or supplier account.
-        </p>
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-5">
+      <Link href="/admin/suppliers" className="inline-flex h-9 w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" aria-hidden />
+        Suppliers
+      </Link>
+      <div>
+        <h1 className="font-heading text-xl font-semibold tracking-tight">Add supplier</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">A wholesaler or distributor you buy stock from.</p>
       </div>
-      <div className="max-w-xl">
-        <SupplierForm />
-      </div>
+      <SupplierQuickCreateForm />
     </div>
   );
 }

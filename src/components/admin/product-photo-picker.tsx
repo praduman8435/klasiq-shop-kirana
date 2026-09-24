@@ -3,62 +3,12 @@
 import { useRef, useState } from "react";
 import { Camera, ImageIcon, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { shrinkPhoto } from "@/lib/shrink-photo";
 import { uploadProductPhotoAction } from "@/server/actions/admin/product-photos";
 
 /** Storefront tiles are square, so photos are centre-cropped to a square
  * and shrunk to this size on the phone before upload. */
 const OUTPUT_SIZE = 800;
-
-async function decode(file: File): Promise<{ source: CanvasImageSource; width: number; height: number }> {
-  try {
-    const bitmap = await createImageBitmap(file, {
-      imageOrientation: "from-image",
-    });
-    return { source: bitmap, width: bitmap.width, height: bitmap.height };
-  } catch {
-    // Older browsers without createImageBitmap options: fall back to <img>.
-    const url = URL.createObjectURL(file);
-    try {
-      const img = new Image();
-      img.src = url;
-      await img.decode();
-      return {
-        source: img,
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-      };
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-}
-
-function toBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
-  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, quality));
-}
-
-/** Centre-crops to a square, resizes to 800×800 and re-encodes as WebP
- * (JPEG where the browser can't encode WebP, e.g. older iPhones). A
- * 4 MB camera photo becomes ~50–150 KB — quick on shop Wi-Fi or 4G. */
-async function shrinkPhoto(file: File): Promise<Blob> {
-  const { source, width, height } = await decode(file);
-  const side = Math.min(width, height);
-  const out = Math.min(OUTPUT_SIZE, side);
-  const canvas = document.createElement("canvas");
-  canvas.width = out;
-  canvas.height = out;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("no canvas");
-  ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(source, (width - side) / 2, (height - side) / 2, side, side, 0, 0, out, out);
-  if ("close" in source) source.close();
-
-  const webp = await toBlob(canvas, "image/webp", 0.82);
-  if (webp?.type === "image/webp") return webp;
-  const jpeg = await toBlob(canvas, "image/jpeg", 0.85);
-  if (!jpeg) throw new Error("encode failed");
-  return jpeg;
-}
 
 /**
  * Product photo field for the admin product form: take a photo with the
@@ -96,7 +46,7 @@ export function ProductPhotoPicker({
     try {
       let blob: Blob;
       try {
-        blob = await shrinkPhoto(file);
+        blob = await shrinkPhoto(file, { maxSide: OUTPUT_SIZE, square: true });
       } catch {
         setError("Couldn't read that photo. Please try another one.");
         return;

@@ -34,3 +34,10 @@ export const adminSupplierFiltersSchema = z.object({
   page: z.coerce.number().int().min(1).catch(1),
   filter: z.enum(SUPPLIER_DIRECTORY_FILTER_VALUES).catch("ALL"),
 });
+
+/** /admin/suppliers list: search, "All / To pay / Inactive" tabs, page. */
+export const supplierListParamsSchema = z.object({
+  q: z.string().trim().max(100).optional(),
+  page: z.coerce.number().int().min(1).catch(1),
+  filter: z.enum(["ALL", "TO_PAY", "INACTIVE"]).catch("ALL"),
+});

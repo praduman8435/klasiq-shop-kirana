@@ -1,18 +1,19 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ChevronRight, ImageOff, PackagePlus, Pencil, Plus, Trash2, Undo2 } from "lucide-react";
+import { Camera, ChevronRight, ImageIcon, ImageOff, Loader2, PackagePlus, Pencil, Trash2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { shrinkPhoto } from "@/lib/shrink-photo";
+import { addPhotoToBillAction } from "@/server/actions/admin/supplier-quick";
 import { formatPaise } from "@/lib/money";
 import { PAYMENT_METHOD_LABEL } from "@/components/admin/supplier-payment-detail";
 import {
-  addSupplierPurchaseBillAttachmentAction,
   removeSupplierPurchaseBillAttachmentAction,
   updateSupplierPurchaseBillAction,
   updateSupplierPurchaseDetailsAction,
@@ -175,49 +176,52 @@ function AttachmentThumb({ attachment, onRemove, removing }: { attachment: Attac
   );
 }
 
+/** Take or pick a photo of this bill and attach it — shrunk on the
+ * phone first, stored privately (admin-only). */
 function AddAttachmentInline({ billId }: { billId: string }) {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [open, setOpen] = useState(false);
-  const [url, setUrl] = useState("");
-  const urlId = useId();
+  const cameraInput = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
-  function handleAdd() {
-    const trimmed = url.trim();
-    if (!trimmed || isPending) return;
-    startTransition(async () => {
-      const result = await addSupplierPurchaseBillAttachmentAction({ billId, url: trimmed });
-      if (result.success) {
-        setUrl("");
-        setOpen(false);
-        router.refresh();
-      } else {
-        toast.error(result.error.message);
+  async function handlePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || uploading) return;
+    setUploading(true);
+    try {
+      let blob: Blob;
+      try {
+        blob = await shrinkPhoto(file, { maxSide: 1600, square: false });
+      } catch {
+        toast.error("Couldn't read that photo. Please try another one.");
+        return;
       }
-    });
-  }
-
-  if (!open) {
-    return (
-      <Button type="button" size="sm" variant="outline" className="h-8" onClick={() => setOpen(true)}>
-        <Plus className="size-3.5" aria-hidden />
-        Add bill image
-      </Button>
-    );
+      const formData = new FormData();
+      formData.append("billId", billId);
+      formData.append("photo", blob, blob.type === "image/webp" ? "bill.webp" : "bill.jpg");
+      const result = await addPhotoToBillAction(formData);
+      if (result.success) router.refresh();
+      else toast.error(result.message);
+    } catch {
+      toast.error("Photo upload failed. Check your internet and try again.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Label htmlFor={urlId} className="sr-only">
-        Image URL
-      </Label>
-      <Input id={urlId} className="h-8 w-56 text-sm" placeholder="Paste image URL" value={url} onChange={(e) => setUrl(e.target.value)} autoFocus />
-      <Button type="button" size="sm" className="h-8" disabled={isPending || !url.trim()} onClick={handleAdd}>
-        Add
+    <div className="flex flex-wrap items-center gap-2">
+      <Button type="button" size="sm" variant="outline" className="h-9" disabled={uploading} onClick={() => cameraInput.current?.click()}>
+        {uploading ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <Camera className="size-3.5" aria-hidden />}
+        {uploading ? "Uploading…" : "Take photo of bill"}
       </Button>
-      <Button type="button" size="sm" variant="ghost" className="h-8" disabled={isPending} onClick={() => setOpen(false)}>
-        Cancel
+      <Button type="button" size="sm" variant="outline" className="h-9" disabled={uploading} onClick={() => galleryInput.current?.click()}>
+        <ImageIcon className="size-3.5" aria-hidden />
+        Gallery
       </Button>
+      <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhoto} aria-hidden tabIndex={-1} />
+      <input ref={galleryInput} type="file" accept="image/*" className="hidden" onChange={handlePhoto} aria-hidden tabIndex={-1} />
     </div>
   );
 }
