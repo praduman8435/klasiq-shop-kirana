@@ -33,7 +33,6 @@ import {
 } from "@/components/admin/counter-sale-product-search";
 import { SendInvoiceWhatsAppButton } from "@/components/admin/send-invoice-whatsapp-button";
 import { CounterSaleCashChange } from "@/components/admin/counter-sale-cash-change";
-import { CounterSaleQuickPicks } from "@/components/admin/counter-sale-quick-picks";
 import { type CounterSaleAddressInput } from "@/lib/counter-sale-address";
 import { computeDiscountInPaise, type DiscountInput } from "@/lib/discount";
 import { formatPaise, rupeesToPaise } from "@/lib/money";
@@ -148,7 +147,7 @@ type CompletedSale = {
   isPartialPayment: boolean;
 };
 
-export function CounterSaleForm({ quickPicks = [] }: { quickPicks?: VariantSearchResult[] }) {
+export function CounterSaleForm() {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -568,17 +567,12 @@ export function CounterSaleForm({ quickPicks = [] }: { quickPicks?: VariantSearc
             <div className="mt-2">
               <CounterSaleProductSearch onAdd={addVariant} />
             </div>
-            <CounterSaleQuickPicks
-              picks={quickPicks}
-              quantityInCart={(variantId) => lines.find((l) => l.variantId === variantId)?.quantity ?? 0}
-              onAdd={addVariant}
-            />
 
             {lines.length === 0 ? (
               <div className="mt-3 rounded-lg border border-dashed border-border p-6 text-center">
                 <p className="text-sm font-medium text-foreground">No items yet</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Tap a quick-add item or search by name, brand or SKU. Enter adds the top result.
+                  Search by name, brand or SKU. Enter adds the top result.
                 </p>
               </div>
             ) : (
