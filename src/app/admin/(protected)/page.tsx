@@ -123,7 +123,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
             </div>
           )}
         </div>
-        <table className="mt-4 w-full border-t border-border text-sm">
+        <table className="relative mt-4 w-full border-t border-border text-sm">
           <caption className="sr-only">How today&apos;s cash and UPI add up</caption>
           <thead>
             <tr className="text-xs text-muted-foreground">

@@ -18,7 +18,7 @@ export function DashboardSalesChart({ points, caption }: { points: SalesChartPoi
   const every = points.length > 16 ? Math.ceil(points.length / 8) : 1;
 
   return (
-    <figure className="flex flex-col gap-2">
+    <figure className="relative flex flex-col gap-2">
       <div className="flex h-44 items-end gap-0.5" aria-hidden>
         {points.map((point, index) => {
           const height = point.valueInPaise === 0 ? 0 : Math.max(3, Math.round((point.valueInPaise / max) * 85));
@@ -61,23 +61,27 @@ export function DashboardSalesChart({ points, caption }: { points: SalesChartPoi
         ))}
       </div>
 
-      <table className="sr-only">
-        <caption>{caption}</caption>
-        <thead>
-          <tr>
-            <th scope="col">Period</th>
-            <th scope="col">Sales</th>
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((point) => (
-            <tr key={point.key}>
-              <td>{point.fullLabel}</td>
-              <td>{formatPaise(point.valueInPaise)}</td>
+      {/* sr-only goes on a wrapper, not the table: a table's caption is drawn
+          outside the table box, so Firefox would still show it. */}
+      <div className="sr-only">
+        <table>
+          <caption>{caption}</caption>
+          <thead>
+            <tr>
+              <th scope="col">Period</th>
+              <th scope="col">Sales</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {points.map((point) => (
+              <tr key={point.key}>
+                <td>{point.fullLabel}</td>
+                <td>{formatPaise(point.valueInPaise)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }
