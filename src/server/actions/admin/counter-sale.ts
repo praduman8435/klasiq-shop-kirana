@@ -13,6 +13,7 @@ import { createCounterSale, type CreateCounterSaleResult } from "@/server/commer
 import { createCustomerInline } from "@/server/commerce/customer";
 import { searchSellableVariants } from "@/server/queries/admin/counter-sale";
 import { getRecentCustomers, searchCustomers } from "@/server/queries/admin/customers";
+import { getKhataDues } from "@/server/queries/admin/khata-list";
 
 export type AdminActionResult<T> =
   | T
@@ -54,8 +55,16 @@ export async function searchSellableVariantsAction(
 
 export type SearchCustomersResult = {
   success: true;
-  customers: Awaited<ReturnType<typeof searchCustomers>>;
+  customers: (Awaited<ReturnType<typeof searchCustomers>>[number] & { khataDueInPaise: number })[];
 };
+
+/** Adds each customer's current KhataBook balance, so the counter can
+ * show "₹X already baaki" before giving more udhaar. */
+async function withKhataDue<T extends { id: string }>(customers: T[]): Promise<(T & { khataDueInPaise: number })[]> {
+  if (customers.length === 0) return [];
+  const dues = await getKhataDues(customers.map((c) => c.id));
+  return customers.map((c) => ({ ...c, khataDueInPaise: dues.get(c.id)?.dueInPaise ?? 0 }));
+}
 
 export async function searchCustomersForCounterSaleAction(
   input: unknown,
@@ -68,7 +77,7 @@ export async function searchCustomersForCounterSaleAction(
     return { success: false, error: { type: "VALIDATION", message: "Invalid search." } };
   }
 
-  const customers = await searchCustomers(parsed.data.query);
+  const customers = await withKhataDue(await searchCustomers(parsed.data.query));
   return { success: true, customers };
 }
 
@@ -96,7 +105,7 @@ function toCounterSaleCustomerResult(customer: Customer) {
 
 export type RecentCustomersResult = {
   success: true;
-  customers: ReturnType<typeof toCounterSaleCustomerResult>[];
+  customers: (ReturnType<typeof toCounterSaleCustomerResult> & { khataDueInPaise: number })[];
 };
 
 /** Section 9 "Recent Customers" — a lightweight, no-input read reusing
@@ -108,7 +117,7 @@ export async function getRecentCustomersForCounterSaleAction(): Promise<
   if (unauthorized) return unauthorized;
 
   const customers = await getRecentCustomers();
-  return { success: true, customers: customers.map(toCounterSaleCustomerResult) };
+  return { success: true, customers: await withKhataDue(customers.map(toCounterSaleCustomerResult)) };
 }
 
 export type CreateCounterSaleCustomerResult =

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { detectCreateFormPrefill, nextSearchResultIndex } from "@/lib/counter-sale-form";
+import { formatPaise } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import {
   createCounterSaleCustomerAction,
@@ -27,6 +28,8 @@ export type CustomerSearchResult = {
   addressCity: string | null;
   addressState: string | null;
   addressPincode: string | null;
+  /** What they already owe in KhataBook (lena hai); 0 for a new customer. */
+  khataDueInPaise?: number;
 };
 
 /**
@@ -40,11 +43,16 @@ export type CustomerSearchResult = {
  */
 export type CustomerMode = "GUEST" | "CUSTOMER";
 
-/** Section 6's placeholder — Outstanding Balance/KhataBook is explicitly out
- * of scope for this part (section 18); this constant exists so the ONE
- * place that renders it is unambiguous about why, rather than a bare
- * "—" appearing with no explanation nearby. */
-const OUTSTANDING_BALANCE_PLACEHOLDER = "—";
+/** "₹150 baaki" in amber when they already owe, so the counter sees it
+ * before giving more udhaar. */
+function KhataDue({ customer, className }: { customer: CustomerSearchResult; className?: string }) {
+  const due = customer.khataDueInPaise ?? 0;
+  return (
+    <span className={cn("text-xs", due > 0 ? "font-medium text-amber-500" : "text-muted-foreground", className)}>
+      {due > 0 ? `${formatPaise(due)} baaki` : "No udhaar"}
+    </span>
+  );
+}
 
 async function searchCustomers(query: string): Promise<CustomerSearchResult[]> {
   const result = await searchCustomersForCounterSaleAction({ query });
@@ -54,7 +62,7 @@ async function searchCustomers(query: string): Promise<CustomerSearchResult[]> {
 function formatLastOrder(value: Date | string | null): string {
   if (!value) return "No previous orders";
   const date = value instanceof Date ? value : new Date(value);
-  return `Last order ${date.toLocaleDateString("en-IN", { dateStyle: "medium" })}`;
+  return `Last order ${date.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium" })}`;
 }
 
 function customerSummaryLine(customer: CustomerSearchResult): string {
@@ -182,7 +190,7 @@ export function CounterSaleCustomerPanel({
 
       {mode === "GUEST" && (
         <p className="mt-3 text-sm text-muted-foreground">
-          No customer details will be recorded for this sale — fastest option for a walk-in.
+          Fastest for a walk-in: no name needed. To give udhaar, choose Customer.
         </p>
       )}
 
@@ -191,12 +199,16 @@ export function CounterSaleCustomerPanel({
           {selectedCustomer ? (
             <div className="flex items-center justify-between gap-3 rounded-lg border bg-secondary/30 p-3">
               <div className="min-w-0">
-                <p className="font-mono text-sm font-medium">{selectedCustomer.customerId}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {customerSummaryLine(selectedCustomer)}
+                <p className="truncate text-sm font-medium">
+                  {selectedCustomer.displayName || selectedCustomer.primaryPhone || selectedCustomer.customerId}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {formatLastOrder(selectedCustomer.lastOrderAt)}
+                <p className="truncate text-xs text-muted-foreground">
+                  {[selectedCustomer.displayName ? selectedCustomer.primaryPhone : null, selectedCustomer.customerId]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Khata: <KhataDue customer={selectedCustomer} />
                 </p>
               </div>
               <Button
@@ -228,9 +240,7 @@ export function CounterSaleCustomerPanel({
                           className="flex w-full items-center justify-between gap-3 p-2.5 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                         >
                           <span className="min-w-0 truncate">{customerSummaryLine(customer)}</span>
-                          <span className="shrink-0 font-mono text-xs text-muted-foreground">
-                            {customer.customerId}
-                          </span>
+                          <KhataDue customer={customer} className="shrink-0" />
                         </button>
                       </li>
                     ))}
@@ -281,8 +291,8 @@ export function CounterSaleCustomerPanel({
                             </p>
                           </div>
                           <span className="shrink-0 text-right text-xs text-muted-foreground">
-                            <span className="block">Balance</span>
-                            <span className="font-medium">{OUTSTANDING_BALANCE_PLACEHOLDER}</span>
+                            <span className="block">Khata</span>
+                            <KhataDue customer={customer} />
                           </span>
                         </button>
                       </li>

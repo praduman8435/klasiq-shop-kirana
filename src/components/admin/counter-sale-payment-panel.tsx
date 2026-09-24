@@ -67,13 +67,12 @@ export function CounterSalePaymentPanel({
               : "border-border text-muted-foreground hover:text-foreground",
           )}
         >
-          Full Payment
+          Paid in full
         </button>
         <button
           type="button"
           aria-pressed={state.mode === "PARTIAL"}
           disabled={partialDisabled}
-          title={partialDisabled ? "Select a customer to enable partial payment." : undefined}
           onClick={() => setMode("PARTIAL")}
           className={cn(
             "h-10 rounded-md border text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40",
@@ -82,14 +81,26 @@ export function CounterSalePaymentPanel({
               : "border-border text-muted-foreground hover:text-foreground",
           )}
         >
-          Partial Payment
+          Udhaar / part paid
         </button>
       </div>
+      {partialDisabled && (
+        <p className="mt-1.5 text-xs text-muted-foreground">To give udhaar, choose a customer above.</p>
+      )}
 
       {state.mode === "PARTIAL" && (
-        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex flex-1 flex-col gap-1.5">
-            <Label htmlFor={amountId}>Amount received (₹)</Label>
+        <div className="mt-3 flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-baseline justify-between gap-2">
+              <Label htmlFor={amountId}>Paid now (₹)</Label>
+              <button
+                type="button"
+                onClick={() => onChange({ ...state, amountReceivedRupees: "0" })}
+                className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Nothing paid (all udhaar)
+              </button>
+            </div>
             <Input
               id={amountId}
               type="number"
@@ -105,16 +116,16 @@ export function CounterSalePaymentPanel({
               aria-describedby={previewError ? amountErrorId : undefined}
             />
           </div>
-          <p id={amountErrorId} className="flex-1 text-sm">
+          <p id={amountErrorId} className="text-sm">
             {previewError ? (
               <span className="text-destructive">{previewError}</span>
             ) : previewOutstandingInPaise !== null ? (
               <span className="text-muted-foreground">
-                Outstanding:{" "}
+                Goes to khata:{" "}
                 <span className="font-medium text-foreground">{formatPaise(previewOutstandingInPaise)}</span>
               </span>
             ) : (
-              <span className="text-muted-foreground">Enter the amount received.</span>
+              <span className="text-muted-foreground">Enter what they paid now. The rest goes to their khata.</span>
             )}
           </p>
         </div>

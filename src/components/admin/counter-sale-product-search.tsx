@@ -104,12 +104,12 @@ export function CounterSaleProductSearch({
           role="combobox"
           aria-expanded={showResults}
           aria-controls={listId}
-          aria-label="Search products by name or SKU"
+          aria-label="Search items by name, brand or SKU"
           autoComplete="off"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Search by product name or SKU (e.g. shirt, belt, SKU-1042)"
+          placeholder="Search item, brand or SKU (e.g. atta, Tata)"
           className="h-11 pl-9 text-base"
           autoFocus
         />

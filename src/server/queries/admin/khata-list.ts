@@ -4,7 +4,7 @@ import { startOfMonthInIndia } from "@/lib/supplier-balance";
 
 /** Customer balances: counter-sale udhaar still open on their orders plus
  * open quick-udhaar entries, and when the oldest of it was given. */
-async function getDues(customerIds?: string[]) {
+export async function getKhataDues(customerIds?: string[]) {
   const scope = customerIds ? { customerId: { in: customerIds } } : { customerId: { not: null } };
   const [orders, entries] = await Promise.all([
     db.order.groupBy({
@@ -90,10 +90,10 @@ export async function getKhataList(params: { query?: string; tab?: KhataListTab;
       take: PAGE_SIZE,
       select,
     });
-    const dues = await getDues(customers.map((c) => c.id));
+    const dues = await getKhataDues(customers.map((c) => c.id));
     rows = customers.map((c) => toRow(c, dues.get(c.id)));
   } else {
-    const dues = await getDues();
+    const dues = await getKhataDues();
     const customers = await db.customer.findMany({ where: { id: { in: [...dues.keys()] }, ...search }, select });
     rows = customers.map((c) => toRow(c, dues.get(c.id))).filter((r) => r.dueInPaise > 0);
     rows.sort(
@@ -137,7 +137,7 @@ export type KhataOverview = {
 export async function getKhataOverview(now: Date = new Date()): Promise<KhataOverview> {
   const monthStart = startOfMonthInIndia(now);
   const [dues, entriesThisMonth, billsThisMonth, collectionsThisMonth, singleReceiptsThisMonth] = await Promise.all([
-    getDues(),
+    getKhataDues(),
     db.khataEntry.aggregate({ where: { kind: "UDHAAR", entryDate: { gte: monthStart } }, _sum: { amountInPaise: true } }),
     db.order.findMany({
       where: {
