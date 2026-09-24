@@ -3,7 +3,7 @@
 import { useId, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AlertTriangle, CheckCircle2, Minus, Plus, Printer, Trash2, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, MessageCircle, Minus, Plus, Printer, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   CounterSaleAddressPanel,
@@ -31,7 +31,6 @@ import {
   CounterSaleProductSearch,
   type VariantSearchResult,
 } from "@/components/admin/counter-sale-product-search";
-import { SendInvoiceWhatsAppButton } from "@/components/admin/send-invoice-whatsapp-button";
 import { CounterSaleCashChange } from "@/components/admin/counter-sale-cash-change";
 import { type CounterSaleAddressInput } from "@/lib/counter-sale-address";
 import { computeDiscountInPaise, type DiscountInput } from "@/lib/discount";
@@ -46,6 +45,9 @@ import {
   type CounterSaleCartLine,
 } from "@/lib/counter-sale-form";
 import { cn } from "@/lib/utils";
+import { BRAND } from "@/lib/constants";
+import { buildBillShareText, readInvoiceDesignCookie } from "@/lib/invoice-model";
+import { whatsAppLink } from "@/lib/supplier-statement";
 import { COUNTER_SALE_PAYMENT_METHOD_VALUES } from "@/lib/validation/admin-counter-sale";
 import { createCounterSaleAction } from "@/server/actions/admin/counter-sale";
 
@@ -113,6 +115,22 @@ const PAYMENT_METHOD_LABEL: Record<PaymentMethodValue, string> = {
   CARD: "Card",
 };
 
+/** Opens WhatsApp with the customer's bill link (in the last design used
+ * on this device) and a short Hinglish note. Works without any WhatsApp
+ * Business setup: it's an ordinary wa.me chat the cashier just sends. */
+function sendBillOnWhatsApp(sale: CompletedSale) {
+  const link = `${window.location.origin}/bill/${sale.orderNumber}/${sale.accessToken}?design=${readInvoiceDesignCookie()}`;
+  const text = buildBillShareText({
+    shopName: BRAND.legacyStoreNames[0] ?? BRAND.name,
+    customerName: sale.customerName,
+    orderNumber: sale.orderNumber,
+    total: formatPaise(sale.totalInPaise),
+    due: sale.outstandingInPaise > 0 ? { label: "Baaki (on khata)", amount: formatPaise(sale.outstandingInPaise) } : null,
+    link,
+  });
+  window.open(whatsAppLink(sale.customerPhone, text), "_blank", "noopener,noreferrer");
+}
+
 function generateIdempotencyKey(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -133,6 +151,10 @@ function customerLabelForSummary(params: {
 
 type CompletedSale = {
   orderNumber: string;
+  /** The order's secret link token — for the customer's bill link. */
+  accessToken: string;
+  customerName: string | null;
+  customerPhone: string | null;
   lines: CounterSaleCartLine[];
   customerLabel: string;
   paymentMethod: PaymentMethodValue;
@@ -340,8 +362,10 @@ export function CounterSaleForm() {
     // Snapshot exactly what's being submitted so the success screen can
     // render instantly from data already on the client — no extra request
     // to re-fetch the order we just created ourselves.
-    const summarySnapshot: Omit<CompletedSale, "orderNumber"> = {
+    const summarySnapshot: Omit<CompletedSale, "orderNumber" | "accessToken"> = {
       lines,
+      customerName: customerMode === "CUSTOMER" ? (selectedCustomer?.displayName ?? null) : null,
+      customerPhone: customerMode === "CUSTOMER" ? (selectedCustomer?.primaryPhone ?? null) : null,
       customerLabel: customerLabelForSummary({ mode: customerMode, selectedCustomer }),
       paymentMethod,
       subtotalInPaise: totals.subtotalInPaise,
@@ -387,7 +411,7 @@ export function CounterSaleForm() {
       }
 
       if (result.success) {
-        setCompletedSale({ orderNumber: result.orderNumber, ...summarySnapshot });
+        setCompletedSale({ orderNumber: result.orderNumber, accessToken: result.accessToken, ...summarySnapshot });
         router.refresh();
         return;
       }
@@ -493,7 +517,10 @@ export function CounterSaleForm() {
             <Printer className="size-4" aria-hidden />
             Print bill
           </Button>
-          <SendInvoiceWhatsAppButton orderNumber={completedSale.orderNumber} className="h-10 w-full" />
+          <Button type="button" variant="outline" className="h-10" onClick={() => sendBillOnWhatsApp(completedSale)}>
+            <MessageCircle className="size-4" aria-hidden />
+            Send on WhatsApp
+          </Button>
         </div>
 
         <Button type="button" className="h-11 w-full max-w-md" onClick={startNewSale} autoFocus>

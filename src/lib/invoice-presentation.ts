@@ -25,6 +25,7 @@ export function getInvoiceNumber(invoice: Pick<Invoice, "orderNumber">): string 
 }
 
 const INVOICE_DATE_FORMATTER = new Intl.DateTimeFormat("en-IN", {
+  timeZone: "Asia/Kolkata",
   day: "numeric",
   month: "long",
   year: "numeric",

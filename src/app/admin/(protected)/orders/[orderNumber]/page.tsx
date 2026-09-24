@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Download, Eye, MessageCircle, Phone, Printer } from "lucide-react";
+import { ArrowLeft, Download, MessageCircle, Phone, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { OrderNextStepButton } from "@/components/admin/order-next-step-button";
 import { OrderProgress } from "@/components/admin/order-progress";
@@ -14,7 +14,6 @@ import {
   OrderStatusActions,
   PaymentStatusActions,
 } from "@/components/admin/order-status-actions";
-import { SendInvoiceWhatsAppButton } from "@/components/admin/send-invoice-whatsapp-button";
 import { formatPaise } from "@/lib/money";
 import { getFulfillmentLabel, getPaymentMethodLabel } from "@/lib/order-message";
 import { getAdminOrderByNumber } from "@/server/queries/admin/orders";
@@ -277,29 +276,25 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
               since none of the three need a pending/success state of
               their own. */}
           <section>
-            <h2 className="text-sm font-semibold">Invoice</h2>
+            <h2 className="text-sm font-semibold">Bill</h2>
             <div className="mt-2 flex flex-wrap gap-2">
               <Link
                 href={`/admin/orders/${order.orderNumber}/invoice`}
-                className="flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/80"
+                className="flex h-10 items-center gap-1.5 rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground hover:bg-primary/80"
               >
-                <Eye className="size-4" aria-hidden />
-                View Invoice
-              </Link>
-              <Link href={`/admin/orders/${order.orderNumber}/invoice?print=1`} className={INVOICE_ACTION_CLASS}>
                 <Printer className="size-4" aria-hidden />
-                Print
+                Print or send bill
               </Link>
               <a
                 href={`/admin/orders/${order.orderNumber}/invoice/download`}
-                download={`Invoice-${order.orderNumber}.pdf`}
+                download={`Bill-${order.orderNumber}.pdf`}
                 className={INVOICE_ACTION_CLASS}
               >
                 <Download className="size-4" aria-hidden />
-                Download PDF
+                PDF
               </a>
-              <SendInvoiceWhatsAppButton orderNumber={order.orderNumber} />
             </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">Pick a design, print it, or send it on WhatsApp.</p>
           </section>
 
           <div className="border-t border-border" />
