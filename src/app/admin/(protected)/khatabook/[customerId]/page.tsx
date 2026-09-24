@@ -1,343 +1,303 @@
-import type { PaymentMethod } from "@prisma/client";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, BellRing, ChevronRight, HandCoins, MessageCircle, Phone, Plus, Share2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AnonymizeCustomerButton } from "@/components/admin/anonymize-customer-button";
-import { OrderSourceBadge, OrderStatusBadge, PaymentStatusBadge } from "@/components/admin/order-status-badge";
-import { ReceivePaymentDialog } from "@/components/admin/receive-payment-dialog";
+import { OrderStatusBadge } from "@/components/admin/order-status-badge";
+import { BRAND, STORE_CONTACT } from "@/lib/constants";
+import {
+  buildKhataReminderText,
+  buildKhataStatementText,
+  daysSince,
+  khataEventLabel,
+  khataEventSign,
+} from "@/lib/khata";
 import { formatPaise } from "@/lib/money";
+import { telLink, whatsAppLink } from "@/lib/supplier-statement";
 import { cn } from "@/lib/utils";
+import { getKhataTimeline } from "@/server/khatabook/quick-khata";
 import { getKhataBookCustomerProfile } from "@/server/queries/admin/khatabook";
-
-// Same small, local, file-scoped label map every payment-method display
-// in this codebase already uses (counter-sale-form.tsx,
-// receive-payment-dialog.tsx) rather than a shared constant — CASH_ON_DELIVERY
-// never appears in a Ledger row (Receive Payment only ever accepts
-// CASH/UPI/CARD), so it's deliberately omitted here, unlike
-// `getPaymentMethodLabel` (src/lib/order-message.ts), which exists for a
-// different context (an Order's OWN payment method, including Online's
-// CASH_ON_DELIVERY) and would need an irrelevant `fulfillmentType` to call.
-const PAYMENT_METHOD_LEDGER_LABEL: Record<Extract<PaymentMethod, "CASH" | "UPI" | "CARD">, string> = {
-  CASH: "Cash",
-  UPI: "UPI",
-  CARD: "Card",
-};
 
 type PageProps = { params: Promise<{ customerId: string }> };
 
+const DAY = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" });
+const YEAR = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", year: "numeric" });
+const SHOP = BRAND.legacyStoreNames[0] ?? BRAND.name;
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { customerId } = await params;
-  return { title: customerId };
+  const profile = await getKhataBookCustomerProfile(customerId);
+  return { title: profile?.customer.displayName || customerId };
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-IN", { dateStyle: "medium" });
-}
-
-function formatDateTime(date: Date): string {
-  return date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" });
-}
-
+/**
+ * One customer's khata, the way a shopkeeper reads it: how much is
+ * "lena hai", the two things done most (Paisa mila / Udhaar diya), a
+ * WhatsApp reminder, and every entry with a running balance.
+ */
 export default async function KhataBookCustomerPage({ params }: PageProps) {
   const { customerId } = await params;
   const profile = await getKhataBookCustomerProfile(customerId);
   if (!profile) notFound();
+  const { customer, summary, orders } = profile;
+  const khata = await getKhataTimeline(customer.id, 40);
 
-  const { customer, summary, orders, ledger } = profile;
-  const hasOutstanding = summary.outstandingInPaise > 0;
-  const unpaidOrders = orders
-    .filter((order) => order.outstandingInPaise > 0)
-    .map((order) => ({ orderNumber: order.orderNumber, outstandingInPaise: order.outstandingInPaise }));
+  const name = customer.displayName || customer.customerId;
+  const due = khata.dueInPaise > 0;
+  const chatPhone = customer.whatsappPhone || customer.primaryPhone;
+  const call = telLink(customer.primaryPhone);
+  const reminder = whatsAppLink(
+    chatPhone,
+    buildKhataReminderText({ shopName: SHOP, shopPhone: STORE_CONTACT.phone, customerName: customer.displayName, dueInPaise: khata.dueInPaise }),
+  );
+  const statement = whatsAppLink(
+    chatPhone,
+    buildKhataStatementText({ shopName: SHOP, customerName: customer.displayName, events: khata.events, dueInPaise: khata.dueInPaise }),
+  );
+  const thisYear = YEAR.format(new Date());
+  const dueDays = khata.dueSince ? daysSince(khata.dueSince) : null;
+  const base = `/admin/khatabook/${customer.customerId}`;
 
-  return (
-    <div>
-      <div className="mb-5 flex flex-col gap-3">
-        <Link
-          href="/admin/khatabook"
-          className="inline-flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" aria-hidden />
-          KhataBook
-        </Link>
-        <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <div>
-            <h1 className="font-heading text-xl font-semibold tracking-tight">
-              {customer.displayName || customer.customerId}
-            </h1>
-            <p className="mt-0.5 font-mono text-sm text-muted-foreground">{customer.customerId}</p>
-          </div>
-          <span
-            className={cn(
-              "rounded-full px-2.5 py-1 text-xs font-medium",
-              hasOutstanding ? "bg-amber-500/15 text-amber-500" : "bg-secondary/40 text-muted-foreground",
-            )}
-          >
-            {hasOutstanding ? `Outstanding ${formatPaise(summary.outstandingInPaise)}` : "Paid up"}
-          </span>
-        </div>
-      </div>
+  const billsAndInfo = (
+    <div className="flex flex-col gap-5">
+      {orders.length > 0 && (
+        <details className="group rounded-xl border border-border bg-card">
+          <summary className="flex h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 text-sm font-semibold">
+            <span>
+              All bills ({summary.totalOrders}){" "}
+              <span className="font-normal text-muted-foreground">· {formatPaise(summary.lifetimePurchaseInPaise)} total</span>
+            </span>
+            <ChevronRight className="size-4 text-muted-foreground transition-transform group-open:rotate-90" aria-hidden />
+          </summary>
+          <ul className="divide-y divide-border border-t border-border">
+            {orders.map((order) => (
+              <li key={order.orderNumber}>
+                <Link href={`/admin/orders/${order.orderNumber}`} className="flex items-center gap-3 px-4 py-3 text-sm hover:bg-muted/40">
+                  <span className="w-14 shrink-0 text-xs text-muted-foreground">{DAY.format(order.createdAt)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-mono text-xs">{order.orderNumber}</span>
+                    <span className="mt-0.5 block">
+                      <OrderStatusBadge status={order.status} />
+                    </span>
+                  </span>
+                  <span className="flex flex-col items-end">
+                    <span className="font-medium tabular-nums">{formatPaise(order.totalInPaise)}</span>
+                    {order.outstandingInPaise > 0 && (
+                      <span className="text-xs text-amber-500 tabular-nums">{formatPaise(order.outstandingInPaise)} baaki</span>
+                    )}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
 
-      {/* Section 10 — the account balance is the strongest visual
-          element on the page (text-2xl, the largest type here), but
-          restrained to a single-line summary, not a giant empty card. */}
-      <div className="mb-6 rounded-lg border border-border bg-card p-4">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">Account balance</p>
-        <div className="mt-1 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className={cn("text-2xl font-semibold tabular-nums", hasOutstanding && "text-amber-500")}>
-              {formatPaise(summary.outstandingInPaise)}
-            </p>
-            <p className="mt-0.5 text-sm text-muted-foreground">
-              {hasOutstanding
-                ? `Outstanding across ${summary.unpaidOrderCount} order${summary.unpaidOrderCount === 1 ? "" : "s"}`
-                : "No outstanding balance"}
-            </p>
-          </div>
-          <ReceivePaymentDialog customerId={customer.customerId} unpaidOrders={unpaidOrders} />
-        </div>
-      </div>
-
-      {/* Section 11 — one coherent overview instead of two separate
-          Customer/Summary cards: identity + contact first, then account
-          metrics, divided by a hairline rather than a second card. */}
-      <section>
-        <h2 className="text-sm font-semibold">Customer</h2>
-        <div className="mt-2 grid gap-x-8 gap-y-4 sm:grid-cols-2">
-          <dl className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Primary mobile</dt>
-              <dd>{customer.primaryPhone ?? "—"}</dd>
-            </div>
-            {customer.whatsappPhone && (
-              <div className="flex justify-between gap-2">
-                <dt className="text-muted-foreground">WhatsApp</dt>
-                <dd>{customer.whatsappPhone}</dd>
-              </div>
-            )}
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Customer since</dt>
-              <dd>{formatDate(customer.createdAt)}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Last purchase</dt>
-              <dd>{customer.lastOrderAt ? formatDate(customer.lastOrderAt) : "Never"}</dd>
-            </div>
-          </dl>
-
-          <dl className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Lifetime purchase</dt>
-              <dd className="font-medium">{formatPaise(summary.lifetimePurchaseInPaise)}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Orders</dt>
-              <dd className="font-medium">{summary.totalOrders}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Returns</dt>
-              <dd className="font-medium">{summary.returnCount}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Exchanges</dt>
-              <dd className="font-medium">{summary.exchangeCount}</dd>
-            </div>
-            <div className="flex justify-between gap-2">
-              <dt className="text-muted-foreground">Avg. order value</dt>
-              <dd className="font-medium">{formatPaise(summary.averageOrderValueInPaise)}</dd>
-            </div>
-          </dl>
-        </div>
-
-        {/* Section 12 — a sensitive, destructive action: visually
-            distinct from (not competing with) the account actions
-            above, and never a normal secondary button. Confirmation
-            semantics (window.confirm explaining exactly what is/isn't
-            erased) are unchanged. */}
-        <div className="mt-4 border-t border-border pt-4">
+      <section className="border-t border-border pt-4">
+        <p className="text-xs text-muted-foreground">
+          Customer since {DAY.format(customer.createdAt)} {YEAR.format(customer.createdAt)}
+          {summary.totalOrders > 0 && ` · Average bill ${formatPaise(summary.averageOrderValueInPaise)}`}
+        </p>
+        <div className="mt-3">
           {customer.displayName || customer.primaryPhone ? (
-            <AnonymizeCustomerButton
-              customerId={customer.id}
-              displayLabel={customer.displayName || customer.customerId}
-            />
+            <AnonymizeCustomerButton customerId={customer.id} displayLabel={name} />
           ) : (
             <p className="text-xs text-muted-foreground">Personal data already erased.</p>
           )}
         </div>
       </section>
+    </div>
+  );
 
-      <div className="my-6 border-t border-border" />
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-5 lg:max-w-6xl">
+      <Link href="/admin/khatabook" className="inline-flex h-9 w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeft className="size-4" aria-hidden />
+        KhataBook
+      </Link>
 
-      <section>
-        <h2 className="text-sm font-semibold">Purchase history</h2>
-        {orders.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">No purchases yet.</p>
-        ) : (
-          <div className="mt-2 rounded-lg border border-border">
-            <div className="hidden items-center gap-4 border-b border-border px-4 py-2 text-xs font-medium text-muted-foreground sm:flex">
-              <span className="w-40">Order</span>
-              <span className="w-24">Date</span>
-              <span className="w-24">Source</span>
-              <span className="w-20 text-right">Total</span>
-              <span className="w-20 text-right">Received</span>
-              <span className="w-24 text-right">Outstanding</span>
-              <span className="flex-1">Status</span>
-              <span className="w-4" />
-            </div>
-            <ul className="divide-y divide-border">
-              {orders.map((order) => {
-                const orderHasOutstanding = order.outstandingInPaise > 0;
-                return (
-                  <li key={order.orderNumber}>
-                    <Link
-                      href={`/admin/orders/${order.orderNumber}`}
-                      className="group flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none sm:flex-row sm:items-center sm:gap-4"
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-8">
+        <div className="flex flex-col gap-5 lg:sticky lg:top-6">
+          <header className="flex items-start gap-3">
+            <span aria-hidden className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-lg font-semibold">
+              {name.trim().charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0 flex-1">
+              <h1 className="font-heading text-xl font-semibold tracking-tight">{name}</h1>
+              <p className="mt-0.5 truncate text-sm text-muted-foreground">
+                {[customer.primaryPhone, customer.customerId].filter(Boolean).join(" · ")}
+              </p>
+              {(call || chatPhone) && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {call && (
+                    <Button render={<a href={call} />} nativeButton={false} variant="outline" className="h-10">
+                      <Phone className="size-4" aria-hidden />
+                      Call
+                    </Button>
+                  )}
+                  {chatPhone && (
+                    <Button
+                      render={<a href={whatsAppLink(chatPhone)} target="_blank" rel="noopener noreferrer" />}
+                      nativeButton={false}
+                      variant="outline"
+                      className="h-10"
                     >
-                      {/* Mobile — compact stacked block. */}
-                      <div className="flex flex-col gap-1 sm:hidden">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="font-mono text-sm font-medium">{order.orderNumber}</span>
-                          <span className="text-sm font-semibold">{formatPaise(order.totalInPaise)}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          {formatDate(order.createdAt)} · {order.source === "COUNTER" ? "Counter Sale" : "Online"}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Received {formatPaise(order.amountReceivedInPaise)}
-                          {" · "}
-                          <span className={orderHasOutstanding ? "font-medium text-amber-500" : undefined}>
-                            Outstanding {formatPaise(order.outstandingInPaise)}
-                          </span>
-                        </p>
-                        <div className="flex flex-wrap gap-1.5">
-                          <OrderStatusBadge status={order.status} />
-                          <PaymentStatusBadge status={order.paymentStatus} />
-                        </div>
-                      </div>
-
-                      {/* Desktop — table-like columns. */}
-                      <span className="hidden w-40 shrink-0 font-mono text-sm font-medium sm:block">
-                        {order.orderNumber}
-                      </span>
-                      <span className="hidden w-24 shrink-0 text-sm text-muted-foreground sm:block">
-                        {formatDate(order.createdAt)}
-                      </span>
-                      <span className="hidden w-24 shrink-0 sm:block">
-                        <OrderSourceBadge source={order.source} className="opacity-70" />
-                      </span>
-                      <span className="hidden w-20 shrink-0 text-right text-sm font-semibold sm:block">
-                        {formatPaise(order.totalInPaise)}
-                      </span>
-                      <span className="hidden w-20 shrink-0 text-right text-sm text-muted-foreground sm:block">
-                        {formatPaise(order.amountReceivedInPaise)}
-                      </span>
-                      <span
-                        className={cn(
-                          "hidden w-24 shrink-0 text-right text-sm sm:block",
-                          orderHasOutstanding ? "font-semibold text-amber-500" : "text-muted-foreground",
-                        )}
-                      >
-                        {formatPaise(order.outstandingInPaise)}
-                      </span>
-                      <span className="hidden flex-1 flex-wrap gap-1.5 sm:flex">
-                        <OrderStatusBadge status={order.status} />
-                        <PaymentStatusBadge status={order.paymentStatus} />
-                      </span>
-                      <ChevronRight
-                        className="hidden size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 sm:block"
-                        aria-hidden
-                      />
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-      </section>
-
-      <div className="my-6 border-t border-border" />
-
-      {/* Section 14 — the Ledger, kept as its OWN section, deliberately
-          separate from Purchase History above. Every row is a permanent
-          PaymentReceipt explaining exactly how the balance moved: which
-          order it was against, how much was received, by what method,
-          by which admin, and the order's own Outstanding immediately
-          before/after — never recomputed, always the snapshot taken at
-          the moment of payment. */}
-      <section>
-        <h2 className="text-sm font-semibold">Payment ledger</h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">Complete payment activity for this customer</p>
-        {ledger.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">No payments recorded yet.</p>
-        ) : (
-          <div className="mt-2 rounded-lg border border-border">
-            <div className="hidden items-center gap-4 border-b border-border px-4 py-2 text-xs font-medium text-muted-foreground sm:flex">
-              <span className="w-32">Date</span>
-              <span className="w-40">Order</span>
-              <span className="w-20 text-right">Amount</span>
-              <span className="w-20">Method</span>
-              <span className="w-24 text-right">Outstanding after</span>
-              <span className="flex-1">Recorded by</span>
-              <span className="w-32">Note</span>
+                      <MessageCircle className="size-4" aria-hidden />
+                      WhatsApp
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
-            <ul className="divide-y divide-border">
-              {ledger.map((entry) => (
-                <li key={entry.id} className="flex flex-col gap-1.5 px-4 py-3 sm:flex-row sm:items-center sm:gap-4">
-                  {/* Mobile — compact stacked record. */}
-                  <div className="flex flex-col gap-1 sm:hidden">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-base font-semibold text-emerald-500">
-                        +{formatPaise(entry.amountInPaise)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {PAYMENT_METHOD_LEDGER_LABEL[entry.paymentMethod as "CASH" | "UPI" | "CARD"]} ·{" "}
-                        {formatDateTime(entry.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Order <Link href={`/admin/orders/${entry.orderNumber}`} className="font-mono text-primary hover:underline">{entry.orderNumber}</Link>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Outstanding after <span className="text-foreground">{formatPaise(entry.outstandingAfterInPaise)}</span>
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Recorded by {entry.createdByAdminName ?? "—"}
-                    </p>
-                    {entry.note && <p className="text-xs text-muted-foreground">Note: {entry.note}</p>}
-                  </div>
+          </header>
 
-                  {/* Desktop — table-like columns. */}
-                  <span className="hidden w-32 shrink-0 text-sm text-muted-foreground sm:block">
-                    {formatDateTime(entry.createdAt)}
+          <section aria-labelledby="balance-heading" className="rounded-xl border border-border bg-card p-4 sm:p-5">
+            <p id="balance-heading" className="text-sm text-muted-foreground">
+              {due ? "To get · Lena hai" : "Hisaab barabar"}
+            </p>
+            <p className={cn("mt-1 text-4xl font-semibold tabular-nums", due ? "text-amber-500" : "text-muted-foreground")}>
+              {due ? formatPaise(khata.dueInPaise) : "All paid"}
+            </p>
+            {due && khata.dueSince && (
+              <p className="mt-1 text-sm text-muted-foreground">
+                {dueDays === 0 ? "Udhaar since today" : `Due for ${dueDays} day${dueDays === 1 ? "" : "s"} · since ${DAY.format(khata.dueSince)}`}
+              </p>
+            )}
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              {due ? (
+                <Button render={<Link href={`${base}/collect`} />} nativeButton={false} className="h-12 flex-col gap-0 text-base">
+                  <span className="flex items-center gap-1.5">
+                    <HandCoins className="size-4" aria-hidden />
+                    Got payment
                   </span>
-                  <Link
-                    href={`/admin/orders/${entry.orderNumber}`}
-                    className="hidden w-40 shrink-0 font-mono text-sm font-medium text-primary hover:underline sm:block"
+                  <span className="text-xs font-normal opacity-80">Paisa mila</span>
+                </Button>
+              ) : (
+                <Button type="button" disabled className="h-12 flex-col gap-0 text-base">
+                  <span className="flex items-center gap-1.5">
+                    <HandCoins className="size-4" aria-hidden />
+                    Got payment
+                  </span>
+                  <span className="text-xs font-normal opacity-80">Nothing due</span>
+                </Button>
+              )}
+              <Button render={<Link href={`${base}/udhaar`} />} nativeButton={false} variant="outline" className="h-12 flex-col gap-0 text-base">
+                <span className="flex items-center gap-1.5">
+                  <Plus className="size-4" aria-hidden />
+                  Gave udhaar
+                </span>
+                <span className="text-xs font-normal text-muted-foreground">Udhaar diya</span>
+              </Button>
+            </div>
+
+            {chatPhone && khata.totalCount > 0 && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                {due ? (
+                  <Button
+                    render={<a href={reminder} target="_blank" rel="noopener noreferrer" />}
+                    nativeButton={false}
+                    variant="ghost"
+                    className="h-10 text-muted-foreground"
                   >
-                    {entry.orderNumber}
-                  </Link>
-                  <span className="hidden w-20 shrink-0 text-right text-sm font-semibold text-emerald-500 sm:block">
-                    +{formatPaise(entry.amountInPaise)}
-                  </span>
-                  <span className="hidden w-20 shrink-0 text-sm text-muted-foreground sm:block">
-                    {PAYMENT_METHOD_LEDGER_LABEL[entry.paymentMethod as "CASH" | "UPI" | "CARD"]}
-                  </span>
-                  <span className="hidden w-24 shrink-0 text-right text-sm text-muted-foreground sm:block">
-                    {formatPaise(entry.outstandingAfterInPaise)}
-                  </span>
-                  <span className="hidden flex-1 text-sm text-muted-foreground sm:block">
-                    {entry.createdByAdminName ?? "—"}
-                  </span>
-                  <span className="hidden w-32 truncate text-sm text-muted-foreground sm:block">
-                    {entry.note ?? "—"}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </section>
+                    <BellRing className="size-4" aria-hidden />
+                    Send reminder
+                  </Button>
+                ) : (
+                  <span />
+                )}
+                <Button
+                  render={<a href={statement} target="_blank" rel="noopener noreferrer" />}
+                  nativeButton={false}
+                  variant="ghost"
+                  className="h-10 text-muted-foreground"
+                >
+                  <Share2 className="size-4" aria-hidden />
+                  Share hisaab
+                </Button>
+              </div>
+            )}
+          </section>
+
+          <div className="hidden lg:block">{billsAndInfo}</div>
+        </div>
+        <div className="flex flex-col gap-5">
+          <section aria-labelledby="khata-heading">
+            <h2 id="khata-heading" className="mb-2 text-sm font-semibold">
+              Khata · Hisaab
+            </h2>
+            {khata.events.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border p-8 text-center">
+                <p className="text-sm font-medium">No udhaar yet</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  When {customer.displayName || "this customer"} takes goods on credit, tap{" "}
+                  <span className="text-foreground">Gave udhaar</span>. When they pay, tap{" "}
+                  <span className="text-foreground">Got payment</span>.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-hidden rounded-xl border border-border bg-card">
+              <div className="hidden items-center gap-3 border-b border-border px-4 py-2.5 text-xs font-medium text-muted-foreground lg:flex">
+                <span className="w-14 shrink-0">Date</span>
+                <span className="min-w-0 flex-1">Entry</span>
+                <span className="w-28 text-right">Amount</span>
+                <span className="w-28 text-right">Baaki</span>
+                <span className="w-4 shrink-0" />
+              </div>
+              <ol className="divide-y divide-border">
+                {khata.events.map((event) => {
+                  const plus = khataEventSign(event) > 0;
+                  const year = YEAR.format(event.date);
+                  const row = (
+                    <>
+                      <span className="w-14 shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {DAY.format(event.date)}
+                        {year !== thisYear && <span className="block">{year}</span>}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-sm">{khataEventLabel(event)}</span>
+                      <span className="flex flex-col items-end lg:flex-row lg:items-center">
+                        <span className={cn("text-sm font-medium tabular-nums lg:w-28 lg:text-right", plus ? "text-foreground" : "text-emerald-400")}>
+                          {plus ? "+" : "−"}
+                          {formatPaise(event.amountInPaise)}
+                        </span>
+                        <span className="text-xs text-muted-foreground tabular-nums lg:w-28 lg:text-right lg:text-sm">
+                          <span className="lg:hidden">Baaki </span>
+                          {formatPaise(event.balanceInPaise)}
+                        </span>
+                      </span>
+                    </>
+                  );
+                  return (
+                    <li key={event.key}>
+                      {event.href ? (
+                        <Link href={event.href} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/40 focus-visible:bg-muted/40 focus-visible:outline-none">
+                          {row}
+                          <ChevronRight className="size-4 shrink-0 text-muted-foreground/60" aria-hidden />
+                        </Link>
+                      ) : (
+                        <div className="flex items-center gap-3 px-4 py-3">
+                          {row}
+                          <span className="size-4 shrink-0" aria-hidden />
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+              </div>
+            )}
+            {khata.events.length > 0 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                + udhaar diya, − paisa mila. A payment clears the oldest udhaar first.
+                {khata.totalCount > khata.events.length && ` Showing the latest ${khata.events.length} of ${khata.totalCount}.`}
+              </p>
+            )}
+          </section>
+
+          <div className="lg:hidden">{billsAndInfo}</div>
+        </div>
+      </div>
     </div>
   );
 }

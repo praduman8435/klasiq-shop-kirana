@@ -397,6 +397,8 @@ model Customer {
   returnRequests  ReturnRequest[]
   /// Phase 3.6.5 Part 5 — see PaymentReceipt below.
   paymentReceipts PaymentReceipt[]
+  khataEntries     KhataEntry[]
+  khataCollections KhataCollection[]
 
   @@index([whatsappPhoneNormalized])
   @@index([lastOrderAt])
@@ -715,6 +717,8 @@ model AdminUser {
   /// Phase 4 Part 6 — see SupplierCredit/SupplierRefund below.
   createdSupplierCredits SupplierCredit[]
   createdSupplierRefunds SupplierRefund[]
+  createdKhataEntries     KhataEntry[]
+  createdKhataCollections KhataCollection[]
 
   @@map("admin_users")
 }
@@ -1214,15 +1218,20 @@ model PaymentReceipt {
   /// Order.idempotencyKey (a unique column must allow more than one
   /// NULL under Postgres).
   idempotencyKey String? @unique
+  /// Set when this receipt is one part of a KhataBook "Paisa mila"
+  /// collection that was split across several bills (see KhataCollection).
+  collectionId   String?
 
   createdAt DateTime @default(now())
 
   order              Order      @relation(fields: [orderId], references: [id], onDelete: Restrict)
   customer           Customer   @relation(fields: [customerId], references: [id], onDelete: Restrict)
   createdByAdminUser AdminUser? @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  collection         KhataCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
 
   @@index([customerId])
   @@index([orderId])
+  @@index([collectionId])
   @@map("payment_receipts")
 }
 
@@ -2044,4 +2053,75 @@ model PromoBanner {
 
   @@index([isActive, sortOrder])
   @@map("promo_banners")
+}
+
+enum KhataEntryKind {
+  /// Goods given on credit, written straight into the khata (no bill).
+  UDHAAR
+  /// What the customer already owed when added to KhataBook (purana udhaar).
+  OPENING_BALANCE
+}
+
+/// Quick udhaar written straight into a customer's khata — "Udhaar diya
+/// ₹200, doodh-bread" — without a counter-sale bill, so it never touches
+/// stock, the Orders list or sales totals. A customer's KhataBook balance
+/// is the sum of their orders' `outstandingInPaise` plus these entries'
+/// `outstandingInPaise`. Collections (KhataCollection) pay entries down
+/// through KhataCollectionAllocation.
+model KhataEntry {
+  id                   String         @id @default(cuid())
+  customerId           String
+  kind                 KhataEntryKind @default(UDHAAR)
+  amountInPaise        Int
+  outstandingInPaise   Int
+  note                 String?
+  entryDate            DateTime
+  createdByAdminUserId String?
+  createdAt            DateTime       @default(now())
+
+  customer           Customer                    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdByAdminUser AdminUser?                  @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  allocations        KhataCollectionAllocation[]
+
+  @@index([customerId])
+  @@index([entryDate])
+  @@map("khata_entries")
+}
+
+/// One "Paisa mila": money collected from a customer against their khata,
+/// split oldest first across unpaid bills (PaymentReceipt rows carrying
+/// this `collectionId`, which update each order exactly as a single
+/// receive-payment does) and quick udhaar entries (allocations below).
+model KhataCollection {
+  id                   String        @id @default(cuid())
+  customerId           String
+  amountInPaise        Int
+  paymentMethod        PaymentMethod
+  note                 String?
+  collectedAt          DateTime
+  createdByAdminUserId String?
+  createdAt            DateTime      @default(now())
+
+  customer           Customer                    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  createdByAdminUser AdminUser?                  @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  receipts           PaymentReceipt[]
+  allocations        KhataCollectionAllocation[]
+
+  @@index([customerId])
+  @@index([collectedAt])
+  @@map("khata_collections")
+}
+
+model KhataCollectionAllocation {
+  id            String @id @default(cuid())
+  collectionId  String
+  entryId       String
+  amountInPaise Int
+
+  collection KhataCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  entry      KhataEntry      @relation(fields: [entryId], references: [id], onDelete: Restrict)
+
+  @@index([collectionId])
+  @@index([entryId])
+  @@map("khata_collection_allocations")
 }

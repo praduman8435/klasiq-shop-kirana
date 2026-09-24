@@ -45,35 +45,14 @@ export function describeSupplierBalance(netInPaise: number): SupplierBalanceDisp
     return {
       tone: "advance",
       amountInPaise: -netInPaise,
-      label: `${formatPaise(-netInPaise)} advance`,
+      label: `${formatPaise(-netInPaise)} paid extra`,
       hint: "Lena hai",
     };
   }
-  return { tone: "settled", amountInPaise: 0, label: "Settled", hint: "Hisaab barabar" };
+  return { tone: "settled", amountInPaise: 0, label: "All paid", hint: "Hisaab barabar" };
 }
 
-/**
- * Splits a payment across a supplier's unpaid bills, oldest first — how
- * a shopkeeper actually thinks about paying ("purana pehle"). `bills`
- * must already be in oldest-first order. Anything left over after every
- * bill is cleared stays with the supplier as an advance (returned as
- * `advanceInPaise`, never allocated).
- */
-export function allocateOldestFirst(
-  amountInPaise: number,
-  bills: { id: string; outstandingInPaise: number }[],
-): { allocations: { purchaseId: string; amountInPaise: number }[]; advanceInPaise: number } {
-  let remaining = amountInPaise;
-  const allocations: { purchaseId: string; amountInPaise: number }[] = [];
-  for (const bill of bills) {
-    if (remaining <= 0) break;
-    if (bill.outstandingInPaise <= 0) continue;
-    const take = Math.min(remaining, bill.outstandingInPaise);
-    allocations.push({ purchaseId: bill.id, amountInPaise: take });
-    remaining -= take;
-  }
-  return { allocations, advanceInPaise: remaining };
-}
+export { allocateOldestFirst } from "@/lib/allocate-oldest-first";
 
 const IST_OFFSET_MS = (5 * 60 + 30) * 60_000;
 

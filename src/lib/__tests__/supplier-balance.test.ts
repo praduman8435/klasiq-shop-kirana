@@ -24,7 +24,7 @@ describe("describeSupplierBalance", () => {
   it("labels what's owed, an advance, and settled", () => {
     expect(describeSupplierBalance(450000)).toMatchObject({ tone: "owe", hint: "Dena hai", amountInPaise: 450000 });
     expect(describeSupplierBalance(-20000)).toMatchObject({ tone: "advance", hint: "Lena hai", amountInPaise: 20000 });
-    expect(describeSupplierBalance(0)).toMatchObject({ tone: "settled", label: "Settled", hint: "Hisaab barabar" });
+    expect(describeSupplierBalance(0)).toMatchObject({ tone: "settled", label: "All paid", hint: "Hisaab barabar" });
   });
 });
 
