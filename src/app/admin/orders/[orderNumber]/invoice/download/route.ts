@@ -9,6 +9,10 @@ export const runtime = "nodejs";
  * check: Route Handlers are never covered by a parent `layout.tsx`'s
  * gate (see `admin/(protected)/layout.tsx`'s own doc comment) — this is
  * the enforcement point for this specific request.
+ *
+ * Lives under /admin (it used to be /api/admin/…) because the admin
+ * session cookie is scoped to the /admin path: the browser never sent it
+ * to /api/admin, so every download failed with 401 even when signed in.
  */
 export async function GET(_request: Request, context: { params: Promise<{ orderNumber: string }> }) {
   const admin = await getAdminSession();

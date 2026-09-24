@@ -232,7 +232,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 Print
               </Link>
               <a
-                href={`/api/admin/orders/${order.orderNumber}/invoice`}
+                href={`/admin/orders/${order.orderNumber}/invoice/download`}
                 download={`Invoice-${order.orderNumber}.pdf`}
                 className={INVOICE_ACTION_CLASS}
               >

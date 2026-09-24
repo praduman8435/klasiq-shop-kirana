@@ -53,7 +53,7 @@ export default async function AdminInvoicePage({ params, searchParams }: PagePro
       <InvoiceActions
         backHref={`/admin/orders/${orderNumber}`}
         backLabel="Back to Order"
-        downloadHref={`/api/admin/orders/${orderNumber}/invoice`}
+        downloadHref={`/admin/orders/${orderNumber}/invoice/download`}
         downloadFileName={`Invoice-${orderNumber}.pdf`}
         autoPrint={print === "1"}
         orderNumber={orderNumber}
