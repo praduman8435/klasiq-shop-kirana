@@ -122,7 +122,7 @@ export function SupplierQuickPayForm({
             })}
             {preview.advanceInPaise > 0 && (
               <li className="flex items-center justify-between gap-3 text-muted-foreground">
-                <span>Extra, kept as advance</span>
+                <span>Extra, counted for the next bill</span>
                 <span className="tabular-nums text-emerald-400">{formatPaise(preview.advanceInPaise)}</span>
               </li>
             )}
@@ -168,7 +168,7 @@ export function SupplierQuickPayForm({
           <p className="text-sm text-muted-foreground">
             After this payment:{" "}
             <span className="font-medium text-foreground">
-              {after.tone === "settled" ? "all settled (hisaab barabar)" : `${after.label} (${after.hint})`}
+              {after.tone === "settled" ? "all paid (hisaab barabar)" : `${after.label} (${after.hint})`}
             </span>
           </p>
         )}

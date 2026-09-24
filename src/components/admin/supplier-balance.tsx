@@ -16,10 +16,10 @@ export function SupplierBalanceCell({ netInPaise, className }: { netInPaise: num
   return (
     <div className={cn("flex flex-col items-end text-right", className)}>
       <span className={cn("text-sm font-semibold tabular-nums", BALANCE_TONE_CLASS[balance.tone])}>
-        {balance.tone === "settled" ? "Settled" : formatPaise(balance.amountInPaise)}
+        {balance.tone === "settled" ? "All paid" : formatPaise(balance.amountInPaise)}
       </span>
       <span className="text-xs text-muted-foreground">
-        {balance.tone === "owe" ? "To pay · Dena hai" : balance.tone === "advance" ? "Advance · Lena hai" : "Hisaab barabar"}
+        {balance.tone === "owe" ? "To pay · Dena hai" : balance.tone === "advance" ? "Paid extra · Lena hai" : "Hisaab barabar"}
       </span>
     </div>
   );

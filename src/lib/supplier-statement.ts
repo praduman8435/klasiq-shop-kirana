@@ -13,19 +13,19 @@ export type KhataEntryLike = {
 };
 
 /** How one khata row reads to a shopkeeper: "Bill #A-123",
- * "Paid · UPI", "Credit note #3", "Refund received · Cash". */
+ * "Paid · UPI", "Money off #3", "Money back · Cash". */
 export function khataEntryLabel(entry: KhataEntryLike): string {
   const method = entry.description.split(" · ")[0];
   switch (entry.type) {
     case "PURCHASE":
-      if (entry.reference === OPENING_BALANCE_REFERENCE) return "Opening balance";
+      if (entry.reference === OPENING_BALANCE_REFERENCE) return "Old balance";
       return entry.reference ? `Bill ${entry.reference.startsWith("#") ? "" : "#"}${entry.reference}` : "Bill";
     case "PAYMENT":
       return `Paid · ${method}`;
     case "CREDIT":
-      return entry.reference ? `Credit note ${entry.reference}` : "Credit note";
+      return entry.reference ? `Money off ${entry.reference}` : "Money off";
     case "REFUND":
-      return `Refund received · ${method}`;
+      return `Money back · ${method}`;
   }
 }
 
@@ -63,14 +63,14 @@ export function buildSupplierStatementText(params: {
 
   const balanceLine =
     balanceInPaise > 0
-      ? `Balance: ${formatPaise(balanceInPaise)} payable to you`
+      ? `Balance: ${formatPaise(balanceInPaise)} to pay you`
       : balanceInPaise < 0
-        ? `Balance: ${formatPaise(-balanceInPaise)} advance with you`
-        : "Balance: all settled";
+        ? `Balance: ${formatPaise(-balanceInPaise)} extra paid to you`
+        : "Balance: all paid";
 
   const lines = [
     `Namaste ${supplierName} ji,`,
-    `Account statement (hisaab) from ${shopName}, up to ${FULL_DAY.format(params.now ?? new Date())}.`,
+    `Hisaab from ${shopName}, up to ${FULL_DAY.format(params.now ?? new Date())}.`,
     "",
   ];
   if (recent.length > 0) {

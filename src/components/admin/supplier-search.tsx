@@ -34,8 +34,8 @@ export function SupplierSearch({ activeFilter }: { activeFilter: SupplierListFil
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="relative max-w-md">
+    <div className="flex flex-col gap-3 lg:flex-row-reverse lg:items-center lg:justify-between">
+      <div className="relative max-w-md lg:w-80">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
         <label htmlFor={inputId} className="sr-only">
           Search suppliers by name, business name, or mobile number

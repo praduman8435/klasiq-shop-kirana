@@ -14,7 +14,7 @@ export default function NewSupplierPage() {
       </Link>
       <div>
         <h1 className="font-heading text-xl font-semibold tracking-tight">Add supplier</h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">A wholesaler or distributor you buy stock from.</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">A wholesaler or company you buy stock from.</p>
       </div>
       <SupplierQuickCreateForm />
     </div>

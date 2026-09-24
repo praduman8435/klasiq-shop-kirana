@@ -8,7 +8,7 @@ describe("khataEntryLabel", () => {
   it("reads like a shopkeeper's khata", () => {
     expect(khataEntryLabel(bill)).toBe("Bill #A-123");
     expect(khataEntryLabel(paid)).toBe("Paid · UPI");
-    expect(khataEntryLabel({ ...bill, reference: "Opening balance" })).toBe("Opening balance");
+    expect(khataEntryLabel({ ...bill, reference: "Opening balance" })).toBe("Old balance");
     expect(khataEntryLabel({ ...bill, reference: null })).toBe("Bill");
   });
 });
@@ -27,13 +27,13 @@ describe("buildSupplierStatementText", () => {
     expect(text).toContain("Namaste Ramesh ji,");
     expect(text).toContain("up to 24 Sept 2026");
     expect(text.indexOf("Bill #A-123")).toBeLessThan(text.indexOf("Paid · UPI"));
-    expect(text).toContain("Balance: ₹3,000 payable to you");
+    expect(text).toContain("Balance: ₹3,000 to pay you");
   });
 
   it("says settled or advance when nothing is owed", () => {
     const base = { shopName: "S", supplierName: "R", entries: [], totalBillsInPaise: 0, totalPaidInPaise: 0 };
-    expect(buildSupplierStatementText({ ...base, balanceInPaise: 0 })).toContain("Balance: all settled");
-    expect(buildSupplierStatementText({ ...base, balanceInPaise: -5000 })).toContain("₹50 advance with you");
+    expect(buildSupplierStatementText({ ...base, balanceInPaise: 0 })).toContain("Balance: all paid");
+    expect(buildSupplierStatementText({ ...base, balanceInPaise: -5000 })).toContain("₹50 extra paid to you");
   });
 });
 

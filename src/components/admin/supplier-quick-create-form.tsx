@@ -92,10 +92,10 @@ export function SupplierQuickCreateForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={ids.opening}>Already owe them? (optional)</Label>
+        <Label htmlFor={ids.opening}>Old balance to pay (optional)</Label>
         <AmountInput id={ids.opening} value={opening} onChange={setOpening} />
         <p className="text-xs text-muted-foreground">
-          Purana baaki: what you owe this supplier today, before using Klasiq. Leave empty if nothing.
+          Purana baaki: how much you still have to pay this supplier today. Leave empty if nothing.
         </p>
       </div>
 

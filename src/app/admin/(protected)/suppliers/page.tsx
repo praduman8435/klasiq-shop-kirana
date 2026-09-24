@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Suppliers" };
 type PageProps = { searchParams: Promise<{ q?: string; page?: string; filter?: string }> };
 
 const DAY = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short" });
-const MONTH = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", month: "long" });
+const MONTH = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", month: "short" });
 
 /**
  * Suppliers, the way a shopkeeper keeps them in a khata: who you owe
@@ -42,10 +42,10 @@ export default async function AdminSuppliersPage({ searchParams }: PageProps) {
         </Button>
       </div>
 
-      <section aria-label="Summary" className="rounded-xl border border-border bg-card">
-        <div className="flex items-end justify-between gap-4 px-4 pt-4 pb-3 sm:px-5">
+      <section aria-label="Summary" className="grid grid-cols-2 overflow-hidden rounded-xl border border-border bg-card lg:grid-cols-3">
+        <div className="col-span-2 flex items-end justify-between gap-4 px-4 pt-4 pb-3 sm:px-5 lg:col-span-1 lg:block lg:border-r lg:border-border lg:py-4">
           <div>
-            <p className="text-sm text-muted-foreground">You owe · Dena hai</p>
+            <p className="text-sm text-muted-foreground">To pay · Dena hai</p>
             <p
               className={
                 overview.totalOwedInPaise > 0
@@ -56,22 +56,23 @@ export default async function AdminSuppliersPage({ searchParams }: PageProps) {
               {formatPaise(overview.totalOwedInPaise)}
             </p>
           </div>
-          <p className="pb-1 text-right text-sm text-muted-foreground">
+          <p className="pb-1 text-right text-sm text-muted-foreground lg:mt-1 lg:pb-0 lg:text-left">
             {overview.suppliersOwedCount === 0
-              ? "All suppliers settled"
+              ? "Nothing to pay"
               : `to ${overview.suppliersOwedCount} supplier${overview.suppliersOwedCount === 1 ? "" : "s"}`}
           </p>
         </div>
-        <div className="flex flex-wrap gap-x-6 gap-y-1 border-t border-border px-4 py-2.5 text-sm sm:px-5">
-          <span className="text-muted-foreground">{MONTH.format(new Date())}</span>
-          <span>
-            <span className="text-muted-foreground">Bought </span>
-            <span className="font-medium tabular-nums">{formatPaise(overview.boughtThisMonthInPaise)}</span>
-          </span>
-          <span>
-            <span className="text-muted-foreground">Paid </span>
-            <span className="font-medium tabular-nums">{formatPaise(overview.paidThisMonthInPaise)}</span>
-          </span>
+        <div className="border-t border-r border-border px-4 py-2.5 sm:px-5 lg:border-t-0 lg:py-4">
+          <p className="text-sm text-muted-foreground">Bought in {MONTH.format(new Date())}</p>
+          <p className="mt-0.5 font-medium tabular-nums lg:mt-1 lg:text-2xl lg:font-semibold">
+            {formatPaise(overview.boughtThisMonthInPaise)}
+          </p>
+        </div>
+        <div className="border-t border-border px-4 py-2.5 sm:px-5 lg:border-t-0 lg:py-4">
+          <p className="text-sm text-muted-foreground">Paid in {MONTH.format(new Date())}</p>
+          <p className="mt-0.5 font-medium tabular-nums lg:mt-1 lg:text-2xl lg:font-semibold">
+            {formatPaise(overview.paidThisMonthInPaise)}
+          </p>
         </div>
       </section>
 
@@ -91,7 +92,7 @@ export default async function AdminSuppliersPage({ searchParams }: PageProps) {
           <p className="mt-1 text-sm text-muted-foreground">
             {searching
               ? "Try another name, phone number or city."
-              : "Add the wholesalers you buy from. Then note each bill and payment in a few taps, and always know how much you owe."}
+              : "Add the wholesalers you buy from. Then note each bill and payment in a few taps, and always know how much to pay."}
           </p>
           {!searching && (
             <Button render={<Link href="/admin/suppliers/new" />} nativeButton={false} className="mt-4 h-10">
@@ -102,7 +103,17 @@ export default async function AdminSuppliersPage({ searchParams }: PageProps) {
         </div>
       ) : (
         <>
-          <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+          <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <div className="hidden items-center gap-3 border-b border-border px-5 py-2.5 text-xs font-medium text-muted-foreground lg:flex">
+            <span className="w-10 shrink-0" />
+            <span className="min-w-0 flex-1">Supplier</span>
+            <span className="w-32 shrink-0">Phone</span>
+            <span className="w-32 shrink-0">City</span>
+            <span className="w-28 shrink-0">Last entry</span>
+            <span className="w-36 shrink-0 text-right">Balance</span>
+            <span className="w-4 shrink-0" />
+          </div>
+          <ul className="divide-y divide-border">
             {list.rows.map((supplier) => {
               const sub = [
                 supplier.businessName !== supplier.name ? supplier.businessName : null,
@@ -125,11 +136,21 @@ export default async function AdminSuppliersPage({ searchParams }: PageProps) {
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{supplier.name}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {sub || "No entries yet"}
-                      </p>
+                      <p className="truncate text-xs text-muted-foreground lg:hidden">{sub || "No entries yet"}</p>
+                      {supplier.businessName && supplier.businessName !== supplier.name && (
+                        <p className="hidden truncate text-xs text-muted-foreground lg:block">{supplier.businessName}</p>
+                      )}
                     </div>
-                    <SupplierBalanceCell netInPaise={supplier.netInPaise} />
+                    <span className="hidden w-32 shrink-0 truncate text-sm text-muted-foreground tabular-nums lg:block">
+                      {supplier.phone ?? "—"}
+                    </span>
+                    <span className="hidden w-32 shrink-0 truncate text-sm text-muted-foreground lg:block">
+                      {supplier.city ?? "—"}
+                    </span>
+                    <span className="hidden w-28 shrink-0 text-sm text-muted-foreground lg:block">
+                      {supplier.lastActivityAt ? DAY.format(supplier.lastActivityAt) : "—"}
+                    </span>
+                    <SupplierBalanceCell netInPaise={supplier.netInPaise} className="lg:w-36" />
                     <ChevronRight
                       className="size-4 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5"
                       aria-hidden
@@ -139,6 +160,7 @@ export default async function AdminSuppliersPage({ searchParams }: PageProps) {
               );
             })}
           </ul>
+          </div>
 
           <AdminPagination
             basePath="/admin/suppliers"

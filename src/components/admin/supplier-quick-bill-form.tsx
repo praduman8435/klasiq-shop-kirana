@@ -218,7 +218,7 @@ export function SupplierQuickBillForm({
           <p className="text-sm text-muted-foreground">
             After this bill:{" "}
             <span className="font-medium text-foreground">
-              {after.tone === "settled" ? "all settled" : `${after.label} (${after.hint})`}
+              {after.tone === "settled" ? "all paid" : `${after.label} (${after.hint})`}
             </span>
           </p>
         )}
