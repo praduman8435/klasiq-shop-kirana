@@ -17,14 +17,21 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DashboardWeekChart } from "@/components/admin/dashboard-week-chart";
-import { getAdminSession } from "@/lib/admin/session";
+import { DashboardSalesChart } from "@/components/admin/dashboard-sales-chart";
 import { daysSince } from "@/lib/khata";
 import { formatPaise } from "@/lib/money";
 import { cn } from "@/lib/utils";
-import { getDashboardOverview } from "@/server/queries/admin/dashboard";
+import { SALES_RANGES, getDashboardOverview, type SalesRange } from "@/server/queries/admin/dashboard";
 
-const TODAY = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", day: "numeric", month: "long" });
+const RANGE_LABEL: Record<SalesRange, string> = { week: "Week", month: "Month", year: "Year", custom: "Custom" };
+const RANGE_CAPTION: Record<SalesRange, string> = {
+  week: "Sales, last 7 days",
+  month: "Sales, last 30 days",
+  year: "Sales, last 12 months",
+  custom: "Sales for the dates you picked",
+};
+
+type PageProps = { searchParams: Promise<{ range?: string; from?: string; to?: string }> };
 
 const SHORTCUTS = [
   { href: "/admin/counter-sale", label: "Counter sale", icon: ShoppingBag },
@@ -46,9 +53,13 @@ type AttentionItem = { href: string; icon: LucideIcon; title: string; detail: st
  * udhaar given), what needs doing now, and how the week is going. Every
  * number links to the screen where it's acted on.
  */
-export default async function AdminDashboardPage() {
-  const [admin, data] = await Promise.all([getAdminSession(), getDashboardOverview()]);
-  const { today, attention: a } = data;
+export default async function AdminDashboardPage({ searchParams }: PageProps) {
+  const query = await searchParams;
+  const range = SALES_RANGES.find((r) => r === query.range) ?? "week";
+  const data = await getDashboardOverview(new Date(), { range, from: query.from, to: query.to });
+  const { today, attention: a, series } = data;
+  const g = today.galla;
+  const showCard = today.received.CARD > 0 || g.paidToSuppliers.CARD > 0;
   const diff = today.salesInPaise - today.yesterdaySalesInPaise;
 
   const attention: AttentionItem[] = [];
@@ -82,20 +93,87 @@ export default async function AdminDashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-heading text-xl font-semibold tracking-tight">Namaste{admin?.name ? `, ${admin.name}` : ""}</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">{TODAY.format(new Date())}</p>
-        </div>
+        <h1 className="font-heading text-xl font-semibold tracking-tight">Dashboard</h1>
         <Button render={<Link href="/admin/counter-sale" />} nativeButton={false} className="h-10">
           <ShoppingBag className="size-4" aria-hidden />
           New counter sale
         </Button>
       </div>
 
-      <section aria-label="Today" className="grid overflow-hidden rounded-xl border border-border bg-card sm:grid-cols-3">
+      <section aria-labelledby="galla-heading" className="overflow-hidden rounded-xl border border-border bg-card">
+        <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 pt-4 sm:px-5">
+          <h2 id="galla-heading" className="text-sm font-semibold">
+            Today&apos;s cash &amp; UPI · Aaj ka galla
+          </h2>
+          <p className="text-xs text-muted-foreground">Tally this with the drawer when you close the shop</p>
+        </div>
+        <div className={cn("grid gap-px px-4 pt-3 sm:px-5", showCard ? "grid-cols-3" : "grid-cols-2")}>
+          <div>
+            <p className="text-sm text-muted-foreground">Cash in drawer</p>
+            <p className="mt-0.5 text-3xl font-semibold tabular-nums sm:text-4xl">{formatPaise(g.net.CASH)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-muted-foreground">UPI received</p>
+            <p className="mt-0.5 text-3xl font-semibold tabular-nums sm:text-4xl">{formatPaise(g.net.UPI)}</p>
+          </div>
+          {showCard && (
+            <div>
+              <p className="text-sm text-muted-foreground">Card</p>
+              <p className="mt-0.5 text-3xl font-semibold tabular-nums sm:text-4xl">{formatPaise(g.net.CARD)}</p>
+            </div>
+          )}
+        </div>
+        <table className="mt-4 w-full border-t border-border text-sm">
+          <caption className="sr-only">How today&apos;s cash and UPI add up</caption>
+          <thead>
+            <tr className="text-xs text-muted-foreground">
+              <th scope="col" className="px-4 py-2 text-left font-medium sm:px-5" />
+              <th scope="col" className="px-2 py-2 text-right font-medium">Cash</th>
+              <th scope="col" className="px-2 py-2 text-right font-medium">UPI</th>
+              {showCard && <th scope="col" className="px-4 py-2 text-right font-medium sm:px-5">Card</th>}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {[
+              { label: "Counter sales", v: g.counterSales, sign: 1 },
+              { label: "Udhaar paid back", v: g.udhaarRepaid, sign: 1 },
+              ...(g.onlinePaidCount > 0 ? [{ label: `Online orders paid (${g.onlinePaidCount})`, v: g.onlinePaid, sign: 1 }] : []),
+              { label: "Paid to suppliers", v: g.paidToSuppliers, sign: -1 },
+            ].map((row) => (
+              <tr key={row.label} className="text-muted-foreground">
+                <th scope="row" className="px-4 py-2 text-left font-normal sm:px-5">
+                  {row.label}
+                </th>
+                {(["CASH", "UPI", ...(showCard ? (["CARD"] as const) : [])] as const).map((m, i, all) => (
+                  <td key={m} className={cn("py-2 text-right tabular-nums", i === all.length - 1 ? "px-4 sm:px-5" : "px-2")}>
+                    {row.v[m] === 0 ? "—" : `${row.sign < 0 ? "− " : ""}${formatPaise(row.v[m])}`}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            <tr className="font-semibold">
+              <th scope="row" className="px-4 py-2 text-left sm:px-5">
+                Total today
+              </th>
+              {(["CASH", "UPI", ...(showCard ? (["CARD"] as const) : [])] as const).map((m, i, all) => (
+                <td key={m} className={cn("py-2 text-right tabular-nums", i === all.length - 1 ? "px-4 sm:px-5" : "px-2")}>
+                  {formatPaise(g.net[m])}
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+        {g.onlinePaidCount > 0 && (
+          <p className="border-t border-border px-4 py-2 text-xs text-muted-foreground sm:px-5">
+            Online orders paid at pickup or delivery are counted as cash.
+          </p>
+        )}
+      </section>
+
+      <section aria-label="Today's sales" className="grid overflow-hidden rounded-xl border border-border bg-card sm:grid-cols-2">
         <div className="border-b border-border p-4 sm:border-r sm:border-b-0 sm:p-5">
           <p className="text-sm text-muted-foreground">Sales today · Aaj ki bikri</p>
-          <p className="mt-1 text-3xl font-semibold tabular-nums">{formatPaise(today.salesInPaise)}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">{formatPaise(today.salesInPaise)}</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {today.billCount} bill{today.billCount === 1 ? "" : "s"} · {formatPaise(today.counter.valueInPaise)} counter ·{" "}
             {formatPaise(today.online.valueInPaise)} online
@@ -110,24 +188,9 @@ export default async function AdminDashboardPage() {
                 : `${formatPaise(Math.abs(diff))} ${diff > 0 ? "more" : "less"} than yesterday (${formatPaise(today.yesterdaySalesInPaise)})`}
           </p>
         </div>
-
-        <div className="border-b border-border p-4 sm:border-r sm:border-b-0 sm:p-5">
-          <p className="text-sm text-muted-foreground">Money received · Paisa aaya</p>
-          <p className="mt-1 text-3xl font-semibold tabular-nums">{formatPaise(today.receivedTotalInPaise)}</p>
-          <dl className="mt-1.5 grid grid-cols-3 gap-2 text-sm">
-            {(["CASH", "UPI", "CARD"] as const).map((m) => (
-              <div key={m}>
-                <dt className="text-xs text-muted-foreground">{m === "CASH" ? "Cash" : m === "UPI" ? "UPI" : "Card"}</dt>
-                <dd className="font-medium tabular-nums">{formatPaise(today.received[m])}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-1.5 text-xs text-muted-foreground">Counter sales and udhaar paid back today</p>
-        </div>
-
         <div className="p-4 sm:p-5">
           <p className="text-sm text-muted-foreground">Udhaar given today</p>
-          <p className={cn("mt-1 text-3xl font-semibold tabular-nums", today.udhaarGivenInPaise > 0 && "text-amber-500")}>
+          <p className={cn("mt-1 text-2xl font-semibold tabular-nums", today.udhaarGivenInPaise > 0 && "text-amber-500")}>
             {formatPaise(today.udhaarGivenInPaise)}
           </p>
           <Link href="/admin/khatabook" className="mt-1 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
@@ -135,6 +198,71 @@ export default async function AdminDashboardPage() {
             <ChevronRight className="size-3.5" aria-hidden />
           </Link>
         </div>
+      </section>
+
+      <section aria-labelledby="sales-heading" className="flex flex-col gap-4 rounded-xl border border-border bg-card p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 id="sales-heading" className="text-sm font-semibold">
+              Sales
+            </h2>
+            <p className="text-xs text-muted-foreground">{series.rangeLabel}</p>
+          </div>
+          <nav aria-label="Sales period" className="flex gap-1 rounded-lg border border-border p-0.5">
+            {SALES_RANGES.map((r) => (
+              <Link
+                key={r}
+                href={r === "week" ? "/admin" : `/admin?range=${r}`}
+                aria-current={series.range === r ? "page" : undefined}
+                className={cn(
+                  "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
+                  series.range === r ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {RANGE_LABEL[r]}
+              </Link>
+            ))}
+          </nav>
+        </div>
+
+        {range === "custom" && (
+          <form method="get" action="/admin" className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="range" value="custom" />
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              From
+              <input type="date" name="from" defaultValue={query.from} required className="h-10 rounded-md border border-border bg-background px-2 text-sm text-foreground" />
+            </label>
+            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+              To
+              <input type="date" name="to" defaultValue={query.to} required className="h-10 rounded-md border border-border bg-background px-2 text-sm text-foreground" />
+            </label>
+            <Button type="submit" className="h-10">
+              Show
+            </Button>
+            {series.range !== "custom" && <p className="basis-full text-xs text-muted-foreground">Pick both dates to see that period. Showing the last 7 days.</p>}
+          </form>
+        )}
+
+        <dl className="grid grid-cols-3 gap-3 text-sm">
+          <div>
+            <dt className="text-xs text-muted-foreground">Total</dt>
+            <dd className="text-lg font-semibold tabular-nums">{formatPaise(series.totalInPaise)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Bills</dt>
+            <dd className="text-lg font-semibold tabular-nums">{series.billCount}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Average a {series.unit === "month" ? "month" : "day"}</dt>
+            <dd className="text-lg font-semibold tabular-nums">{formatPaise(series.averageInPaise)}</dd>
+          </div>
+        </dl>
+        <DashboardSalesChart points={series.points} caption={RANGE_CAPTION[series.range]} />
+        {series.best && (
+          <p className="text-xs text-muted-foreground">
+            Best {series.unit === "month" ? "month" : "day"}: {series.best.fullLabel}, {formatPaise(series.best.valueInPaise)}
+          </p>
+        )}
       </section>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -173,10 +301,9 @@ export default async function AdminDashboardPage() {
           )}
         </section>
 
-        <section aria-label="This week" className="flex flex-col gap-5 rounded-xl border border-border bg-card p-4 sm:p-5">
-          <DashboardWeekChart days={data.week} />
+        <section aria-label="Top items" className="flex flex-col gap-5 rounded-xl border border-border bg-card p-4 sm:p-5">
           <div>
-            <p className="text-sm font-semibold">Top items this week</p>
+            <p className="text-sm font-semibold">Top items · last 7 days</p>
             {data.topItems.length === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">Nothing sold this week yet.</p>
             ) : (

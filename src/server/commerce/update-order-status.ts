@@ -223,7 +223,12 @@ export async function updatePaymentStatus(params: {
 
   const updated = await db.order.updateMany({
     where: { id: order.id, paymentStatus: order.paymentStatus },
-    data: { paymentStatus: newPaymentStatus },
+    // paidAt: when the money actually came in, for the dashboard's
+    // day-end cash count. Cleared again if a payment is refunded/failed.
+    data: {
+      paymentStatus: newPaymentStatus,
+      paidAt: newPaymentStatus === "PAID" ? new Date() : null,
+    },
   });
   if (updated.count === 0) {
     return {

@@ -582,6 +582,10 @@ model Order {
   /// 3's own explicit instruction). See "Outstanding calculation" in
   /// docs/PHASE_3_6_5_REPORT.md Part 3.
   outstandingInPaise    Int
+  /// When an ONLINE order was marked Paid (money collected at pickup or on
+  /// delivery) — lets the dashboard count it in that day's takings. Null
+  /// until paid; counter sales record payment at creation instead.
+  paidAt                 DateTime?
 
   /// The moment this order's status actually transitioned INTO DELIVERED —
   /// set once, by src/server/commerce/update-order-status.ts (for

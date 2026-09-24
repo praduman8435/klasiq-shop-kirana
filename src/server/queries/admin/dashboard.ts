@@ -24,7 +24,7 @@ export type DashboardOverview = Awaited<ReturnType<typeof getDashboardOverview>>
  * - what needs attention (orders to act on, stock, udhaar, suppliers),
  * - the last 7 days' sales and this week's top items.
  */
-export async function getDashboardOverview(now: Date = new Date()) {
+export async function getDashboardOverview(now: Date = new Date(), range: SalesRangeInput = { range: "week" }) {
   const today = startOfIndiaDay(now);
   const yesterday = startOfIndiaDay(now, 1);
   const weekStart = startOfIndiaDay(now, 6);
@@ -37,7 +37,6 @@ export async function getDashboardOverview(now: Date = new Date()) {
     collectionsToday,
     counterOrdersToday,
     udhaarEntriesToday,
-    weekOrders,
     topItems,
     statusCounts,
     lowStockCount,
@@ -45,6 +44,9 @@ export async function getDashboardOverview(now: Date = new Date()) {
     khata,
     khataDues,
     suppliers,
+    onlinePaidToday,
+    supplierPaidToday,
+    series,
   ] = await Promise.all([
     db.order.groupBy({
       by: ["source"],
@@ -77,10 +79,6 @@ export async function getDashboardOverview(now: Date = new Date()) {
       },
     }),
     db.khataEntry.aggregate({ where: { kind: "UDHAAR", entryDate: { gte: today } }, _sum: { amountInPaise: true } }),
-    db.order.findMany({
-      where: { createdAt: { gte: weekStart }, ...notCancelled },
-      select: { createdAt: true, totalInPaise: true },
-    }),
     db.orderItem.groupBy({
       by: ["productName", "size"],
       where: { order: { createdAt: { gte: weekStart }, ...notCancelled } },
@@ -94,6 +92,19 @@ export async function getDashboardOverview(now: Date = new Date()) {
     getKhataOverview(now),
     getKhataDues(),
     getSupplierOverview(now),
+    // Online orders marked Paid today (collected at pickup / on delivery).
+    db.order.aggregate({
+      where: { source: "ONLINE", paidAt: { gte: today }, paymentStatus: "PAID" },
+      _sum: { totalInPaise: true },
+      _count: { _all: true },
+    }),
+    // Money paid out to suppliers today.
+    db.supplierPayment.groupBy({
+      by: ["paymentMethod"],
+      where: { paymentDate: { gte: today, lt: new Date(today.getTime() + DAY_MS) } },
+      _sum: { amountInPaise: true },
+    }),
+    getSalesSeries(range, now),
   ]);
 
   const bySource = (source: "ONLINE" | "COUNTER") => {
@@ -103,18 +114,40 @@ export async function getDashboardOverview(now: Date = new Date()) {
   const online = bySource("ONLINE");
   const counter = bySource("COUNTER");
 
-  const received: Record<"CASH" | "UPI" | "CARD", number> = { CASH: 0, UPI: 0, CARD: 0 };
-  const addReceived = (method: PaymentMethod | null, amount: number) => {
+  type Split = { CASH: number; UPI: number; CARD: number };
+  const split = (): Split => ({ CASH: 0, UPI: 0, CARD: 0 });
+  const add = (into: Split, method: PaymentMethod | null, amount: number) => {
     const key = method === "UPI" || method === "CARD" ? method : "CASH";
-    received[key] += amount;
+    into[key] += amount;
   };
   // Paid at the counter when today's bills were made: what each received,
-  // minus later payments against it (those are counted as receipts).
+  // minus later payments against it (those are counted as udhaar repaid).
+  const counterSales = split();
   for (const o of counterOrdersToday) {
-    addReceived(o.paymentMethod, o.amountReceivedInPaise - o.paymentReceipts.reduce((s, r) => s + r.amountInPaise, 0));
+    add(counterSales, o.paymentMethod, o.amountReceivedInPaise - o.paymentReceipts.reduce((s, r) => s + r.amountInPaise, 0));
   }
-  for (const g of receiptsToday) addReceived(g.paymentMethod, g._sum.amountInPaise ?? 0);
-  for (const c of collectionsToday) addReceived(c.paymentMethod, c.allocations.reduce((s, a) => s + a.amountInPaise, 0));
+  const udhaarRepaid = split();
+  for (const g of receiptsToday) add(udhaarRepaid, g.paymentMethod, g._sum.amountInPaise ?? 0);
+  for (const c of collectionsToday) add(udhaarRepaid, c.paymentMethod, c.allocations.reduce((s, a) => s + a.amountInPaise, 0));
+  // Online orders' pay-at-store / cash-on-delivery money: counted as cash
+  // (the method at collection isn't recorded).
+  const onlinePaid = split();
+  onlinePaid.CASH = onlinePaidToday._sum.totalInPaise ?? 0;
+  const paidToSuppliers = split();
+  for (const g of supplierPaidToday) {
+    const key = g.paymentMethod === "CASH" ? "CASH" : g.paymentMethod === "CARD" ? "CARD" : "UPI";
+    paidToSuppliers[key] += g._sum.amountInPaise ?? 0;
+  }
+  const received: Split = {
+    CASH: counterSales.CASH + udhaarRepaid.CASH + onlinePaid.CASH,
+    UPI: counterSales.UPI + udhaarRepaid.UPI,
+    CARD: counterSales.CARD + udhaarRepaid.CARD,
+  };
+  const net: Split = {
+    CASH: received.CASH - paidToSuppliers.CASH,
+    UPI: received.UPI - paidToSuppliers.UPI,
+    CARD: received.CARD - paidToSuppliers.CARD,
+  };
 
   // Udhaar given on today's counter bills = what's still open plus
   // anything already paid back against them (so a same-day repayment
@@ -124,15 +157,6 @@ export async function getDashboardOverview(now: Date = new Date()) {
       (sum, o) => sum + o.outstandingInPaise + o.paymentReceipts.reduce((s, r) => s + r.amountInPaise, 0),
       0,
     ) + (udhaarEntriesToday._sum.amountInPaise ?? 0);
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const start = startOfIndiaDay(now, 6 - i);
-    const end = new Date(start.getTime() + DAY_MS);
-    const valueInPaise = weekOrders
-      .filter((o) => o.createdAt >= start && o.createdAt < end)
-      .reduce((s, o) => s + o.totalInPaise, 0);
-    return { date: start, valueInPaise, isToday: i === 6 };
-  });
-
   let oldestDueSince: Date | null = null;
   for (const d of khataDues.values()) {
     if (d.dueInPaise > 0 && d.dueSince && (!oldestDueSince || d.dueSince < oldestDueSince)) oldestDueSince = d.dueSince;
@@ -147,6 +171,14 @@ export async function getDashboardOverview(now: Date = new Date()) {
       yesterdaySalesInPaise: salesYesterday._sum.totalInPaise ?? 0,
       received,
       receivedTotalInPaise: received.CASH + received.UPI + received.CARD,
+      galla: {
+        counterSales,
+        udhaarRepaid,
+        onlinePaid,
+        onlinePaidCount: onlinePaidToday._count._all,
+        paidToSuppliers,
+        net,
+      },
       udhaarGivenInPaise: udhaarGivenTodayInPaise,
     },
     attention: {
@@ -162,12 +194,132 @@ export async function getDashboardOverview(now: Date = new Date()) {
       supplierOwedInPaise: suppliers.totalOwedInPaise,
       suppliersOwed: suppliers.suppliersOwedCount,
     },
-    week: days,
+    series,
     topItems: topItems.map((t) => ({
       name: t.productName,
       size: t.size,
       quantity: t._sum.quantity ?? 0,
       valueInPaise: t._sum.effectiveLineTotalInPaise ?? 0,
     })),
+  };
+}
+
+export const SALES_RANGES = ["week", "month", "year", "custom"] as const;
+export type SalesRange = (typeof SALES_RANGES)[number];
+export type SalesRangeInput = { range: SalesRange; from?: string; to?: string };
+
+const DAY_LABEL = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric" });
+const DAY_FULL = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", weekday: "short", day: "numeric", month: "short" });
+const WEEKDAY = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", weekday: "short" });
+const MONTH_LABEL = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", month: "short" });
+const MONTH_FULL = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", month: "long", year: "numeric" });
+const RANGE_DAY = new Intl.DateTimeFormat("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric" });
+
+/** "YYYY-MM-DD" (a date input's value) → midnight that day in India. */
+function indiaDateStart(value: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [y, m, d] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d) - IST_OFFSET_MS);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function startOfIndiaMonth(now: Date, monthsAgo: number): Date {
+  const ist = new Date(now.getTime() + IST_OFFSET_MS);
+  return new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth() - monthsAgo, 1) - IST_OFFSET_MS);
+}
+
+export type SalesPoint = { key: string; label: string; fullLabel: string; valueInPaise: number; billCount: number; isCurrent: boolean };
+
+/**
+ * Sales (non-cancelled orders, online + counter) for the dashboard chart:
+ * last 7 days, last 30 days, last 12 months, or a custom range — daily
+ * bars for up to 62 days, monthly bars beyond that.
+ */
+export async function getSalesSeries(input: SalesRangeInput, now: Date = new Date()) {
+  let start: Date;
+  let end = new Date(startOfIndiaDay(now).getTime() + DAY_MS);
+  let unit: "day" | "month";
+  let range = input.range;
+
+  if (range === "custom") {
+    const from = input.from ? indiaDateStart(input.from) : null;
+    const to = input.to ? indiaDateStart(input.to) : null;
+    if (from && to && from <= to) {
+      start = from;
+      end = new Date(Math.min(to.getTime() + DAY_MS, end.getTime()));
+      const days = Math.round((end.getTime() - start.getTime()) / DAY_MS);
+      unit = days <= 62 ? "day" : "month";
+    } else {
+      range = "week";
+      start = startOfIndiaDay(now, 6);
+      unit = "day";
+    }
+  } else if (range === "year") {
+    start = startOfIndiaMonth(now, 11);
+    unit = "month";
+  } else if (range === "month") {
+    start = startOfIndiaDay(now, 29);
+    unit = "day";
+  } else {
+    start = startOfIndiaDay(now, 6);
+    unit = "day";
+  }
+
+  const orders = await db.order.findMany({
+    where: { createdAt: { gte: start, lt: end }, status: { not: "CANCELLED" } },
+    select: { createdAt: true, totalInPaise: true },
+  });
+
+  const points: SalesPoint[] = [];
+  const todayStart = startOfIndiaDay(now);
+  if (unit === "day") {
+    for (let t = start.getTime(); t < end.getTime(); t += DAY_MS) {
+      const dayStart = new Date(t);
+      points.push({
+        key: dayStart.toISOString(),
+        label: range === "week" ? WEEKDAY.format(dayStart) : DAY_LABEL.format(dayStart),
+        fullLabel: DAY_FULL.format(dayStart),
+        valueInPaise: 0,
+        billCount: 0,
+        isCurrent: t === todayStart.getTime(),
+      });
+    }
+  } else {
+    for (let cursor = start; cursor < end; ) {
+      const ist = new Date(cursor.getTime() + IST_OFFSET_MS);
+      const next = new Date(Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth() + 1, 1) - IST_OFFSET_MS);
+      points.push({
+        key: cursor.toISOString(),
+        label: MONTH_LABEL.format(cursor),
+        fullLabel: MONTH_FULL.format(cursor),
+        valueInPaise: 0,
+        billCount: 0,
+        isCurrent: now >= cursor && now < next,
+      });
+      cursor = next;
+    }
+  }
+  const starts = points.map((p) => new Date(p.key).getTime());
+  for (const o of orders) {
+    const t = o.createdAt.getTime();
+    let i = starts.length - 1;
+    while (i > 0 && starts[i] > t) i--;
+    points[i].valueInPaise += o.totalInPaise;
+    points[i].billCount += 1;
+  }
+
+  const totalInPaise = points.reduce((s, p) => s + p.valueInPaise, 0);
+  const dayCount = Math.max(1, Math.round((end.getTime() - start.getTime()) / DAY_MS));
+  const best = points.reduce<SalesPoint | null>((b, p) => (p.valueInPaise > (b?.valueInPaise ?? 0) ? p : b), null);
+  return {
+    range,
+    unit,
+    points,
+    totalInPaise,
+    billCount: orders.length,
+    /** Per day for daily bars, per month for monthly bars. */
+    averageInPaise: Math.round(totalInPaise / (unit === "day" ? dayCount : Math.max(1, points.length))),
+    best,
+    rangeLabel: `${RANGE_DAY.format(start)} – ${RANGE_DAY.format(new Date(end.getTime() - 1))}`,
   };
 }
