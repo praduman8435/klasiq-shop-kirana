@@ -1,4 +1,4 @@
-import type { PaymentMethod } from "@prisma/client";
+import type { PaymentMethod, SupplierPaymentMethod } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getKhataDues, getKhataOverview } from "@/server/queries/admin/khata-list";
 import { getSupplierOverview } from "@/server/queries/admin/supplier-balances";
@@ -46,6 +46,7 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
     suppliers,
     onlinePaidToday,
     supplierPaidToday,
+    supplierRefundsToday,
     series,
   ] = await Promise.all([
     db.order.groupBy({
@@ -58,16 +59,23 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
       where: { createdAt: { gte: yesterday, lt: today }, ...notCancelled },
       _sum: { totalInPaise: true },
     }),
-    // Udhaar paid against bills today (single payments and Paisa mila).
+    // Single payments against bills today. Receipts that are part of a
+    // Paisa mila collection are counted with that collection instead, on
+    // the date the owner picked for it.
     db.paymentReceipt.groupBy({
       by: ["paymentMethod"],
-      where: { createdAt: { gte: today } },
+      where: { createdAt: { gte: today }, collectionId: null },
       _sum: { amountInPaise: true },
     }),
-    // Paisa mila today, for the part that cleared quick-udhaar entries.
+    // Paisa mila dated today: the part that cleared bills (receipts) and
+    // the part that cleared quick-udhaar entries (allocations).
     db.khataCollection.findMany({
-      where: { collectedAt: { gte: today } },
-      select: { paymentMethod: true, allocations: { select: { amountInPaise: true } } },
+      where: { collectedAt: { gte: today, lt: new Date(today.getTime() + DAY_MS) } },
+      select: {
+        paymentMethod: true,
+        receipts: { select: { amountInPaise: true } },
+        allocations: { select: { amountInPaise: true } },
+      },
     }),
     db.order.findMany({
       where: { source: "COUNTER", createdAt: { gte: today }, ...notCancelled },
@@ -104,6 +112,12 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
       where: { paymentDate: { gte: today, lt: new Date(today.getTime() + DAY_MS) } },
       _sum: { amountInPaise: true },
     }),
+    // Money suppliers gave back today.
+    db.supplierRefund.groupBy({
+      by: ["refundMethod"],
+      where: { refundDate: { gte: today, lt: new Date(today.getTime() + DAY_MS) } },
+      _sum: { amountInPaise: true },
+    }),
     getSalesSeries(range, now),
   ]);
 
@@ -128,20 +142,27 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
   }
   const udhaarRepaid = split();
   for (const g of receiptsToday) add(udhaarRepaid, g.paymentMethod, g._sum.amountInPaise ?? 0);
-  for (const c of collectionsToday) add(udhaarRepaid, c.paymentMethod, c.allocations.reduce((s, a) => s + a.amountInPaise, 0));
+  for (const c of collectionsToday) {
+    const amount = [...c.receipts, ...c.allocations].reduce((s, a) => s + a.amountInPaise, 0);
+    add(udhaarRepaid, c.paymentMethod, amount);
+  }
   // Online orders' pay-at-store / cash-on-delivery money: counted as cash
   // (the method at collection isn't recorded).
   const onlinePaid = split();
   onlinePaid.CASH = onlinePaidToday._sum.totalInPaise ?? 0;
+  // Only cash, UPI and card touch the galla; bank transfers, cheques and
+  // "other" don't come out of the drawer or the UPI account's day total.
+  const supplierSplit = (method: SupplierPaymentMethod, amount: number, into: Split) => {
+    if (method === "CASH" || method === "UPI" || method === "CARD") into[method] += amount;
+  };
   const paidToSuppliers = split();
-  for (const g of supplierPaidToday) {
-    const key = g.paymentMethod === "CASH" ? "CASH" : g.paymentMethod === "CARD" ? "CARD" : "UPI";
-    paidToSuppliers[key] += g._sum.amountInPaise ?? 0;
-  }
+  for (const g of supplierPaidToday) supplierSplit(g.paymentMethod, g._sum.amountInPaise ?? 0, paidToSuppliers);
+  const supplierRefunds = split();
+  for (const g of supplierRefundsToday) supplierSplit(g.refundMethod, g._sum.amountInPaise ?? 0, supplierRefunds);
   const received: Split = {
-    CASH: counterSales.CASH + udhaarRepaid.CASH + onlinePaid.CASH,
-    UPI: counterSales.UPI + udhaarRepaid.UPI,
-    CARD: counterSales.CARD + udhaarRepaid.CARD,
+    CASH: counterSales.CASH + udhaarRepaid.CASH + onlinePaid.CASH + supplierRefunds.CASH,
+    UPI: counterSales.UPI + udhaarRepaid.UPI + supplierRefunds.UPI,
+    CARD: counterSales.CARD + udhaarRepaid.CARD + supplierRefunds.CARD,
   };
   const net: Split = {
     CASH: received.CASH - paidToSuppliers.CASH,
@@ -177,6 +198,7 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
         onlinePaid,
         onlinePaidCount: onlinePaidToday._count._all,
         paidToSuppliers,
+        supplierRefunds,
         net,
       },
       udhaarGivenInPaise: udhaarGivenTodayInPaise,

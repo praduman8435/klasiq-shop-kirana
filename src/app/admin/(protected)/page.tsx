@@ -60,6 +60,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   const { today, attention: a, series } = data;
   const g = today.galla;
   const showCard = today.received.CARD > 0 || g.paidToSuppliers.CARD > 0;
+  const hasSupplierRefunds = g.supplierRefunds.CASH + g.supplierRefunds.UPI + g.supplierRefunds.CARD > 0;
   const diff = today.salesInPaise - today.yesterdaySalesInPaise;
 
   const attention: AttentionItem[] = [];
@@ -138,6 +139,7 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
               { label: "Counter sales", v: g.counterSales, sign: 1 },
               { label: "Udhaar paid back", v: g.udhaarRepaid, sign: 1 },
               ...(g.onlinePaidCount > 0 ? [{ label: `Online orders paid (${g.onlinePaidCount})`, v: g.onlinePaid, sign: 1 }] : []),
+              ...(hasSupplierRefunds ? [{ label: "Refund from suppliers", v: g.supplierRefunds, sign: 1 }] : []),
               { label: "Paid to suppliers", v: g.paidToSuppliers, sign: -1 },
             ].map((row) => (
               <tr key={row.label} className="text-muted-foreground">
