@@ -7,6 +7,12 @@ describe("generateOrderNumber", () => {
     expect(orderNumber.startsWith("ORD-20260804-")).toBe(true);
   });
 
+  it("uses the date in India, not UTC", () => {
+    // 2:30 AM on 25 Sept in India is still 24 Sept in UTC.
+    expect(generateOrderNumber(new Date("2026-09-24T21:00:00Z")).startsWith("ORD-20260925-")).toBe(true);
+    expect(generateOrderNumber(new Date("2026-09-24T18:29:00Z")).startsWith("ORD-20260924-")).toBe(true);
+  });
+
   it("produces a value that passes isValidOrderNumberFormat", () => {
     const orderNumber = generateOrderNumber(new Date("2026-01-01T00:00:00Z"));
     expect(isValidOrderNumberFormat(orderNumber)).toBe(true);

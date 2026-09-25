@@ -2,10 +2,15 @@ import { UNAMBIGUOUS_ALPHABET, generateUnambiguousCode } from "@/lib/unambiguous
 
 const SUFFIX_LENGTH = 5;
 
+const IST_OFFSET_MS = (5 * 60 + 30) * 60_000;
+
+/** The shop's date (India time): a bill made at 2 AM on the 25th must
+ * read 25th, not the UTC date (still the 24th until 5:30 AM). */
 function datePart(date: Date): string {
-  const yyyy = date.getUTCFullYear().toString().padStart(4, "0");
-  const mm = (date.getUTCMonth() + 1).toString().padStart(2, "0");
-  const dd = date.getUTCDate().toString().padStart(2, "0");
+  const ist = new Date(date.getTime() + IST_OFFSET_MS);
+  const yyyy = ist.getUTCFullYear().toString().padStart(4, "0");
+  const mm = (ist.getUTCMonth() + 1).toString().padStart(2, "0");
+  const dd = ist.getUTCDate().toString().padStart(2, "0");
   return `${yyyy}${mm}${dd}`;
 }
 
