@@ -149,7 +149,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
               const name = order.customerName || (order.source === "COUNTER" ? "Walk-in customer" : "Customer");
               const status = (
                 <span className={cn("inline-flex rounded-full px-2 py-0.5 text-xs font-medium", ORDER_STATUS_BADGE_CLASS[order.status])}>
-                  {simpleStatusLabel(order.status, order.fulfillmentType)}
+                  {order.status === "CANCELLED" && order.cancelledBy === "CUSTOMER" ? "Cancelled by customer" : simpleStatusLabel(order.status, order.fulfillmentType)}
                 </span>
               );
               const paymentText = (

@@ -47,6 +47,7 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
     onlinePaidToday,
     supplierPaidToday,
     supplierRefundsToday,
+    paymentsToCheck,
     series,
   ] = await Promise.all([
     db.order.groupBy({
@@ -118,6 +119,8 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
       where: { refundDate: { gte: today, lt: new Date(today.getTime() + DAY_MS) } },
       _sum: { amountInPaise: true },
     }),
+    // "I've paid" from Mera Khata, waiting for the owner to check.
+    db.khataPaymentClaim.count({ where: { status: "PENDING" } }),
     getSalesSeries(range, now),
   ]);
 
@@ -215,6 +218,7 @@ export async function getDashboardOverview(now: Date = new Date(), range: SalesR
       oldestDueSince,
       supplierOwedInPaise: suppliers.totalOwedInPaise,
       suppliersOwed: suppliers.suppliersOwedCount,
+      paymentsToCheck,
     },
     series,
     topItems: topItems.map((t) => ({

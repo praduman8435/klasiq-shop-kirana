@@ -120,7 +120,7 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
 /**
  * Shared status → color mapping, used by BOTH the admin order badge
  * (src/components/admin/order-status-badge.tsx) and the customer portal
- * (src/components/customer-portal/order-history-card.tsx and the order-
+ * (src/components/customer-portal/order-card.tsx and the order-
  * detail page) — centralized here rather than duplicated so a status
  * always reads the same way everywhere, and so "can a customer tell a
  * cancelled order apart from a delivered one without opening it" (Phase
@@ -162,3 +162,49 @@ export const PAYMENT_STATUS_ACTION_LABEL: Record<PaymentStatus, string> = {
   REFUNDED: "Mark Refunded",
   FAILED: "Mark Failed",
 };
+
+// ---------------------------------------------------------------------------
+// Customer self-cancel (Track Orders)
+// ---------------------------------------------------------------------------
+
+/** A customer can cancel their own online order any time before it has
+ * left the shop: until it's out for delivery, or, for pickup, until
+ * they've collected it. Orders already marked paid go through the shop
+ * (money has to be returned by hand). */
+const CUSTOMER_CANCELLABLE: OrderStatus[] = ["PENDING", "CONFIRMED", "PREPARING", "READY_FOR_PICKUP"];
+
+export type CustomerCancelCheck = { allowed: true } | { allowed: false; reason: string };
+
+export function checkCustomerCanCancel(order: {
+  status: OrderStatus;
+  fulfillmentType: FulfillmentType;
+  paymentStatus: PaymentStatus;
+}): CustomerCancelCheck {
+  if (order.fulfillmentType === "COUNTER_HANDOVER") {
+    return { allowed: false, reason: "Bought at the shop counter, so there's nothing to cancel." };
+  }
+  if (order.status === "CANCELLED") return { allowed: false, reason: "This order is already cancelled." };
+  if (order.status === "DELIVERED") {
+    return {
+      allowed: false,
+      reason: order.fulfillmentType === "STORE_PICKUP" ? "This order has been collected." : "This order has been delivered.",
+    };
+  }
+  if (order.status === "OUT_FOR_DELIVERY") {
+    return { allowed: false, reason: "It's already on the way. Call the shop if you don't want it." };
+  }
+  if (order.paymentStatus === "PAID" || order.paymentStatus === "PARTIALLY_PAID") {
+    return { allowed: false, reason: "You've already paid for this order. Call the shop to cancel it." };
+  }
+  if (!CUSTOMER_CANCELLABLE.includes(order.status)) return { allowed: false, reason: "This order can't be cancelled now." };
+  return { allowed: true };
+}
+
+/** Reasons offered when a customer cancels (kept short; the shop sees the one picked). */
+export const CUSTOMER_CANCEL_REASONS = [
+  "Ordered by mistake",
+  "Want to change items",
+  "Found it somewhere else",
+  "Taking too long",
+  "Other reason",
+] as const;

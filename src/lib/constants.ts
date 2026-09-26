@@ -39,6 +39,10 @@ export const STORE_CONTACT = {
   phone: "8542843482",
   phoneHref: "tel:8542843482",
   mapsUrl: "https://maps.app.goo.gl/rXQgWhNoQceUy3ch6",
+  /** Where customers pay udhaar online (Mera Khata). STORE_UPI_ID on the
+   * server overrides it without a code change. */
+  upiId: "8542843482@ybl",
+  whatsapp: "918542843482",
 } as const;
 
 /** "Backed by X" (or "X and Y") — built from legacyStoreNames so the

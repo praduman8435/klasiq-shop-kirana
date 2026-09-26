@@ -1,7 +1,7 @@
 import type { OrderStatus, PaymentStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { isValidOrderStatusTransition, isValidPaymentStatusTransition } from "@/lib/order-lifecycle";
-import { applyInventoryDelta } from "@/server/commerce/inventory";
+import { OrderStatusConflictError, cancelOrderInTransaction } from "@/server/commerce/cancel-order";
 import { STATUS_TRANSITION_EVENT } from "@/server/whatsapp/notification-events";
 import { notifyOrderEvent } from "@/server/whatsapp/notification-service";
 
@@ -75,34 +75,7 @@ export async function updateOrderStatus(params: {
 
   try {
     if (newStatus === "CANCELLED") {
-      await db.$transaction(async (tx) => {
-        const updated = await tx.order.updateMany({
-          where: { id: order.id, status: order.status },
-          data: { status: "CANCELLED" },
-        });
-        if (updated.count === 0) throw new ConcurrencyConflictError();
-
-        for (const item of order.items) {
-          // Reuses the same guarded primitive every other stock mutation in
-          // this codebase goes through (src/server/commerce/inventory.ts) —
-          // it re-reads the row AFTER its own atomic increment to log the
-          // audit entry, so two orders sharing a variant that get cancelled
-          // concurrently each get an accurate previousQuantity/newQuantity
-          // rather than one computed from a stale pre-update read. This
-          // file previously duplicated that logic inline with its own
-          // stale read, which could log a wrong previousQuantity/newQuantity
-          // under concurrent cancellations touching the same variant (the
-          // stockQuantity column itself was always correct — only the
-          // audit trail could drift).
-          await applyInventoryDelta(tx, {
-            productVariantId: item.productVariantId,
-            delta: item.quantity,
-            reason: "ORDER_CANCELLATION_RESTORE",
-            adminUserId,
-            orderId: order.id,
-          });
-        }
-      });
+      await db.$transaction((tx) => cancelOrderInTransaction(tx, order, { by: "SHOP", adminUserId }));
     } else {
       const updated = await db.order.updateMany({
         where: { id: order.id, status: order.status },
@@ -118,7 +91,7 @@ export async function updateOrderStatus(params: {
       if (updated.count === 0) throw new ConcurrencyConflictError();
     }
   } catch (err) {
-    if (err instanceof ConcurrencyConflictError) {
+    if (err instanceof ConcurrencyConflictError || err instanceof OrderStatusConflictError) {
       return {
         success: false,
         error: {

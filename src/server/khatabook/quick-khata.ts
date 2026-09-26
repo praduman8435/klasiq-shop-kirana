@@ -102,81 +102,85 @@ export type CollectionInput = {
 /** "Paisa mila" — one amount from the customer, cleared oldest first
  * across unpaid bills and udhaar. Can't be more than what's due. */
 export async function recordCollection(input: CollectionInput, admin: { id: string }) {
+  return db.$transaction((tx) => recordCollectionInTransaction(tx, input, admin));
+}
+
+/** recordCollection's work inside the caller's transaction (confirming a
+ * customer's UPI payment claim records the collection and marks the claim
+ * in one go). */
+export async function recordCollectionInTransaction(tx: Tx, input: CollectionInput, admin: { id: string }) {
   const amountInPaise = rupeesToPaise(input.amountInRupees);
+  const customer = await lockCustomer(tx, input.customerId);
+  const open = await openKhataItemsOldestFirst(tx, customer.id);
+  const dueInPaise = open.reduce((s, i) => s + i.outstandingInPaise, 0);
+  if (dueInPaise === 0) throw new KhataError("Nothing is due from this customer.");
+  if (amountInPaise > dueInPaise) {
+    throw new KhataError(`That's more than the ₹${dueInPaise / 100} due. Enter ₹${dueInPaise / 100} or less.`);
+  }
 
-  return db.$transaction(async (tx) => {
-    const customer = await lockCustomer(tx, input.customerId);
-    const open = await openKhataItemsOldestFirst(tx, customer.id);
-    const dueInPaise = open.reduce((s, i) => s + i.outstandingInPaise, 0);
-    if (dueInPaise === 0) throw new KhataError("Nothing is due from this customer.");
-    if (amountInPaise > dueInPaise) {
-      throw new KhataError(`That's more than the ₹${dueInPaise / 100} due. Enter ₹${dueInPaise / 100} or less.`);
-    }
+  const { allocations } = allocateOldestFirst(amountInPaise, open);
+  const byId = new Map(open.map((i) => [i.id, i]));
 
-    const { allocations } = allocateOldestFirst(amountInPaise, open);
-    const byId = new Map(open.map((i) => [i.id, i]));
-
-    const collection = await tx.khataCollection.create({
-      data: {
-        customerId: customer.id,
-        amountInPaise,
-        paymentMethod: input.paymentMethod,
-        note: input.note || null,
-        collectedAt: input.collectedAt,
-        createdByAdminUserId: admin.id,
-      },
-      select: { id: true },
-    });
-
-    for (const allocation of allocations) {
-      const item = byId.get(allocation.purchaseId)!;
-      if (item.kind === "ORDER") {
-        const order = await tx.order.findUniqueOrThrow({
-          where: { id: item.orderId },
-          select: { id: true, totalInPaise: true, amountReceivedInPaise: true, outstandingInPaise: true },
-        });
-        const received = order.amountReceivedInPaise + allocation.amountInPaise;
-        const outstandingAfter = order.outstandingInPaise - allocation.amountInPaise;
-        const updated = await tx.order.updateMany({
-          where: { id: order.id, outstandingInPaise: order.outstandingInPaise },
-          data: {
-            amountReceivedInPaise: received,
-            outstandingInPaise: outstandingAfter,
-            paymentStatus: derivePaymentStatus(received, order.totalInPaise),
-          },
-        });
-        if (updated.count === 0) throw new KhataError("This khata just changed. Please try again.");
-        await tx.paymentReceipt.create({
-          data: {
-            orderId: order.id,
-            customerId: customer.id,
-            amountInPaise: allocation.amountInPaise,
-            paymentMethod: input.paymentMethod,
-            note: input.note || null,
-            outstandingBeforeInPaise: order.outstandingInPaise,
-            outstandingAfterInPaise: outstandingAfter,
-            createdByAdminUserId: admin.id,
-            collectionId: collection.id,
-          },
-        });
-      } else {
-        const updated = await tx.khataEntry.updateMany({
-          where: { id: item.id, outstandingInPaise: item.outstandingInPaise },
-          data: { outstandingInPaise: item.outstandingInPaise - allocation.amountInPaise },
-        });
-        if (updated.count === 0) throw new KhataError("This khata just changed. Please try again.");
-        await tx.khataCollectionAllocation.create({
-          data: { collectionId: collection.id, entryId: item.id, amountInPaise: allocation.amountInPaise },
-        });
-      }
-    }
-
-    return {
-      collectionId: collection.id,
-      itemsClearedCount: allocations.filter((a) => a.amountInPaise === byId.get(a.purchaseId)!.outstandingInPaise).length,
-      dueAfterInPaise: dueInPaise - amountInPaise,
-    };
+  const collection = await tx.khataCollection.create({
+    data: {
+      customerId: customer.id,
+      amountInPaise,
+      paymentMethod: input.paymentMethod,
+      note: input.note || null,
+      collectedAt: input.collectedAt,
+      createdByAdminUserId: admin.id,
+    },
+    select: { id: true },
   });
+
+  for (const allocation of allocations) {
+    const item = byId.get(allocation.purchaseId)!;
+    if (item.kind === "ORDER") {
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id: item.orderId },
+        select: { id: true, totalInPaise: true, amountReceivedInPaise: true, outstandingInPaise: true },
+      });
+      const received = order.amountReceivedInPaise + allocation.amountInPaise;
+      const outstandingAfter = order.outstandingInPaise - allocation.amountInPaise;
+      const updated = await tx.order.updateMany({
+        where: { id: order.id, outstandingInPaise: order.outstandingInPaise },
+        data: {
+          amountReceivedInPaise: received,
+          outstandingInPaise: outstandingAfter,
+          paymentStatus: derivePaymentStatus(received, order.totalInPaise),
+        },
+      });
+      if (updated.count === 0) throw new KhataError("This khata just changed. Please try again.");
+      await tx.paymentReceipt.create({
+        data: {
+          orderId: order.id,
+          customerId: customer.id,
+          amountInPaise: allocation.amountInPaise,
+          paymentMethod: input.paymentMethod,
+          note: input.note || null,
+          outstandingBeforeInPaise: order.outstandingInPaise,
+          outstandingAfterInPaise: outstandingAfter,
+          createdByAdminUserId: admin.id,
+          collectionId: collection.id,
+        },
+      });
+    } else {
+      const updated = await tx.khataEntry.updateMany({
+        where: { id: item.id, outstandingInPaise: item.outstandingInPaise },
+        data: { outstandingInPaise: item.outstandingInPaise - allocation.amountInPaise },
+      });
+      if (updated.count === 0) throw new KhataError("This khata just changed. Please try again.");
+      await tx.khataCollectionAllocation.create({
+        data: { collectionId: collection.id, entryId: item.id, amountInPaise: allocation.amountInPaise },
+      });
+    }
+  }
+
+  return {
+    collectionId: collection.id,
+    itemsClearedCount: allocations.filter((a) => a.amountInPaise === byId.get(a.purchaseId)!.outstandingInPaise).length,
+    dueAfterInPaise: dueInPaise - amountInPaise,
+  };
 }
 
 export type KhataCustomerInput = { name: string; phone: string; openingBalanceInRupees?: number };

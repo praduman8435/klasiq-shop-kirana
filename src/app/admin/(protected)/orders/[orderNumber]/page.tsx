@@ -227,6 +227,20 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
             <h2 className="text-sm font-semibold">Order status</h2>
             <div className="mt-3 flex flex-col gap-3">
               <OrderProgress status={order.status} fulfillmentType={order.fulfillmentType} />
+              {order.status === "CANCELLED" && order.cancelledBy && (
+                <p className="rounded-lg bg-secondary px-3 py-2 text-sm">
+                  <span className="font-medium">{order.cancelledBy === "CUSTOMER" ? "Cancelled by the customer" : "Cancelled by the shop"}</span>
+                  {order.cancelledAt && (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      ·{" "}
+                      {order.cancelledAt.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true })}
+                    </span>
+                  )}
+                  {order.cancelReason && <span className="mt-0.5 block text-muted-foreground">Reason: {order.cancelReason}</span>}
+                  <span className="mt-0.5 block text-xs text-muted-foreground">Stock for these items was put back.</span>
+                </p>
+              )}
               <OrderNextStepButton
                 orderNumber={order.orderNumber}
                 status={order.status}

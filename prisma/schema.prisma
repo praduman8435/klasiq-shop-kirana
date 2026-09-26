@@ -399,6 +399,7 @@ model Customer {
   paymentReceipts PaymentReceipt[]
   khataEntries     KhataEntry[]
   khataCollections KhataCollection[]
+  khataPaymentClaims KhataPaymentClaim[]
 
   @@index([whatsappPhoneNormalized])
   @@index([lastOrderAt])
@@ -601,6 +602,13 @@ model Order {
   /// docs/PHASE_3_5_REPORT.md "Return window".
   deliveredAt DateTime?
 
+  /// When and by whom the order was cancelled, and the customer's reason
+  /// when they cancelled it themselves from Track Orders. Null on orders
+  /// cancelled before these fields existed.
+  cancelledAt  DateTime?
+  cancelledBy  OrderCancelledBy?
+  cancelReason String?
+
   customer             Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
   createdByAdminUser   AdminUser?            @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
   items                OrderItem[]
@@ -723,6 +731,7 @@ model AdminUser {
   createdSupplierRefunds SupplierRefund[]
   createdKhataEntries     KhataEntry[]
   createdKhataCollections KhataCollection[]
+  decidedKhataPaymentClaims KhataPaymentClaim[]
 
   @@map("admin_users")
 }
@@ -2110,6 +2119,7 @@ model KhataCollection {
   createdByAdminUser AdminUser?                  @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
   receipts           PaymentReceipt[]
   allocations        KhataCollectionAllocation[]
+  paymentClaim       KhataPaymentClaim?
 
   @@index([customerId])
   @@index([collectedAt])
@@ -2128,4 +2138,40 @@ model KhataCollectionAllocation {
   @@index([collectionId])
   @@index([entryId])
   @@map("khata_collection_allocations")
+}
+
+enum OrderCancelledBy {
+  CUSTOMER
+  SHOP
+}
+
+enum KhataPaymentClaimStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+}
+
+/// "I've paid" from Mera Khata: the customer paid the shop by UPI and says
+/// how much. Nothing changes in the khata until the shop checks its UPI
+/// app and confirms — confirming records a normal UPI collection (oldest
+/// udhaar first) and links it here; rejecting leaves the khata untouched.
+model KhataPaymentClaim {
+  id                   String                  @id @default(cuid())
+  customerId           String
+  amountInPaise        Int
+  /// Optional UPI reference / UTR the customer copied from their UPI app.
+  upiReference         String?
+  status               KhataPaymentClaimStatus @default(PENDING)
+  createdAt            DateTime                @default(now())
+  decidedAt            DateTime?
+  decidedByAdminUserId String?
+  collectionId         String?                 @unique
+
+  customer          Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  decidedByAdminUser AdminUser?      @relation(fields: [decidedByAdminUserId], references: [id], onDelete: SetNull)
+  collection        KhataCollection? @relation(fields: [collectionId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status, createdAt])
+  @@map("khata_payment_claims")
 }

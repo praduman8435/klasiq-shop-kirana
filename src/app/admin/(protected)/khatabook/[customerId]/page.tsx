@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, BellRing, ChevronRight, HandCoins, MessageCircle, Phone, Plus, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnonymizeCustomerButton } from "@/components/admin/anonymize-customer-button";
+import { KhataPaymentClaims } from "@/components/admin/khata-payment-claims";
 import { OrderStatusBadge } from "@/components/admin/order-status-badge";
 import { BRAND, STORE_CONTACT } from "@/lib/constants";
 import {
@@ -16,6 +17,7 @@ import {
 import { formatPaise } from "@/lib/money";
 import { telLink, whatsAppLink } from "@/lib/supplier-statement";
 import { cn } from "@/lib/utils";
+import { getPendingKhataPaymentClaims } from "@/server/khatabook/payment-claims";
 import { getKhataTimeline } from "@/server/khatabook/quick-khata";
 import { getKhataBookCustomerProfile } from "@/server/queries/admin/khatabook";
 
@@ -41,7 +43,7 @@ export default async function KhataBookCustomerPage({ params }: PageProps) {
   const profile = await getKhataBookCustomerProfile(customerId);
   if (!profile) notFound();
   const { customer, summary, orders } = profile;
-  const khata = await getKhataTimeline(customer.id, 40);
+  const [khata, claims] = await Promise.all([getKhataTimeline(customer.id, 40), getPendingKhataPaymentClaims(customer.id)]);
 
   const name = customer.displayName || customer.customerId;
   const due = khata.dueInPaise > 0;
@@ -116,6 +118,8 @@ export default async function KhataBookCustomerPage({ params }: PageProps) {
         <ArrowLeft className="size-4" aria-hidden />
         KhataBook
       </Link>
+
+      <KhataPaymentClaims claims={claims} showCustomer={false} />
 
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start lg:gap-8">
         <div className="flex flex-col gap-5 lg:sticky lg:top-6">

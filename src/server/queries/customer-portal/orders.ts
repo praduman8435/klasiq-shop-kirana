@@ -19,10 +19,15 @@ const CUSTOMER_ORDER_HISTORY_LIMIT = 50;
  * sale (`customerId: null`) can never match any real customer's id and
  * so never appears here, by construction, not by a separate filter.
  */
+/** What an item needs to show its product photo (or category placeholder). */
+const ITEM_PRODUCT = {
+  product: { select: { imageUrl: true, category: { select: { slug: true } } } },
+} as const;
+
 export async function getOrdersForAuthenticatedCustomer(customerId: string) {
   return db.order.findMany({
     where: { customerId },
-    include: { items: { orderBy: { id: "asc" } } },
+    include: { items: { orderBy: { id: "asc" }, include: ITEM_PRODUCT } },
     orderBy: { createdAt: "desc" },
     take: CUSTOMER_ORDER_HISTORY_LIMIT,
   });
@@ -41,6 +46,6 @@ export async function getOrdersForAuthenticatedCustomer(customerId: string) {
 export async function getOrderForAuthenticatedCustomer(orderNumber: string, customerId: string) {
   return db.order.findFirst({
     where: { orderNumber, customerId },
-    include: { items: { orderBy: { id: "asc" } } },
+    include: { items: { orderBy: { id: "asc" }, include: ITEM_PRODUCT } },
   });
 }

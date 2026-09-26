@@ -12,6 +12,7 @@ import {
   ShoppingBag,
   TrendingDown,
   TrendingUp,
+  Smartphone,
   Truck,
   Wallet,
   type LucideIcon,
@@ -76,6 +77,14 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
     attention.push({ href: "/admin/inventory?stock=OUT_OF_STOCK", icon: PackageX, title: `${a.outOfStock} item${a.outOfStock === 1 ? "" : "s"} out of stock`, detail: "Customers can't buy these", tone: "danger" });
   if (a.lowStock > 0)
     attention.push({ href: "/admin/inventory?stock=LOW_STOCK", icon: AlertTriangle, title: `${a.lowStock} item${a.lowStock === 1 ? "" : "s"} running low`, detail: "Order more from suppliers", tone: "warn" });
+  if (a.paymentsToCheck > 0)
+    attention.push({
+      href: "/admin/khatabook",
+      icon: Smartphone,
+      title: `${a.paymentsToCheck} online payment${a.paymentsToCheck === 1 ? "" : "s"} to check`,
+      detail: "Customers paid udhaar by UPI",
+      tone: "warn",
+    });
   if (a.udhaarDueInPaise > 0)
     attention.push({
       href: "/admin/khatabook?tab=COLLECT",

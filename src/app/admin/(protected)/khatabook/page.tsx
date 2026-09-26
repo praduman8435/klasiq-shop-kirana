@@ -4,11 +4,13 @@ import { BellRing, ChevronRight, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminPagination } from "@/components/admin/admin-pagination";
 import { KhataBookSearch } from "@/components/admin/khatabook-search";
+import { KhataPaymentClaims } from "@/components/admin/khata-payment-claims";
 import { BRAND, STORE_CONTACT } from "@/lib/constants";
 import { buildKhataReminderText, daysSince } from "@/lib/khata";
 import { formatPaise } from "@/lib/money";
 import { whatsAppLink } from "@/lib/supplier-statement";
 import { khataListParamsSchema } from "@/lib/validation/admin-khata-quick";
+import { getPendingKhataPaymentClaims } from "@/server/khatabook/payment-claims";
 import { getKhataList, getKhataOverview } from "@/server/queries/admin/khata-list";
 
 export const metadata: Metadata = { title: "KhataBook" };
@@ -32,9 +34,10 @@ function dueForLabel(since: Date | null) {
  */
 export default async function KhataBookPage({ searchParams }: PageProps) {
   const params = khataListParamsSchema.parse(await searchParams);
-  const [overview, list] = await Promise.all([
+  const [overview, list, claims] = await Promise.all([
     getKhataOverview(),
     getKhataList({ query: params.q, tab: params.tab, page: params.page }),
+    getPendingKhataPaymentClaims(),
   ]);
   const collecting = params.tab === "COLLECT";
 
@@ -50,6 +53,8 @@ export default async function KhataBookPage({ searchParams }: PageProps) {
           Add customer
         </Button>
       </div>
+
+      <KhataPaymentClaims claims={claims} />
 
       <section aria-label="Summary" className="grid grid-cols-2 overflow-hidden rounded-xl border border-border bg-card lg:grid-cols-3">
         <div className="col-span-2 flex items-end justify-between gap-4 px-4 pt-4 pb-3 sm:px-5 lg:col-span-1 lg:block lg:border-r lg:border-border lg:py-4">
