@@ -609,8 +609,16 @@ model Order {
   cancelledBy  OrderCancelledBy?
   cancelReason String?
 
+  /// The offer code used at online checkout, and what it saved the
+  /// customer (money off the items, or the delivery fee waived). The
+  /// items part is also in discountInPaise, spread across the lines.
+  couponId             String?
+  couponCode           String?
+  couponSavingInPaise  Int     @default(0)
+
   customer             Customer?             @relation(fields: [customerId], references: [id], onDelete: SetNull)
   createdByAdminUser   AdminUser?            @relation(fields: [createdByAdminUserId], references: [id], onDelete: SetNull)
+  coupon               Coupon?               @relation(fields: [couponId], references: [id], onDelete: SetNull)
   items                OrderItem[]
   basket               Basket?
   /// Populated only for ORDER_CANCELLATION_RESTORE adjustments — lets an
@@ -628,6 +636,7 @@ model Order {
   @@index([customerId])
   @@index([source])
   @@index([createdByAdminUserId])
+  @@index([couponId])
   @@map("orders")
 }
 
@@ -2174,4 +2183,40 @@ model KhataPaymentClaim {
   @@index([customerId])
   @@index([status, createdAt])
   @@map("khata_payment_claims")
+}
+
+enum CouponType {
+  PERCENT
+  FLAT
+  FREE_DELIVERY
+}
+
+/// An offer code for online orders ("SAVE50"). Money off the items (a
+/// percentage, optionally capped, or a flat amount) or free delivery,
+/// with an optional minimum order, dates, a total usage limit and a limit
+/// per customer (by phone). Uses are counted from non-cancelled orders.
+model Coupon {
+  id                 String     @id @default(cuid())
+  /// Always stored upper-case; customers can type it in any case.
+  code               String     @unique
+  type               CouponType
+  /// PERCENT: 1–100. FLAT: paise off. FREE_DELIVERY: 0.
+  value              Int        @default(0)
+  maxDiscountInPaise Int?
+  minOrderInPaise    Int        @default(0)
+  startsAt           DateTime?
+  expiresAt          DateTime?
+  usageLimit         Int?
+  perCustomerLimit   Int        @default(1)
+  firstOrderOnly     Boolean    @default(false)
+  /// Listed in "Offers for you" at checkout and used for the bag nudge.
+  showOnWebsite      Boolean    @default(true)
+  isActive           Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  orders Order[]
+
+  @@index([isActive, expiresAt])
+  @@map("coupons")
 }

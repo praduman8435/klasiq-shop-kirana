@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import { BasketLineItem } from "@/components/basket/basket-line-item";
+import { OfferNudge } from "@/components/basket/offer-nudge";
 import { Button } from "@/components/ui/button";
 import { basketTotalInPaise, getBasket } from "@/lib/basket";
 import { formatPaise } from "@/lib/money";
@@ -65,6 +66,7 @@ export default async function BagPage() {
     <div className="mx-auto max-w-5xl px-4 py-6 pb-28 sm:px-6 sm:pb-6">
       <h1 className="font-heading text-3xl font-extrabold leading-none sm:text-4xl">Your bag</h1>
       <p className="mt-2 text-sm text-muted-foreground">{itemCountLabel}</p>
+      <OfferNudge subtotalInPaise={total} className="mt-4 lg:max-w-2xl" />
 
       <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
         <ul className="flex-1 divide-y divide-border rounded-2xl border border-border bg-card px-3 sm:px-4 lg:max-w-2xl">

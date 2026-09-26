@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useReducer, useState, useTransition } from "react";
+import { useEffect, useId, useReducer, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AlertTriangle, Check } from "lucide-react";
@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProductThumbnail } from "@/components/product/product-thumbnail";
+import { CheckoutOffers, type AppliedOffer, type WebsiteOffer } from "@/components/checkout/checkout-offers";
 import { DeliveryAddressSearch } from "@/components/checkout/delivery-address-search";
 import { checkoutFulfillmentReducer, type FulfillmentType } from "@/lib/checkout-fulfillment-state";
 import { BRAND, STORE_CONTACT } from "@/lib/constants";
@@ -16,6 +17,7 @@ import { formatPaise } from "@/lib/money";
 import { formatKm } from "@/lib/fulfillment-config";
 import { cn } from "@/lib/utils";
 import { placeOrder } from "@/server/actions/checkout";
+import { applyCouponAction } from "@/server/actions/coupons";
 import { previewDeliveryFeeAction } from "@/server/actions/checkout-address";
 
 type CheckoutItem = {
@@ -61,11 +63,13 @@ export function CheckoutForm({
   subtotalInPaise,
   fulfillment,
   geoapifyConfigured,
+  offers = [],
 }: {
   items: CheckoutItem[];
   subtotalInPaise: number;
   fulfillment: FulfillmentConfig;
   geoapifyConfigured: boolean;
+  offers?: WebsiteOffer[];
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -121,7 +125,55 @@ export function CheckoutForm({
   // keeps the submit button disabled rather than showing a guessed amount.
   const deliveryFeeInPaise =
     fulfillmentType === "STORE_PICKUP" ? 0 : deliveryPreview?.deliveryFeeInPaise ?? null;
-  const totalInPaise = subtotalInPaise + (deliveryFeeInPaise ?? 0);
+
+  // Offer code: applied through the server (bag total read there), and
+  // checked again for real when the order is placed.
+  const [coupon, setCoupon] = useState<AppliedOffer | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [couponPending, setCouponPending] = useState<string | null>(null);
+  const couponRef = useRef<AppliedOffer | null>(null);
+  useEffect(() => {
+    couponRef.current = coupon;
+  }, [coupon]);
+
+  async function applyCoupon(code: string, quiet = false) {
+    setCouponPending(code);
+    if (!quiet) setCouponError(null);
+    const result = await applyCouponAction({
+      code,
+      fulfillmentType,
+      deliveryFeeInPaise: deliveryFeeInPaise ?? 0,
+      phone: customerMobile || undefined,
+    });
+    setCouponPending(null);
+    if (result.success) {
+      setCoupon({
+        code: result.code,
+        description: result.description,
+        discountInPaise: result.discountInPaise,
+        freeDelivery: result.freeDelivery,
+        savingInPaise: result.savingInPaise,
+      });
+      setCouponError(null);
+    } else {
+      setCoupon(null);
+      setCouponError(quiet ? `${code} removed: ${result.message}` : result.message);
+    }
+  }
+
+  // Pickup vs delivery and the delivery fee change what an offer is worth
+  // (free delivery especially), so re-check an applied one when they do.
+  useEffect(() => {
+    const applied = couponRef.current;
+    if (!applied) return;
+    void applyCoupon(applied.code, true);
+    // applyCoupon reads the latest values; these two are the triggers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fulfillmentType, deliveryFeeInPaise]);
+
+  const couponDiscountInPaise = coupon?.discountInPaise ?? 0;
+  const chargedDeliveryFeeInPaise = coupon?.freeDelivery ? 0 : deliveryFeeInPaise;
+  const totalInPaise = subtotalInPaise - couponDiscountInPaise + (chargedDeliveryFeeInPaise ?? 0);
 
   const paymentLabel = fulfillmentType === "STORE_PICKUP" ? "Pay at Store" : "Cash on Delivery";
 
@@ -155,6 +207,8 @@ export function CheckoutForm({
           fulfillmentType === "LOCAL_DELIVERY" ? destination?.formattedAddress : undefined,
         expectedDeliveryFeeInPaise:
           fulfillmentType === "LOCAL_DELIVERY" ? deliveryPreview?.deliveryFeeInPaise : undefined,
+        couponCode: coupon?.code,
+        expectedCouponSavingInPaise: coupon?.savingInPaise,
         idempotencyKey,
       });
 
@@ -167,6 +221,13 @@ export function CheckoutForm({
       if (error.type === "VALIDATION") {
         setFieldErrors(error.fieldErrors);
         setFormError(error.message);
+      } else if (error.type === "COUPON_INVALID") {
+        setCoupon(null);
+        setCouponError(error.message);
+        setFormError(`${error.message} The offer was removed. Check the total and place the order again.`);
+      } else if (error.type === "COUPON_CHANGED" && coupon) {
+        setFormError(error.message);
+        void applyCoupon(coupon.code, true);
       } else if (error.type === "STOCK_ISSUE") {
         setFormError(error.message);
         setStockIssues(error.issues);
@@ -507,19 +568,47 @@ export function CheckoutForm({
           })}
         </ul>
 
+        <div className="border-t pt-3">
+          <CheckoutOffers
+            offers={offers}
+            applied={coupon}
+            subtotalInPaise={subtotalInPaise}
+            pending={couponPending}
+            error={couponError}
+            onApply={(code) => void applyCoupon(code)}
+            onRemove={() => {
+              setCoupon(null);
+              setCouponError(null);
+            }}
+          />
+        </div>
+
         <div className="border-t pt-3 text-sm">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Subtotal</span>
             <span>{formatPaise(subtotalInPaise)}</span>
           </div>
+          {couponDiscountInPaise > 0 && (
+            <div className="mt-1 flex justify-between font-semibold text-emerald-700">
+              <span>Offer {coupon?.code}</span>
+              <span className="tabular-nums">−{formatPaise(couponDiscountInPaise)}</span>
+            </div>
+          )}
           <div className="mt-1 flex justify-between">
             <span className="text-muted-foreground">Delivery</span>
             <span>
-              {deliveryFeeInPaise === null
-                ? "—"
-                : deliveryFeeInPaise > 0
-                  ? formatPaise(deliveryFeeInPaise)
-                  : "Free"}
+              {deliveryFeeInPaise === null ? (
+                "—"
+              ) : coupon?.freeDelivery && deliveryFeeInPaise > 0 ? (
+                <>
+                  <span className="mr-1.5 text-muted-foreground line-through">{formatPaise(deliveryFeeInPaise)}</span>
+                  <span className="font-semibold text-emerald-700">Free</span>
+                </>
+              ) : deliveryFeeInPaise > 0 ? (
+                formatPaise(deliveryFeeInPaise)
+              ) : (
+                "Free"
+              )}
             </span>
           </div>
           <div className="mt-2 flex justify-between border-t pt-2 text-base font-semibold">

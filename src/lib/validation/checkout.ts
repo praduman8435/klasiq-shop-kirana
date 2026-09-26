@@ -46,6 +46,10 @@ export const checkoutInputSchema = z
     // comparison baseline only, NEVER the charged amount. See
     // docs/PHASE_3_3_REPORT.md Part 2 "Delivery quote consistency".
     expectedDeliveryFeeInPaise: z.number().int().min(0).optional(),
+    // An offer code the customer applied, and the saving they were shown
+    // (a staleness check, like the delivery fee — never trusted as the amount).
+    couponCode: z.string().trim().max(40).optional(),
+    expectedCouponSavingInPaise: z.number().int().min(0).optional(),
     // Client-generated once per checkout attempt (crypto.randomUUID()) and
     // resent unchanged on retry — see docs/PHASE_2_REPORT.md "Idempotency".
     idempotencyKey: z.string().uuid(),

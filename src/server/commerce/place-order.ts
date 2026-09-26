@@ -5,6 +5,8 @@ import {
   FULFILLMENT_CONFIG,
   isBeyondDeliveryRange,
 } from "@/lib/fulfillment-config";
+import { allocateDiscountAcrossLines } from "@/lib/discount";
+import { formatPaise } from "@/lib/money";
 import { isUniqueConstraintErrorOn } from "@/lib/prisma-errors";
 import type { CheckoutInput } from "@/lib/validation/checkout";
 import {
@@ -14,6 +16,7 @@ import {
   type OrderLineIssue,
 } from "@/server/commerce/order-core";
 import { findOrCreateCustomerByPrimaryPhone, updateCustomerContactInfo } from "@/server/commerce/customer";
+import { checkCouponForOrder } from "@/server/coupons/coupons";
 import { calculateRouteDistanceMeters } from "@/server/geoapify";
 import { notifyOrderEvent } from "@/server/whatsapp/notification-service";
 
@@ -39,6 +42,8 @@ export type PlaceOrderError =
    * and submission. Never silently charges the new amount — see
    * docs/PHASE_3_3_REPORT.md Part 2 "Delivery quote consistency". */
   | { type: "DELIVERY_QUOTE_STALE"; message: string }
+  | { type: "COUPON_INVALID"; message: string }
+  | { type: "COUPON_CHANGED"; message: string }
   | { type: "UNKNOWN"; message: string };
 
 export type PlaceOrderResult =
@@ -260,7 +265,6 @@ export async function placeOrderForBasket(
         });
       }
 
-      const totalInPaise = subtotalInPaise + deliveryFeeInPaise;
 
       // Resolved only after stock is confirmed available — a checkout that
       // fails the stock check above never reaches this line, so it never
@@ -281,6 +285,42 @@ export async function placeOrderForBasket(
         });
       }
       const customerId = customerResult.customer.id;
+
+      // Offer code: checked again here, with the coupon row locked and the
+      // customer known, so limits hold even when two orders race.
+      let couponDiscountInPaise = 0;
+      let chargedDeliveryFeeInPaise = deliveryFeeInPaise;
+      let appliedCoupon: { id: string; code: string; type: "PERCENT" | "FLAT" | "FREE_DELIVERY"; value: number; savingInPaise: number } | null = null;
+      if (input.couponCode) {
+        const result = await checkCouponForOrder(tx, {
+          code: input.couponCode,
+          customerId,
+          subtotalInPaise,
+          deliveryFeeInPaise,
+          isDelivery: input.fulfillmentType === "LOCAL_DELIVERY",
+        });
+        if (!result.coupon) throw new PlaceOrderDomainError({ type: "COUPON_INVALID", message: result.reason });
+        if (!result.check.ok) {
+          throw new PlaceOrderDomainError({ type: "COUPON_INVALID", message: `${result.coupon.code}: ${result.check.reason}` });
+        }
+        if (input.expectedCouponSavingInPaise !== undefined && input.expectedCouponSavingInPaise !== result.check.savingInPaise) {
+          throw new PlaceOrderDomainError({
+            type: "COUPON_CHANGED",
+            message: `Your offer now saves ${formatPaise(result.check.savingInPaise)}. Please check the total and place the order again.`,
+          });
+        }
+        couponDiscountInPaise = result.check.discountInPaise;
+        if (result.check.freeDelivery) chargedDeliveryFeeInPaise = 0;
+        appliedCoupon = {
+          id: result.coupon.id,
+          code: result.coupon.code,
+          type: result.coupon.type,
+          value: result.coupon.value,
+          savingInPaise: result.check.savingInPaise,
+        };
+      }
+      const effectiveLineTotals = allocateDiscountAcrossLines(lines, couponDiscountInPaise);
+      const totalInPaise = subtotalInPaise - couponDiscountInPaise + chargedDeliveryFeeInPaise;
 
       // Point-in-time snapshot of the WhatsApp number given AT THIS
       // CHECKOUT — same pattern as customerName/customerMobile above,
@@ -317,8 +357,23 @@ export async function placeOrderForBasket(
         paymentStatus: "UNPAID",
         status: "PENDING",
         subtotalInPaise,
-        deliveryFeeInPaise,
+        deliveryFeeInPaise: chargedDeliveryFeeInPaise,
         totalInPaise,
+        ...(appliedCoupon
+          ? {
+              couponId: appliedCoupon.id,
+              couponCode: appliedCoupon.code,
+              couponSavingInPaise: appliedCoupon.savingInPaise,
+              ...(couponDiscountInPaise > 0
+                ? {
+                    discountType: appliedCoupon.type === "PERCENT" ? ("PERCENTAGE" as const) : ("FLAT" as const),
+                    discountValue: appliedCoupon.value,
+                    discountReason: `Offer ${appliedCoupon.code}`,
+                    discountInPaise: couponDiscountInPaise,
+                  }
+                : {}),
+            }
+          : {}),
         // Phase 3.6.5 Part 3 — Online Checkout never negotiates a partial
         // payment (Counter-only — see docs/PHASE_3_6_5_REPORT.md Part 3
         // "Online checkout scope"). `paymentStatus` above (UNPAID, moving
@@ -329,7 +384,7 @@ export async function placeOrderForBasket(
         amountReceivedInPaise: totalInPaise,
         outstandingInPaise: 0,
         items: {
-          create: lines.map((line) => ({
+          create: lines.map((line, index) => ({
             productId: line.productId,
             productVariantId: line.productVariantId,
             productName: line.productName,
@@ -342,7 +397,7 @@ export async function placeOrderForBasket(
             // Part 2 is Counter-only — see docs/PHASE_3_6_5_REPORT.md
             // Part 2 "Online checkout scope") — the effective total is
             // always identical to the original line total here.
-            effectiveLineTotalInPaise: line.lineTotalInPaise,
+            effectiveLineTotalInPaise: effectiveLineTotals[index]!,
           })),
         },
       }));

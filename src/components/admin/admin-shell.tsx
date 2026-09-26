@@ -16,6 +16,7 @@ import {
   Truck,
   Undo2,
   Wallet,
+  TicketPercent,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -33,6 +34,7 @@ const ADMIN_NAV = [
   { href: "/admin/inventory", label: "Inventory", icon: Boxes, exact: false },
   { href: "/admin/suppliers", label: "Suppliers", icon: Truck, exact: false },
   { href: "/admin/categories", label: "Categories", icon: Tags, exact: false },
+  { href: "/admin/offers", label: "Offers", icon: TicketPercent, exact: false },
   { href: "/admin/banners", label: "Banners", icon: Megaphone, exact: false },
 ] as const;
 

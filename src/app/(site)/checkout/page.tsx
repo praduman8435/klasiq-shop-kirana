@@ -12,6 +12,8 @@ import {
 import { computeCheckoutBlockingIssues } from "@/lib/basket-math";
 import { FULFILLMENT_CONFIG } from "@/lib/fulfillment-config";
 import { isGeoapifyConfigured } from "@/server/geoapify";
+import { couponHeadline, describeCoupon } from "@/lib/coupons";
+import { getWebsiteCoupons } from "@/server/coupons/coupons";
 
 export const metadata: Metadata = {
   title: "Checkout",
@@ -92,6 +94,7 @@ export default async function CheckoutPage() {
   }
 
   const subtotalInPaise = basketTotalInPaise(basket);
+  const offers = await getWebsiteCoupons();
   const items = basket.items.map((item) => ({
     id: item.id,
     productName: item.productVariant.product.name,
@@ -129,6 +132,12 @@ export default async function CheckoutPage() {
           serviceableAreaNote: FULFILLMENT_CONFIG.serviceableAreaNote,
         }}
         geoapifyConfigured={isGeoapifyConfigured()}
+        offers={offers.map((o) => ({
+          code: o.code,
+          headline: couponHeadline(o),
+          description: describeCoupon(o),
+          minOrderInPaise: o.minOrderInPaise,
+        }))}
       />
     </div>
   );

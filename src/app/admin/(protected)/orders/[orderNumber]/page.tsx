@@ -159,7 +159,12 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
                 </div>
               )}
               <div className="mt-1 flex justify-between">
-                <span className="text-muted-foreground">Delivery fee</span>
+                <span className="text-muted-foreground">
+                  Delivery fee
+                  {order.couponCode && order.discountInPaise === 0 && order.couponSavingInPaise > 0
+                    ? ` — offer ${order.couponCode} (saved ${formatPaise(order.couponSavingInPaise)})`
+                    : ""}
+                </span>
                 <span>{order.deliveryFeeInPaise > 0 ? formatPaise(order.deliveryFeeInPaise) : "Free"}</span>
               </div>
               <div className="mt-2 flex justify-between border-t border-border pt-2 text-base font-semibold">
