@@ -54,7 +54,6 @@ export default async function MeraKhataPage() {
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <PortalHeader
-        name={session.customer?.displayName ?? null}
         phone={session.phoneNormalized}
         active="khata"
         dueInPaise={due}
@@ -77,15 +76,14 @@ export default async function MeraKhataPage() {
             className={cn("rounded-3xl border p-5", due > 0 ? "border-primary/15 bg-brand-soft" : "border-border bg-card")}
           >
             <h2 id="balance-heading" className={cn("text-sm font-bold", due > 0 ? "text-brand-deep" : "text-muted-foreground")}>
-              {due > 0 ? "You owe the shop · Baaki" : "Your khata"}
+              {due > 0 ? "Amount to pay · Baaki" : "Your khata"}
             </h2>
             {due > 0 ? (
               <>
                 <p className="mt-1 font-heading text-4xl font-extrabold tracking-[-0.02em] text-brand-deep tabular-nums">{formatPaise(due)}</p>
                 {khata.dueSince && (
                   <p className="mt-1 text-sm text-brand-deep/80">
-                    Oldest unpaid udhaar from {SHORT.format(khata.dueSince)}
-                    {days > 0 ? ` · ${days} day${days === 1 ? "" : "s"} ago` : " · today"}
+                    {days > 0 ? `Since ${SHORT.format(khata.dueSince)} · ${days} day${days === 1 ? "" : "s"}` : "Since today"}
                   </p>
                 )}
               </>

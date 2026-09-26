@@ -14,12 +14,10 @@ function maskPhone(phone: string): string {
  * two things they came for — their orders and their khata with the shop.
  */
 export function PortalHeader({
-  name,
   phone,
   active,
   dueInPaise,
 }: {
-  name: string | null;
   phone: string;
   active: "orders" | "khata";
   dueInPaise: number;
@@ -36,14 +34,10 @@ export function PortalHeader({
   ] as const;
 
   return (
-    <header className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="font-heading text-2xl font-extrabold leading-tight tracking-[-0.015em] text-balance sm:text-3xl">
-            {name ? `Namaste, ${name.split(" ")[0]}` : "Namaste"}
-          </h1>
-          <p className="mt-0.5 text-sm text-muted-foreground tabular-nums">{maskPhone(phone)}</p>
-        </div>
+    <header className="flex flex-col gap-3">
+      <h1 className="sr-only">{active === "orders" ? "My orders" : "Mera Khata"}</h1>
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground tabular-nums">{maskPhone(phone)}</p>
         <CustomerLogoutButton />
       </div>
 
