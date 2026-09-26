@@ -54,6 +54,7 @@ export default async function MeraKhataPage() {
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <PortalHeader
+        name={session.customer?.displayName ?? null}
         phone={session.phoneNormalized}
         active="khata"
         dueInPaise={due}

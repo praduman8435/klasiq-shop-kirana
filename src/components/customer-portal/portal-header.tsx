@@ -4,9 +4,10 @@ import { CustomerLogoutButton } from "@/components/customer-portal/logout-button
 import { formatPaise } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
-function maskPhone(phone: string): string {
+/** "9876501234" (or +919876501234) → "98765 01234". */
+function formatPhone(phone: string): string {
   const digits = phone.replace(/\D/g, "").slice(-10);
-  return digits.length === 10 ? `${digits.slice(0, 2)}••• ••${digits.slice(7)}` : phone;
+  return digits.length === 10 ? `${digits.slice(0, 5)} ${digits.slice(5)}` : phone;
 }
 
 /**
@@ -14,10 +15,12 @@ function maskPhone(phone: string): string {
  * two things they came for — their orders and their khata with the shop.
  */
 export function PortalHeader({
+  name,
   phone,
   active,
   dueInPaise,
 }: {
+  name: string | null;
   phone: string;
   active: "orders" | "khata";
   dueInPaise: number;
@@ -37,7 +40,10 @@ export function PortalHeader({
     <header className="flex flex-col gap-3">
       <h1 className="sr-only">{active === "orders" ? "My orders" : "Mera Khata"}</h1>
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground tabular-nums">{maskPhone(phone)}</p>
+        <div className="min-w-0">
+          {name && <p className="truncate text-base font-extrabold leading-tight">{name}</p>}
+          <p className="text-sm text-muted-foreground tabular-nums">{formatPhone(phone)}</p>
+        </div>
         <CustomerLogoutButton />
       </div>
 
