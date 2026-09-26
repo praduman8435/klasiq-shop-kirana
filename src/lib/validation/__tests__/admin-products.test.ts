@@ -84,8 +84,10 @@ describe("variantFormSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a missing SKU", () => {
-    expect(variantFormSchema.safeParse(base({ sku: "" })).success).toBe(false);
+  it("allows a blank SKU (one is generated) but caps its length", () => {
+    expect(variantFormSchema.safeParse(base({ sku: "" })).success).toBe(true);
+    expect(variantFormSchema.safeParse(base({ sku: undefined })).success).toBe(true);
+    expect(variantFormSchema.safeParse(base({ sku: "X".repeat(61) })).success).toBe(false);
   });
 
   it("accepts an MRP, a null MRP (clear it), or no MRP at all", () => {

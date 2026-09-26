@@ -27,12 +27,31 @@ export const productFormSchema = z.object({
   isActive: z.boolean(),
 });
 
-export const createProductSchema = productFormSchema;
+/** The first pack size, entered together with a new product so it's
+ * sellable in one step. The code (SKU) is generated. */
+export const firstPackSchema = z.object({
+  size: z.string().trim().min(1, "Enter the pack size, like 1 kg.").max(30),
+  priceInRupees: z.coerce.number({ message: "Enter the selling price." }).positive("Enter the selling price."),
+  mrpInRupees: z.coerce.number().positive("MRP must be more than zero.").nullable().optional(),
+  stockQuantity: z.coerce.number().int().min(0, "Stock cannot be negative.").default(0),
+});
+
+/** On create the web address (slug) is optional — it's made from the name. */
+export const createProductSchema = productFormSchema.extend({
+  slug: z
+    .string()
+    .trim()
+    .max(100)
+    .regex(/^([a-z0-9]+(-[a-z0-9]+)*)?$/, "Use lowercase letters, numbers and hyphens only.")
+    .optional(),
+  firstPack: firstPackSchema.optional(),
+});
 export const updateProductSchema = productFormSchema.extend({ id: z.string().min(1) });
 
 export const variantFormSchema = z.object({
   size: z.string().trim().min(1, "Pack size is required.").max(30),
-  sku: z.string().trim().min(1, "SKU is required.").max(60),
+  /** Blank = generate one from the product and pack size. */
+  sku: z.string().trim().max(60).optional(),
   priceInRupees: z.coerce.number().min(0, "Price cannot be negative."),
   /** Printed MRP. `null` clears it (loose/unbranded goods); omitted
    * (`undefined`) on an update leaves the stored MRP unchanged. */
@@ -42,13 +61,21 @@ export const variantFormSchema = z.object({
 });
 
 export const createVariantSchema = variantFormSchema.extend({ productId: z.string().min(1) });
-export const updateVariantSchema = variantFormSchema.extend({ id: z.string().min(1) });
+export const updateVariantSchema = variantFormSchema.extend({
+  id: z.string().min(1),
+  /** The stock the form was showing, so a sale made meanwhile isn't overwritten. */
+  expectedStockQuantity: z.coerce.number().int().min(0).optional(),
+});
 export const setVariantActiveSchema = z.object({ id: z.string().min(1), isActive: z.boolean() });
 export const deleteVariantSchema = z.object({ id: z.string().min(1) });
+
+export const PRODUCT_STOCK_FILTERS = ["out", "low", "hidden"] as const;
+export type ProductStockFilter = (typeof PRODUCT_STOCK_FILTERS)[number];
 
 export const adminProductFiltersSchema = z.object({
   query: z.string().trim().max(100).optional(),
   categorySlug: z.string().trim().max(60).optional(),
+  stock: z.enum(PRODUCT_STOCK_FILTERS).optional().catch(undefined),
 });
 
 /**

@@ -6,7 +6,9 @@ import { db } from "@/lib/db";
 import { getAdminSession } from "@/lib/admin/session";
 import { deriveStockStatus } from "@/lib/stock";
 import { rupeesToPaise } from "@/lib/money";
+import { setInventoryQuantity } from "@/server/commerce/inventory";
 import { deleteProductPhotoIfUnused } from "@/server/product-photos";
+import { uniqueProductSlug, uniqueSku } from "@/server/products/codes";
 import {
   checkPriceAgainstMrp,
   createProductSchema,
@@ -61,21 +63,56 @@ export async function createProductAction(
     };
   }
 
-  const existing = await db.product.findUnique({ where: { slug: parsed.data.slug } });
-  if (existing) {
-    return { success: false, error: { type: "CONFLICT", message: "That slug is already in use." } };
+  const { firstPack } = parsed.data;
+  let firstPackPrices: { priceInPaise: number; mrpInPaise: number | null } | null = null;
+  if (firstPack) {
+    const priceInPaise = rupeesToPaise(firstPack.priceInRupees);
+    const mrpInPaise = firstPack.mrpInRupees == null ? null : rupeesToPaise(firstPack.mrpInRupees);
+    const mrpError = checkPriceAgainstMrp(priceInPaise, mrpInPaise);
+    if (mrpError) return { success: false, error: { type: "VALIDATION", message: mrpError } };
+    firstPackPrices = { priceInPaise, mrpInPaise };
   }
 
-  const product = await db.product.create({
-    data: {
-      name: parsed.data.name,
-      slug: parsed.data.slug,
-      description: parsed.data.description || null,
-      categoryId: parsed.data.categoryId,
-      brand: parsed.data.brand || null,
-      imageUrl: parsed.data.imageUrl || null,
-      isActive: parsed.data.isActive,
-    },
+  // A typed web address must be free; a blank one is made from the name.
+  let slug = parsed.data.slug || "";
+  if (slug) {
+    const existing = await db.product.findUnique({ where: { slug } });
+    if (existing) {
+      return { success: false, error: { type: "CONFLICT", message: "That web address is already used by another product." } };
+    }
+  } else {
+    slug = await uniqueProductSlug(parsed.data.name);
+  }
+
+  const product = await db.$transaction(async (tx) => {
+    const created = await tx.product.create({
+      data: {
+        name: parsed.data.name,
+        slug,
+        description: parsed.data.description || null,
+        categoryId: parsed.data.categoryId,
+        brand: parsed.data.brand || null,
+        imageUrl: parsed.data.imageUrl || null,
+        isActive: parsed.data.isActive,
+      },
+    });
+    if (firstPack && firstPackPrices) {
+      const lowStockThreshold = 5;
+      await tx.productVariant.create({
+        data: {
+          productId: created.id,
+          size: firstPack.size,
+          sku: await uniqueSku(slug, firstPack.size, tx),
+          priceInPaise: firstPackPrices.priceInPaise,
+          mrpInPaise: firstPackPrices.mrpInPaise,
+          stockQuantity: firstPack.stockQuantity,
+          lowStockThreshold,
+          stockStatus: deriveStockStatus(firstPack.stockQuantity, lowStockThreshold),
+          sortOrder: 0,
+        },
+      });
+    }
+    return created;
   });
 
   revalidateProductViews(product.id);
@@ -104,7 +141,7 @@ export async function updateProductAction(
   if (parsed.data.slug !== current.slug) {
     const slugTaken = await db.product.findUnique({ where: { slug: parsed.data.slug } });
     if (slugTaken) {
-      return { success: false, error: { type: "CONFLICT", message: "That slug is already in use." } };
+      return { success: false, error: { type: "CONFLICT", message: "That web address is already used by another product." } };
     }
   }
 
@@ -148,9 +185,16 @@ export async function createVariantAction(
     return { success: false, error: { type: "VALIDATION", message: mrpError } };
   }
 
-  const existingSku = await db.productVariant.findUnique({ where: { sku: parsed.data.sku } });
-  if (existingSku) {
-    return { success: false, error: { type: "CONFLICT", message: "That SKU is already in use." } };
+  let sku = parsed.data.sku || "";
+  if (sku) {
+    const existingSku = await db.productVariant.findUnique({ where: { sku } });
+    if (existingSku) {
+      return { success: false, error: { type: "CONFLICT", message: "That product code is already used by another pack." } };
+    }
+  } else {
+    const product = await db.product.findUnique({ where: { id: parsed.data.productId }, select: { slug: true } });
+    if (!product) return { success: false, error: { type: "NOT_FOUND", message: "Product not found." } };
+    sku = await uniqueSku(product.slug, parsed.data.size);
   }
   const existingSize = await db.productVariant.findUnique({
     where: { productId_size: { productId: parsed.data.productId, size: parsed.data.size } },
@@ -169,7 +213,7 @@ export async function createVariantAction(
     data: {
       productId: parsed.data.productId,
       size: parsed.data.size,
-      sku: parsed.data.sku,
+      sku,
       priceInPaise,
       mrpInPaise,
       stockQuantity: parsed.data.stockQuantity,
@@ -186,7 +230,7 @@ export async function createVariantAction(
 export async function updateVariantAction(
   input: unknown,
 ): Promise<AdminActionResult<{ success: true }>> {
-  const { unauthorized } = await requireAdmin();
+  const { admin, unauthorized } = await requireAdmin();
   if (unauthorized) return unauthorized;
 
   const parsed = updateVariantSchema.safeParse(input);
@@ -214,10 +258,11 @@ export async function updateVariantAction(
     return { success: false, error: { type: "VALIDATION", message: mrpError } };
   }
 
-  if (parsed.data.sku !== current.sku) {
-    const skuTaken = await db.productVariant.findUnique({ where: { sku: parsed.data.sku } });
+  const sku = parsed.data.sku || current.sku;
+  if (sku !== current.sku) {
+    const skuTaken = await db.productVariant.findUnique({ where: { sku } });
     if (skuTaken) {
-      return { success: false, error: { type: "CONFLICT", message: "That SKU is already in use." } };
+      return { success: false, error: { type: "CONFLICT", message: "That product code is already used by another pack." } };
     }
   }
   if (parsed.data.size !== current.size) {
@@ -234,14 +279,41 @@ export async function updateVariantAction(
     where: { id: parsed.data.id },
     data: {
       size: parsed.data.size,
-      sku: parsed.data.sku,
+      sku,
       priceInPaise,
       mrpInPaise,
-      stockQuantity: parsed.data.stockQuantity,
       lowStockThreshold,
-      stockStatus: deriveStockStatus(parsed.data.stockQuantity, lowStockThreshold),
+      stockStatus: deriveStockStatus(current.stockQuantity, lowStockThreshold),
     },
   });
+
+  // Stock goes through the same guarded path as Inventory "Set exact":
+  // recorded in the stock history, and refused if a sale changed it
+  // since the form was opened (instead of silently undoing that sale).
+  const expected = parsed.data.expectedStockQuantity ?? current.stockQuantity;
+  if (parsed.data.stockQuantity !== expected) {
+    const result = await setInventoryQuantity({
+      productVariantId: current.id,
+      newQuantity: parsed.data.stockQuantity,
+      expectedPreviousQuantity: expected,
+      reason: "MANUAL_CORRECTION",
+      note: "Edited on the product page",
+      adminUserId: admin!.id,
+    });
+    if (!result.success) {
+      revalidateProductViews(current.productId);
+      return {
+        success: false,
+        error: {
+          type: result.error.type === "NOT_FOUND" ? "NOT_FOUND" : "CONFLICT",
+          message:
+            result.error.type === "CONFLICT"
+              ? `Price saved, but stock changed to ${current.stockQuantity} (a sale happened). Check it and save the stock again.`
+              : result.error.message,
+        },
+      };
+    }
+  }
 
   revalidateProductViews(current.productId);
   return { success: true };
